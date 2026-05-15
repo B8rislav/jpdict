@@ -1,5 +1,5 @@
 import { components } from '@/shared/api/generatedTypes';
-import { createEffect, createStore } from 'effector';
+import { createEffect, createEvent, createStore } from 'effector';
 import { fetchWords, WordsResponse } from '../api/fetchWords';
 
 export type Word = Pick<
@@ -7,6 +7,7 @@ export type Word = Pick<
   'kanji_full' | 'pitch' | 'hiragana_full' | 'markers' | 'def'
 >;
 
+export const clearWords = createEvent();
 export const $words = createStore<Word[]>([]);
 
 type FetchWordsFX = (value: string) => Promise<WordsResponse | undefined>;
@@ -17,6 +18,8 @@ export const fetchWordsFx = createEffect<FetchWordsFX>(async (value) => {
 fetchWordsFx.fail.watch(({ params, error }) =>
   console.error(`Failed to fetch ${params}:`, error),
 );
+
+$words.on(clearWords, () => []);
 
 $words.on(fetchWordsFx.doneData, (_, data) => {
   return data?.words?.map((word) => {

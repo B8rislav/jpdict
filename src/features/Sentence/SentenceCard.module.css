@@ -1,0 +1,111 @@
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tokens {
+  display: grid;
+  gap: 12px;
+}
+
+.token {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.02);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.token:hover {
+  transform: translateY(-2px);
+}
+
+.token.selected {
+  border-color: currentColor;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.tokenContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.marker {
+  width: 12px;
+  height: 12px;
+  min-width: 12px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+/* POS-based colors */
+.particle {
+  color: #e74c3c;
+}
+
+.noun {
+  color: #3498db;
+}
+
+.verb {
+  color: #2ecc71;
+}
+
+.adjective {
+  color: #f39c12;
+}
+
+.auxiliary {
+  color: #9b59b6;
+}
+
+.adverb {
+  color: #1abc9c;
+}
+
+.other {
+  color: #95a5a6;
+}
+
+.particle:hover,
+.noun:hover,
+.verb:hover,
+.adjective:hover,
+.auxiliary:hover,
+.adverb:hover,
+.other:hover {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.particle.selected,
+.noun.selected,
+.verb.selected,
+.adjective.selected,
+.auxiliary.selected,
+.adverb.selected,
+.other.selected {
+  background: color-mix(in srgb, currentColor 20%, transparent);
+  border-color: currentColor;
+}
+
+.surface {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+

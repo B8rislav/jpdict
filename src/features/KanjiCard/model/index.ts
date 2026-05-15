@@ -1,5 +1,5 @@
 import { components } from '@/shared/api/generatedTypes';
-import { createEffect, createStore } from 'effector';
+import { createEffect, createEvent, createStore } from 'effector';
 import { fetchKanji, KanjiResponse } from '../api/fetchKanji';
 
 export type Kanji = Pick<
@@ -16,6 +16,7 @@ export type Kanji = Pick<
   markers: string[];
 };
 
+export const clearKanji = createEvent();
 export const $kanji = createStore<Kanji[]>([]);
 
 type FetchKanjiFX = (value: string) => Promise<KanjiResponse | undefined>;
@@ -26,6 +27,8 @@ export const fetchKanjiFx = createEffect<FetchKanjiFX>(async (value) => {
 fetchKanjiFx.fail.watch(({ params, error }) =>
   console.error(`Failed to fetch ${params}:`, error),
 );
+
+$kanji.on(clearKanji, () => []);
 
 $kanji.on(fetchKanjiFx.doneData, (_, data) => {
   return data?.map((responseKanji) => {

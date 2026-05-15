@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import './styles/globals.css';
 import '@gravity-ui/uikit/styles/fonts.css';
 import '@gravity-ui/uikit/styles/styles.css';
-import { ThemeProvider } from './ui/ThemeProvider';
+import { Providers } from './providers';
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -16,10 +16,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ThemeProvider>
+    <Providers>
       <html lang="en">
         <body>{children}</body>
       </html>
-    </ThemeProvider>
+    </Providers>
   );
 }

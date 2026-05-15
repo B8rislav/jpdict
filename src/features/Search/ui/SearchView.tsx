@@ -7,10 +7,11 @@ type SearchViewProps = {
   inputValue: string;
   setInputValue: Dispatch<SetStateAction<string>>;
   onButtonClick: MouseEventHandler;
+  placeholder?: string;
 };
 
 export const SearchView: FC<SearchViewProps> = (props) => {
-  const { inputValue, setInputValue, onButtonClick } = props;
+  const { inputValue, setInputValue, onButtonClick, placeholder } = props;
   const button = useRef<HTMLButtonElement>(null);
 
   return (
@@ -19,6 +20,7 @@ export const SearchView: FC<SearchViewProps> = (props) => {
         <TextInput
           type="search"
           value={inputValue}
+          placeholder={placeholder}
           onChange={(e) => {
             setInputValue(e.target.value);
           }}
