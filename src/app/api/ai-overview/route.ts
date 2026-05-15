@@ -18,7 +18,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const apiKey = process.env.NEXT_PUBLIC_GPT_KEY || process.env.OPENROUTER_KEY;
+    const apiKey = process.env.NEXT_PUBLIC_GPT_KEY;
     if (!apiKey) {
       return NextResponse.json(
         { error: 'API ключ не настроен. Пожалуйста, добавьте NEXT_PUBLIC_GPT_KEY или OPENROUTER_KEY в .env файл.' },
@@ -47,23 +47,25 @@ ${tokens
 5. Пример использования.
 
 Пиши только на русском языке.`;
+    const url = "https://openrouter.ai/api/v1/chat/completions";
+    const headers = {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+    };
+    const payload = {
+      "model": "deepseek/deepseek-v4-flash",
+      "messages": [
+        { role: 'system', content: 'Ты — эксперт по японскому языку. Отвечай на русском языке и избегай ненужной технической терминологии.' },
+        { role: 'user', content: prompt },
+      ],
+      "max_tokens": 900,
+      "temperature": 0.5,
+    };
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'X-Title': 'JPStudy - Japanese Learning Tool',
-      },
-      body: JSON.stringify({
-        model: 'mistralai/mistral-7b-instruct:latest',
-        messages: [
-          { role: 'system', content: 'Ты — эксперт по японскому языку. Отвечай на русском языке и избегай ненужной технической терминологии.' },
-          { role: 'user', content: prompt },
-        ],
-        max_tokens: 900,
-        temperature: 0.5,
-      }),
+    const response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload)
     });
 
     if (!response.ok) {
@@ -93,8 +95,7 @@ function createMockOverview(sentence: string, tokens: any[]) {
     .map((token: any) => `- ${token.surface_form} — ${token.basic_form || token.surface_form} (${token.pos})`)
     .join('\n');
 
-  return `Моковый AI-обзор предложения.
-
+  return `
 1. Общий смысл:
 Предложение "${sentence}" примерно означает простое утверждение или описание ситуации. Оно построено с типичными японскими грамматическими связками и показывает основной смысл через ключевые слова.
 
