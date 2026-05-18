@@ -6,7 +6,8 @@ import { useUnit } from 'effector-react';
 import { $userProfile } from '@/stores/userProfile';
 import { fetchKanjiFx, clearKanji } from '@/features/KanjiCard/model';
 import { Word } from '@/features/WordCard/model';
-import { fetchExampleSentencesFx, $exampleSentences, addWordFx } from './model';
+import { fetchExampleSentencesFx, $exampleSentences } from './model';
+import { addWordFx, $savedWords } from '@/features/Dictionary';
 import { Card } from '@/shared/ui/Card';
 import styles from './WordInspector.module.css';
 
@@ -52,6 +53,8 @@ export const WordInspector: FC<{ word: Word }> = ({ word }) => {
   const { selectedLanguage } = useUnit($userProfile);
   const exampleSentences = useUnit($exampleSentences);
   const examplesPending = useUnit(fetchExampleSentencesFx.pending);
+  const savedWords = useUnit($savedWords);
+  const isSaved = Boolean(word.id && savedWords.some((w) => w.id === word.id));
   const [examplesRequested, setExamplesRequested] = useState(false);
 
   const kanjiChars = word.kanji_full
@@ -159,8 +162,12 @@ export const WordInspector: FC<{ word: Word }> = ({ word }) => {
       )}
 
       <div className={styles.footer}>
-        <Button view="action" onClick={() => addWordFx(word)}>
-          Добавить в словарь
+        <Button
+          view={isSaved ? 'outlined-success' : 'action'}
+          disabled={isSaved}
+          onClick={() => addWordFx(word)}
+        >
+          {isSaved ? 'Сохранено' : 'Добавить в словарь'}
         </Button>
       </div>
     </Card>

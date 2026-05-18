@@ -1,0 +1,19 @@
+.page {
+  padding: 40px 60px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.back {
+  text-decoration: none;
+  color: var(--g-color-text-secondary);
+}
+
+.count {
+  color: var(--g-color-text-secondary);
+}

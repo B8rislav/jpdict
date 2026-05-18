@@ -1,7 +1,8 @@
 'use client';
 
 import { Button, TextInput } from '@gravity-ui/uikit';
-import { type FC, type MouseEventHandler, useRef } from 'react';
+import { type FC, type MouseEventHandler, useRef, useState } from 'react';
+import { SearchHistoryDropdown } from '@/features/SearchHistory';
 
 import styles from './SearchView.module.css';
 import ruTranslations from '@/shared/i18n/ru.json';
@@ -22,6 +23,10 @@ type SearchViewProps = {
   queryType?: QueryType;
   queryTypeLabel?: string;
   onSetQueryType?: (type: QueryType) => void;
+  historyEntries?: string[];
+  onSelectHistoryEntry?: (entry: string) => void;
+  onDeleteHistoryEntry?: (entry: string) => void;
+  onClearHistory?: () => void;
 };
 
 export const SearchView: FC<SearchViewProps> = (props) => {
@@ -35,13 +40,40 @@ export const SearchView: FC<SearchViewProps> = (props) => {
     queryType,
     queryTypeLabel,
     onSetQueryType,
+    historyEntries = [],
+    onSelectHistoryEntry,
+    onDeleteHistoryEntry,
+    onClearHistory,
   } = props;
+
   const button = useRef<HTMLButtonElement>(null);
+  const [showHistory, setShowHistory] = useState(false);
+
+  const handleSelectEntry = (entry: string) => {
+    setShowHistory(false);
+    onSelectHistoryEntry?.(entry);
+  };
+
+  const handleDeleteEntry = (entry: string) => {
+    onDeleteHistoryEntry?.(entry);
+  };
+
+  const handleClear = () => {
+    setShowHistory(false);
+    onClearHistory?.();
+  };
 
   return (
     <div className={styles.searchRoot}>
       <div className={styles.searchPanel}>
-        <div className={styles.inputWrapper}>
+        <div
+          className={styles.inputWrapper}
+          onBlur={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+              setShowHistory(false);
+            }
+          }}
+        >
           <TextInput
             type="search"
             value={inputValue}
@@ -49,12 +81,27 @@ export const SearchView: FC<SearchViewProps> = (props) => {
             onChange={(e) => {
               setInputValue(e.target.value);
             }}
+            onFocus={() => setShowHistory(true)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
+                setShowHistory(false);
                 button.current?.click();
+              }
+              if (e.key === 'Escape') {
+                setShowHistory(false);
               }
             }}
           />
+          {showHistory && historyEntries.length > 0 && (
+            <div onMouseDown={(e) => e.preventDefault()}>
+              <SearchHistoryDropdown
+                entries={historyEntries}
+                onSelect={handleSelectEntry}
+                onDelete={handleDeleteEntry}
+                onClear={handleClear}
+              />
+            </div>
+          )}
         </div>
         <Button
           view="action"

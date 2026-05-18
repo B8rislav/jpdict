@@ -1,0 +1,37 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filterRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.filterLabel {
+  min-width: 60px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.empty {
+  text-align: center;
+  padding: 40px 0;
+  color: var(--g-color-text-secondary);
+}

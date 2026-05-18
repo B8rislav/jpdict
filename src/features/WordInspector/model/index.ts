@@ -29,6 +29,3 @@ sample({
   target: $exampleSentences,
 });
 
-export const addWordFx = createEffect(async (word: Word) => {
-  console.log('addWordFx: Phase 8 not yet implemented', word);
-});

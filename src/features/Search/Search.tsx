@@ -9,6 +9,13 @@ import { fetchSentenceFx, clearSentences } from '../Sentence';
 import { useUnit } from 'effector-react';
 import { $userProfile } from '@/stores/userProfile';
 import { clearInspectedWord } from '@/features/WordInspector';
+import {
+  $searchHistory,
+  addToHistory,
+  removeFromHistory,
+  clearSearchHistory,
+  loadSearchHistory,
+} from '@/features/SearchHistory';
 import { classifySearchQuery, type SearchQueryType } from './utils';
 import ruTranslations from '@/shared/i18n/ru.json';
 
@@ -22,6 +29,11 @@ export const Search: FC = () => {
   const [autoQueryType, setAutoQueryType] = useState<SearchQueryType>('word');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const selectedLanguage = useUnit($userProfile).selectedLanguage;
+  const historyEntries = useUnit($searchHistory);
+
+  useEffect(() => {
+    loadSearchHistory();
+  }, []);
 
   const queryType = manualQueryType ?? autoQueryType;
   const placeholder = selectedLanguage === 'jp'
@@ -34,26 +46,16 @@ export const Search: FC = () => {
     if (!value.trim()) {
       return getTranslation('ui', 'search_hint_empty');
     }
-
-    if (queryType === 'kanji') {
-      return getTranslation('ui', 'search_hint_kanji');
-    }
-
-    if (queryType === 'sentence') {
-      return getTranslation('ui', 'search_hint_sentence');
-    }
-
+    if (queryType === 'kanji') return getTranslation('ui', 'search_hint_kanji');
+    if (queryType === 'sentence') return getTranslation('ui', 'search_hint_sentence');
     return getTranslation('ui', 'search_hint_word');
   }, [queryType, value]);
 
   const queryTypeLabel = useMemo(() => {
     switch (queryType) {
-      case 'kanji':
-        return getTranslation('ui', 'query_type_kanji');
-      case 'sentence':
-        return getTranslation('ui', 'query_type_sentence');
-      default:
-        return getTranslation('ui', 'query_type_word');
+      case 'kanji': return getTranslation('ui', 'query_type_kanji');
+      case 'sentence': return getTranslation('ui', 'query_type_sentence');
+      default: return getTranslation('ui', 'query_type_word');
     }
   }, [queryType]);
 
@@ -61,7 +63,6 @@ export const Search: FC = () => {
     const handler = window.setTimeout(() => {
       setAutoQueryType(classifySearchQuery(value, selectedLanguage));
     }, 300);
-
     return () => window.clearTimeout(handler);
   }, [value, selectedLanguage]);
 
@@ -74,30 +75,26 @@ export const Search: FC = () => {
     setManualQueryType(null);
   };
 
-  const isReadyToSearch = value.trim().length > 0 && !!selectedLanguage && !isSubmitting;
+  const executeSearch = async (query: string, type: SearchQueryType) => {
+    if (!query.trim() || !selectedLanguage || isSubmitting) return;
 
-  const onButtonClick = async () => {
-    const trimmedValue = value.trim();
-    if (!isReadyToSearch || !trimmedValue) {
-      return;
-    }
-
+    addToHistory(query.trim());
     setIsSubmitting(true);
 
     try {
-      if (queryType === 'kanji') {
+      if (type === 'kanji') {
         clearWords();
         clearSentences();
         clearInspectedWord();
-        await fetchKanjiFx({ value: trimmedValue, language: selectedLanguage });
-      } else if (queryType === 'sentence') {
+        await fetchKanjiFx({ value: query, language: selectedLanguage });
+      } else if (type === 'sentence') {
         clearWords();
         clearKanji();
         clearInspectedWord();
-        await fetchSentenceFx({ value: trimmedValue, language: selectedLanguage });
+        await fetchSentenceFx({ value: query, language: selectedLanguage });
       } else {
         clearSentences();
-        await fetchWordsFx({ value: trimmedValue, language: selectedLanguage });
+        await fetchWordsFx({ value: query, language: selectedLanguage });
       }
     } catch (error) {
       console.error(error);
@@ -106,8 +103,17 @@ export const Search: FC = () => {
     }
   };
 
-  const handleSetQueryType = (type: SearchQueryType) => {
+  const onButtonClick = async () => {
+    const trimmed = value.trim();
+    if (!trimmed || !selectedLanguage || isSubmitting) return;
+    await executeSearch(trimmed, queryType);
+  };
+
+  const handleSelectHistoryEntry = async (entry: string) => {
+    setValue(entry);
+    const type = classifySearchQuery(entry, selectedLanguage);
     setManualQueryType(type);
+    await executeSearch(entry, type);
   };
 
   return (
@@ -120,7 +126,11 @@ export const Search: FC = () => {
       isSubmitting={isSubmitting}
       queryTypeLabel={queryTypeLabel}
       queryType={queryType}
-      onSetQueryType={handleSetQueryType}
+      onSetQueryType={setManualQueryType}
+      historyEntries={historyEntries}
+      onSelectHistoryEntry={handleSelectHistoryEntry}
+      onDeleteHistoryEntry={removeFromHistory}
+      onClearHistory={clearSearchHistory}
     />
   );
 };

@@ -2,7 +2,7 @@
 
 import { useUnit } from 'effector-react';
 import { $userProfile, setSelectedLanguage, setShowFurigana, setShowPinyin, type Language } from '@/stores/userProfile';
-import { $searchHistory, clearSearchHistory } from '@/stores/searchHistory';
+import { $searchHistory, clearSearchHistory } from '@/features/SearchHistory/model';
 import { Button, Switch, Text } from '@gravity-ui/uikit';
 import Link from 'next/link';
 import styles from './page.module.css';

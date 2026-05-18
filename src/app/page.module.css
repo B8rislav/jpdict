@@ -2,6 +2,29 @@
   padding: 40px 60px;
 }
 
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.navDivider {
+  width: 1px;
+  height: 20px;
+  background: var(--g-color-line-generic);
+}
+
+.navSpacer {
+  flex: 1;
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .lists {
   display: flex;
   gap: 40px;

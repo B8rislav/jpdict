@@ -7,9 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest run --project unit",
+    "test:storybook": "vitest run --project storybook",
     "generate-types": "npx openapi-typescript https://api.renshuu.org/api-docs -o ./src/shared/api/generatedTypes.d.ts",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build:storybook": "storybook build"
   },
   "dependencies": {
     "effector": "^23.3.0",

@@ -1,0 +1,1 @@
+export { DictionaryWordCard } from './DictionaryWordCard';
