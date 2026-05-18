@@ -6,7 +6,7 @@ import { fetchWordsFx, clearWords } from '../WordCard';
 import { clearKanji } from '../KanjiCard/model';
 import { SentenceResult } from './model';
 import { fetchAIOverview } from './api/fetchAIOverview';
-import { AIOverviewAccordion } from './AIOverviewAccordion';
+import { AIOverviewAccordion } from './ui/AIOverviewAccordion';
 import ruTranslations from '@/shared/i18n/ru.json';
 import { useUnit } from 'effector-react';
 import { $userProfile } from '@/stores/userProfile';

@@ -1,7 +1,7 @@
 'use client';
 
-import { type Language } from '../../stores/userProfile';
-import styles from './LanguageSelect.module.css';
+import { type Language } from '@/stores/userProfile';
+import styles from '../LanguageSelect.module.css';
 import ruTranslations from '@/shared/i18n/ru.json';
 
 const getTranslation = (category: keyof typeof ruTranslations, key: string) => {

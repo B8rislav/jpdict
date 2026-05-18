@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useUnit } from 'effector-react';
 import { $userProfile, loadUserProfile, setSelectedLanguage, type Language } from '../../stores/userProfile';
-import LanguageCard from './LanguageCard';
+import LanguageCard from './ui/LanguageCard';
 import styles from './LanguageSelect.module.css';
 import ruTranslations from '@/shared/i18n/ru.json';
 

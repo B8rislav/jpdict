@@ -3,6 +3,7 @@
 import { FC } from 'react';
 import { Card } from '@/shared/ui/Card';
 import { Kanji } from './model';
+import { StrokeOrder } from './ui/StrokeOrder';
 
 import styles from './KanjiCard.module.css';
 import { Label, Text } from '@gravity-ui/uikit';
@@ -85,6 +86,7 @@ export const KanjiCard: FC<KanjiCardProps> = (props) => {
           </div>
         </div>
       )}
+      {kanji && <StrokeOrder kanji={kanji} />}
     </Card>
   );
 };
