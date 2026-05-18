@@ -4,15 +4,15 @@ import { fetchWords, WordsResponse } from '../api/fetchWords';
 
 export type Word = Pick<
   components['schemas']['Word'],
-  'kanji_full' | 'pitch' | 'hiragana_full' | 'markers' | 'def'
+  'id' | 'kanji_full' | 'pitch' | 'hiragana_full' | 'markers' | 'def' | 'typeofspeech'
 >;
 
 export const clearWords = createEvent();
 export const $words = createStore<Word[]>([]);
 
-type FetchWordsFX = (value: string) => Promise<WordsResponse | undefined>;
-export const fetchWordsFx = createEffect<FetchWordsFX>(async (value) => {
-  return await fetchWords(value);
+type FetchWordsFX = (params: { value: string; language: 'jp' | 'cn' | null }) => Promise<WordsResponse | undefined>;
+export const fetchWordsFx = createEffect<FetchWordsFX>(async ({ value, language }) => {
+  return await fetchWords(value, language);
 });
 
 fetchWordsFx.fail.watch(({ params, error }) =>

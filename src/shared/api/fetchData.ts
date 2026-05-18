@@ -5,7 +5,7 @@ export async function fetchData<Data>(
   while (maxRetries > 0) {
     try {
       return await fetchDataInternal(endpoint);
-    } catch (error) {
+    } catch {
       maxRetries--;
     }
   }

@@ -1,0 +1,38 @@
+.page {
+  padding: 40px 60px;
+  max-width: 600px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 40px;
+}
+
+.back {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.back:hover {
+  color: var(--text-dark);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--border-gray);
+}
+
+.section:last-child {
+  border-bottom: none;
+}
+
+.languageButtons {
+  display: flex;
+  gap: 8px;
+}

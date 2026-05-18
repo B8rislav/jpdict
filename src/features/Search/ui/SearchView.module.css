@@ -1,10 +1,95 @@
-.search {
+.searchRoot {
   display: flex;
-  gap: 40px;
-  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto 30px;
 }
 
-.input {
-  width: 70%;
-  max-width: 1000px;
+.searchPanel {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.inputWrapper {
+  flex: 1 1 320px;
+  min-width: 220px;
+}
+
+.searchPanel :global(.g-text-input) {
+  width: 100%;
+}
+
+.statusRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: #555;
+  font-size: 0.95rem;
+  justify-content: space-between;
+}
+
+.hintText {
+  color: #333;
+}
+
+.queryType {
+  background: #f0f4ff;
+  color: #1a3d8f;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  text-transform: capitalize;
+}
+
+.tips {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.tipItem {
+  appearance: none;
+  border: 1px solid #e6e6e6;
+  background: #fafafa;
+  border-radius: 10px;
+  padding: 12px 14px;
+  text-align: center;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  font: inherit;
+}
+
+.tipItem:hover,
+.tipItem:focus-visible {
+  background: #f2f6ff;
+  border-color: #c7d6ff;
+  outline: none;
+}
+
+.tipItem:active {
+  transform: translateY(1px);
+}
+
+.activeTip {
+  background: #e6efff;
+  border-color: #9cb2ff;
+}
+
+@media (max-width: 720px) {
+  .searchPanel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tips {
+    grid-template-columns: 1fr;
+  }
 }

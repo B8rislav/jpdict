@@ -5,6 +5,11 @@ import { useUnit } from 'effector-react';
 import { $userProfile, loadUserProfile, setSelectedLanguage, type Language } from '../../stores/userProfile';
 import LanguageCard from './LanguageCard';
 import styles from './LanguageSelect.module.css';
+import ruTranslations from '@/shared/i18n/ru.json';
+
+const getTranslation = (category: keyof typeof ruTranslations, key: string) => {
+  return (ruTranslations[category] as Record<string, string>)?.[key] || key;
+};
 
 const LanguageSelect = () => {
   const selectedLanguage = useUnit($userProfile).selectedLanguage;
@@ -27,18 +32,18 @@ const LanguageSelect = () => {
   return (
     <div className={styles.overlay}>
       <div className={styles.container}>
-        <h1 className={styles.title}>Выберите язык обучения</h1>
+        <h1 className={styles.title}>{getTranslation('ui', 'language_select_title')}</h1>
         <div className={styles.cards}>
           <LanguageCard
             language="jp"
             title="Японский"
-            description="Три системы письма: хирагана, катакана и кандзи. Уровни JLPT для оценки прогресса."
+            description={getTranslation('ui', 'language_select_jp_description')}
             onSelect={handleSelectLanguage}
           />
           <LanguageCard
             language="cn"
             title="Китайский"
-            description="Тональная система произношения. Уровни HSK для измерения владения языком."
+            description={getTranslation('ui', 'language_select_cn_description')}
             onSelect={handleSelectLanguage}
           />
         </div>

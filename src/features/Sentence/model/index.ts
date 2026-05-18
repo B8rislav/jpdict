@@ -19,9 +19,9 @@ export type SentenceResult = SentenceResponse;
 export const clearSentences = createEvent();
 export const $sentences = createStore<SentenceResult[]>([]);
 
-type FetchSentenceFX = (value: string) => Promise<SentenceResponse | undefined>;
-export const fetchSentenceFx = createEffect<FetchSentenceFX>(async (value) => {
-  return await fetchSentence(value);
+type FetchSentenceFX = (params: { value: string; language: 'jp' | 'cn' | null }) => Promise<SentenceResponse | undefined>;
+export const fetchSentenceFx = createEffect<FetchSentenceFX>(async ({ value, language }) => {
+  return await fetchSentence(value, language);
 });
 
 fetchSentenceFx.fail.watch(({ params, error }) =>

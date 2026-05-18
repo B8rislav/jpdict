@@ -1,12 +1,20 @@
 import { FC, useState } from 'react';
 import { Text, Button } from '@gravity-ui/uikit';
-import { ChevronDown, ChevronUp } from '@gravity-ui/icons';
 import styles from './AIOverviewAccordion.module.css';
 import Markdown from 'react-markdown';
 
+interface AIToken {
+  surface_form: string;
+  basic_form?: string;
+  pos: string;
+  pos_detail_1?: string;
+  conjugated_form?: string;
+  reading?: string;
+}
+
 interface AIOverviewAccordionProps {
   sentence: string;
-  tokens: any[];
+  tokens: AIToken[];
   onFetchOverview: () => Promise<string>;
 }
 
@@ -51,21 +59,36 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
     )
   };
 
+  const sentenceSummary = sentence
+    ? `${sentence.slice(0, 60)}${sentence.length > 60 ? '…' : ''}`
+    : '';
+  const tokenCount = tokens.length;
+
   return (
     <div className={styles.aiOverviewContainer}>
-      <Button
-        view="outlined"
-        size="l"
-        onClick={handleToggle}
-        className={styles.overviewToggle}
-        width="max"
-      >
-        <div className={styles.overviewHeader}>
+      <div className={styles.overviewHeader}>
+        <div className={styles.overviewTitleBlock}>
           <Text variant="subheader-2">🤖 AI Обзор предложения</Text>
-          {isExpanded ? <ChevronUp /> : <ChevronDown />}
+          {sentenceSummary && (
+            <Text variant="caption-1" className={styles.sentencePreview}>
+              {sentenceSummary}
+            </Text>
+          )}
         </div>
-      </Button>
-      
+        <div className={styles.overviewActions}>
+          <Text variant="caption-1" className={styles.tokenCount}>
+            Токенов: {tokenCount}
+          </Text>
+          <Button
+            view={isExpanded ? 'normal' : 'outlined-info'}
+            size="l"
+            onClick={handleToggle}
+          >
+            {isExpanded ? 'Свернуть обзор' : 'Показать обзор'}
+          </Button>
+        </div>
+      </div>
+
       {isExpanded && (
         <div className={styles.overviewContentContainer}>
           {isLoading ? (

@@ -3,6 +3,7 @@
 import { Search } from '@/features/Search';
 import { $words, fetchWordsFx, WordCard } from '@/features/WordCard';
 import { $sentences, fetchSentenceFx, SentenceCard } from '@/features/Sentence';
+import { $inspectedWord, WordInspector } from '@/features/WordInspector';
 import { CardList } from '@/shared/ui/CardList';
 import { useList, useUnit } from 'effector-react';
 
@@ -17,6 +18,7 @@ export default function Home() {
   const sentencePending = useUnit(fetchSentenceFx.pending);
   const wordsPending = useUnit(fetchWordsFx.pending);
   const kanjiPending = useUnit(fetchKanjiFx.pending);
+  const inspectedWord = useUnit($inspectedWord);
 
   const sentences = useList($sentences, (sentence, key) => (
     <li key={key}>
@@ -46,7 +48,11 @@ export default function Home() {
         </CardList>
         <CardList loading={wordsPending || kanjiPending} listHeight={800} listWidth={600}>
           {kanji}
-          {words}
+          {inspectedWord ? (
+            <li key={inspectedWord.id ?? inspectedWord.hiragana_full}>
+              <WordInspector word={inspectedWord} />
+            </li>
+          ) : words}
         </CardList>
       </div>
     </div>

@@ -1,52 +1,87 @@
+.sentenceCard {
+  padding-bottom: 8px;
+}
+
 .header {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 .tokens {
   display: grid;
-  gap: 12px;
+  gap: 16px;
 }
 
 .token {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
   align-items: center;
-  padding: 12px;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.02);
+  padding: 18px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(247, 251, 255, 0.95));
   cursor: pointer;
-  transition: all 0.2s ease;
-  border: 2px solid transparent;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  border: 1px solid rgba(30, 70, 120, 0.08);
+  box-shadow: 0 10px 24px rgba(32, 45, 75, 0.05);
 }
 
 .token:hover {
   transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(32, 45, 75, 0.1);
 }
 
 .token.selected {
   border-color: currentColor;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 1);
 }
 
 .tokenContent {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+  min-width: 0;
 }
 
 .marker {
-  width: 12px;
-  height: 12px;
-  min-width: 12px;
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
   border-radius: 50%;
   background: currentColor;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 0 0 8px rgba(0, 0, 0, 0.04);
 }
 
-/* POS-based colors */
+.surface {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.metaItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.aiCard {
+  margin-top: 18px;
+}
+
 .particle {
   color: #e74c3c;
 }
@@ -63,6 +98,10 @@
   color: #f39c12;
 }
 
+.pronoun {
+  color: #e67e22;
+}
+
 .auxiliary {
   color: #9b59b6;
 }
@@ -72,13 +111,14 @@
 }
 
 .other {
-  color: #95a5a6;
+  color: #66788a;
 }
 
 .particle:hover,
 .noun:hover,
 .verb:hover,
 .adjective:hover,
+.pronoun:hover,
 .auxiliary:hover,
 .adverb:hover,
 .other:hover {
@@ -89,6 +129,7 @@
 .noun.selected,
 .verb.selected,
 .adjective.selected,
+.pronoun.selected,
 .auxiliary.selected,
 .adverb.selected,
 .other.selected {
@@ -96,16 +137,14 @@
   border-color: currentColor;
 }
 
-.surface {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
+@media (max-width: 720px) {
+  .token {
+    grid-template-columns: 1fr;
+  }
 
-.meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
+  .meta {
+    justify-content: flex-start;
+    width: 100%;
+  }
 }
 

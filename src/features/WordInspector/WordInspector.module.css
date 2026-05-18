@@ -1,0 +1,138 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border-gray);
+  margin-bottom: 4px;
+}
+
+.title {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Accordion section */
+.section {
+  border-bottom: 1px solid var(--border-gray);
+}
+
+.section:last-of-type {
+  border-bottom: none;
+}
+
+.sectionToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  gap: 8px;
+}
+
+.sectionToggle:hover {
+  opacity: 0.75;
+}
+
+.chevron {
+  font-size: 16px;
+  color: var(--text-secondary);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.sectionContent {
+  padding-bottom: 16px;
+}
+
+/* Definitions */
+.definitions {
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+/* Grammar */
+.grammarGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.grammarRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Example sentences */
+.sentenceList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.sentenceItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sentenceMeaning {
+  color: var(--text-secondary);
+}
+
+/* Kanji breakdown */
+.kanjiGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.kanjiBtn {
+  padding: 10px 14px;
+  border: 1px solid var(--border-gray);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  line-height: 1;
+}
+
+.kanjiBtn:hover {
+  border-color: rgba(30, 70, 120, 0.4);
+  box-shadow: 0 4px 12px rgba(32, 45, 75, 0.1);
+}
+
+/* Footer */
+.footer {
+  padding-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}

@@ -19,9 +19,9 @@ export type Kanji = Pick<
 export const clearKanji = createEvent();
 export const $kanji = createStore<Kanji[]>([]);
 
-type FetchKanjiFX = (value: string) => Promise<KanjiResponse | undefined>;
-export const fetchKanjiFx = createEffect<FetchKanjiFX>(async (value) => {
-  return await fetchKanji(value);
+type FetchKanjiFX = (params: { value: string; language: 'jp' | 'cn' | null }) => Promise<KanjiResponse | undefined>;
+export const fetchKanjiFx = createEffect<FetchKanjiFX>(async ({ value, language }) => {
+  return await fetchKanji(value, language);
 });
 
 fetchKanjiFx.fail.watch(({ params, error }) =>

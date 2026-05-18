@@ -1,13 +1,18 @@
-import { NextResponse } from 'next/server';
-
 export const runtime = 'nodejs';
+
+interface AiToken {
+  surface_form: string;
+  basic_form?: string;
+  pos: string;
+  pos_detail_1?: string;
+}
 
 export async function POST(request: Request) {
   let sentence: string | undefined;
-  let tokens: any[] | undefined;
+  let tokens: AiToken[] | undefined;
 
   try {
-    const body = await request.json();
+    const body = await request.json() as { sentence?: string; tokens?: AiToken[] };
     sentence = body.sentence;
     tokens = body.tokens;
 
@@ -18,23 +23,26 @@ export async function POST(request: Request) {
       );
     }
 
-    const apiKey = process.env.NEXT_PUBLIC_GPT_KEY;
+    const apiKey = process.env.OPENROUTER_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'API ключ не настроен. Пожалуйста, добавьте NEXT_PUBLIC_GPT_KEY или OPENROUTER_KEY в .env файл.' },
+        { error: 'API ключ не настроен. Пожалуйста, добавьте OPENROUTER_KEY в .env файл.' },
         { status: 500 }
       );
     }
 
-    // Формируем промпт для анализа предложения на русском языке
-    const prompt = `Ты — эксперт по японскому языку. Проанализируй следующее предложение и напиши подробный обзор на русском языке.
+    const isChinese = tokens.some(t => /[一-鿿]/.test(t.surface_form) && !t.pos.includes('助'));
+    const langLabel = isChinese ? 'китайскому' : 'японскому';
+    const systemPrompt = `Ты — эксперт по ${langLabel} языку. Отвечай на русском языке и избегай ненужной технической терминологии.`;
+
+    const prompt = `Ты — эксперт по ${langLabel} языку. Проанализируй следующее предложение и напиши подробный обзор на русском языке.
 
 Предложение: "${sentence}"
 
 Токены (разбор):
 ${tokens
       .map(
-        (token: any, index: number) =>
+        (token: AiToken, index: number) =>
           `${index + 1}. ${token.surface_form} (${token.basic_form || token.surface_form}) — ${token.pos}${token.pos_detail_1 ? ` (${token.pos_detail_1})` : ''}`,
       )
       .join('\n')}
@@ -47,15 +55,16 @@ ${tokens
 5. Пример использования.
 
 Пиши только на русском языке.`;
-    const url = "https://openrouter.ai/api/v1/chat/completions";
+    const model = process.env.OPENROUTER_MODEL ?? 'deepseek/deepseek-v4-flash';
+    const url = 'https://openrouter.ai/api/v1/chat/completions';
     const headers = {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
     };
     const payload = {
-      "model": "deepseek/deepseek-v4-flash",
+      model,
       "messages": [
-        { role: 'system', content: 'Ты — эксперт по японскому языку. Отвечай на русском языке и избегай ненужной технической терминологии.' },
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: prompt },
       ],
       "max_tokens": 900,
@@ -89,10 +98,10 @@ ${tokens
   }
 }
 
-function createMockOverview(sentence: string, tokens: any[]) {
+function createMockOverview(sentence: string, tokens: AiToken[]) {
   const keyTokens = tokens
     .slice(0, 4)
-    .map((token: any) => `- ${token.surface_form} — ${token.basic_form || token.surface_form} (${token.pos})`)
+    .map((token: AiToken) => `- ${token.surface_form} — ${token.basic_form || token.surface_form} (${token.pos})`)
     .join('\n');
 
   return `

@@ -1,23 +1,36 @@
 :root {
   --bg-light: #ffffff;
   --text-dark: #1a1a1a;
+  --text-secondary: #888888;
   --accent-red: #e63946;
   --border-gray: #e0e0e0;
   --bg-dark: #1a1a1a;
   --text-white: #ffffff;
   --font-primary: 'Inter', 'Noto Sans JP', 'Zen Kaku Gothic', sans-serif;
+  --font-cjk: var(--font-noto-jp), sans-serif;
+}
+
+[data-lang="cn"] {
+  --font-cjk: var(--font-noto-sc), sans-serif;
 }
 
 body {
-  width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
   margin: 0;
-  font-family: var(--font-primary);
+  font-family: var(--font-cjk);
   background-color: var(--bg-light);
   color: var(--text-dark);
+}
+
+/* Hide external injected NEXTa overlays if they appear in the app shell */
+nextjs-portal {
+  display: none !important;
 }
 
 ul,
 ol {
   padding: 0;
 }
+
+ruby { ruby-align: center; }
+rt { font-size: 0.55em; color: var(--text-secondary); }
