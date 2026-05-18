@@ -35,6 +35,9 @@ export const DictionaryWordCard: FC<Props> = ({ word }) => {
         </Text>
       </div>
       <div className={styles.actions}>
+        {word.markers?.map((marker) => (
+          <Label key={marker}>{marker}</Label>
+        ))}
         <span onClick={handleStatusClick} style={{ cursor: 'pointer' }}>
           <Label theme={MASTERY_THEME[word.status]}>{MASTERY_LABEL[word.status]}</Label>
         </span>

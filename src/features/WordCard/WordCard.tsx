@@ -18,6 +18,7 @@ export const WordCard: FC<WordCardViewProps> = (props) => {
   const savedWords = useUnit($savedWords);
   const isSaved = Boolean(id && savedWords.some((w) => w.id === id));
   const readingLabel = selectedLanguage === 'cn' ? 'Pinyin' : 'Hiragana';
+  const level = markers?.find((m) => m.startsWith('JLPT') || m.startsWith('HSK'));
 
   const handleSave = () => {
     if (!isSaved) addWordFx(props);

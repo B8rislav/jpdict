@@ -4,17 +4,11 @@ import { Button, Text } from '@gravity-ui/uikit';
 import { useUnit } from 'effector-react';
 import { FC, useMemo, useState } from 'react';
 
-import { MasteryStatus, SavedWord } from '@/shared/api/types';
+import { MasteryStatus } from '@/shared/api/types';
 import { $savedWords } from './model';
 import { HSK_LEVELS, JLPT_LEVELS, MASTERY_CYCLE, MASTERY_LABEL } from './constants';
 import { DictionaryWordCard } from './DictionaryWordCard';
 import styles from './DictionaryPanel.module.css';
-
-function wordLevelKey(word: SavedWord): string | null {
-  const marker = word.markers?.find((m) => m.startsWith('JLPT') || m.startsWith('HSK'));
-  if (!marker) return null;
-  return marker.startsWith('JLPT') ? marker.replace('JLPT ', '') : marker;
-}
 
 export const DictionaryPanel: FC = () => {
   const savedWords = useUnit($savedWords);
@@ -28,7 +22,7 @@ export const DictionaryPanel: FC = () => {
     () =>
       savedWords.filter((w) => {
         if (statusFilter && w.status !== statusFilter) return false;
-        if (levelFilter && !wordLevelKey(w)?.includes(levelFilter)) return false;
+        if (levelFilter && !w.markers?.some((m) => m.includes(levelFilter))) return false;
         return true;
       }),
     [savedWords, levelFilter, statusFilter],
