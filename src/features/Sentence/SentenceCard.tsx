@@ -58,8 +58,8 @@ export const SentenceCard: FC<SentenceCardProps> = ({ sentence, tokens }) => {
   );
   const { selectedLanguage, showFurigana, showPinyin } = useUnit($userProfile);
 
-  const handleFetchOverview = async (): Promise<string> => {
-    return await fetchAIOverview(sentence, tokens);
+  const handleFetchOverview = (onChunk: (chunk: string) => void): Promise<void> => {
+    return fetchAIOverview(sentence, tokens, onChunk);
   };
 
   return (

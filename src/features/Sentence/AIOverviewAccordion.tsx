@@ -15,7 +15,7 @@ interface AIToken {
 interface AIOverviewAccordionProps {
   sentence: string;
   tokens: AIToken[];
-  onFetchOverview: () => Promise<string>;
+  onFetchOverview: (onChunk: (chunk: string) => void) => Promise<void>;
 }
 
 export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
@@ -28,22 +28,22 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleToggle = async () => {
-    if (!isExpanded) {
-      // Если аккордеон раскрывается впервые и обзор еще не загружен
-      if (overview === null && !isLoading) {
-        await fetchOverview();
-      }
+  const handleToggle = () => {
+    const next = !isExpanded;
+    setIsExpanded(next);
+    if (next && overview === null && !isLoading) {
+      fetchOverview();
     }
-    setIsExpanded(!isExpanded);
   };
 
   const fetchOverview = async () => {
     setIsLoading(true);
     setError(null);
+    setOverview(null);
     try {
-      const result = await onFetchOverview();
-      setOverview(result);
+      await onFetchOverview((chunk) => {
+        setOverview((prev) => (prev ?? '') + chunk);
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
       console.error('Failed to fetch AI overview:', err);
@@ -91,7 +91,11 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
 
       {isExpanded && (
         <div className={styles.overviewContentContainer}>
-          {isLoading ? (
+          {overview !== null ? (
+            <div className={styles.overviewText}>
+              {formatOverview(overview)}
+            </div>
+          ) : isLoading ? (
             <div className={styles.loadingContainer}>
               <div className={styles.spinner} />
               <Text variant="body-2" className={styles.loadingText}>
@@ -111,10 +115,6 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
               >
                 Попробовать снова
               </Button>
-            </div>
-          ) : overview ? (
-            <div className={styles.overviewText}>
-              {formatOverview(overview)}
             </div>
           ) : (
             <div className={styles.emptyState}>
