@@ -21,18 +21,14 @@ const getTranslation = (category: keyof typeof ruTranslations, key: string) => {
 
 const getPosColorClass = (pos: string, language: 'jp' | 'cn' | null): string => {
   if (language === 'cn') {
-    switch (pos) {
-      case 'pronoun':
-        return styles.pronoun;
-      case 'verb':
-        return styles.verb;
-      case 'noun':
-        return styles.noun;
-      case 'adjective':
-        return styles.adjective;
-      default:
-        return styles.other;
-    }
+    if (pos === 'r' || pos === 'rr' || pos === 'rz' || pos === 'rg') return styles.pronoun;
+    if (pos.startsWith('v')) return styles.verb;
+    if (pos.startsWith('n')) return styles.noun;
+    if (pos === 'a' || pos === 'ad' || pos === 'an' || pos === 'ag' || pos === 'b') return styles.adjective;
+    if (pos === 'd' || pos === 'dg' || pos === 'df' || pos === 'z' || pos === 'zg') return styles.adverb;
+    if (pos === 'p' || pos.startsWith('u') || pos === 'y') return styles.particle;
+    if (pos === 'c') return styles.auxiliary;
+    return styles.other;
   }
   switch (pos) {
     case '助詞':

@@ -12,6 +12,8 @@ export type SentenceToken = {
   basic_form: string;
   reading?: string;
   pronunciation?: string;
+  jlpt_level?: number | null;
+  hsk_level?: number | null;
 };
 
 export type SentenceResult = SentenceResponse;
@@ -19,7 +21,7 @@ export type SentenceResult = SentenceResponse;
 export const clearSentences = createEvent();
 export const $sentences = createStore<SentenceResult[]>([]);
 
-type FetchSentenceFX = (params: { value: string; language: 'jp' | 'cn' | null }) => Promise<SentenceResponse | undefined>;
+type FetchSentenceFX = (params: { value: string; language: 'jp' | 'cn' }) => Promise<SentenceResponse | undefined>;
 export const fetchSentenceFx = createEffect<FetchSentenceFX>(async ({ value, language }) => {
   return await fetchSentence(value, language);
 });
