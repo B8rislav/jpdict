@@ -1,14 +1,17 @@
 import { createEffect, createStore } from 'effector';
 import { MasteryStatus, SavedWord, WordEntry } from '@/shared/api/types';
+import { $isAuthenticated } from '@/stores/auth';
 
 export const $savedWords = createStore<SavedWord[]>([]);
 
 export const loadDictionaryFx = createEffect(async () => {
+  if (!$isAuthenticated.getState()) return [];
   const res = await fetch('/api/dictionary');
   return res.json() as Promise<SavedWord[]>;
 });
 
 export const addWordFx = createEffect(async (word: WordEntry) => {
+  if (!$isAuthenticated.getState()) throw new Error('not_authenticated');
   const res = await fetch('/api/dictionary', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -19,12 +22,14 @@ export const addWordFx = createEffect(async (word: WordEntry) => {
 });
 
 export const removeWordFx = createEffect(async (id: string) => {
+  if (!$isAuthenticated.getState()) throw new Error('not_authenticated');
   await fetch(`/api/dictionary/${id}`, { method: 'DELETE' });
   return id;
 });
 
 export const updateStatusFx = createEffect(
   async ({ id, status }: { id: string; status: MasteryStatus }) => {
+    if (!$isAuthenticated.getState()) throw new Error('not_authenticated');
     const res = await fetch(`/api/dictionary/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },

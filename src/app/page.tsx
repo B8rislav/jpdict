@@ -3,7 +3,7 @@
 import { Button, Switch, Text } from '@gravity-ui/uikit';
 import { useList, useUnit } from 'effector-react';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { $kanji, fetchKanjiFx } from '@/features/KanjiCard/model';
 import { KanjiCard } from '@/features/KanjiCard/KanjiCard';
@@ -12,6 +12,7 @@ import { Search } from '@/features/Search';
 import { $words, fetchWordsFx, WordCard } from '@/features/WordCard';
 import { $sentences, fetchSentenceFx, SentenceCard } from '@/features/Sentence';
 import { $inspectedWord, WordInspector } from '@/features/WordInspector';
+import { AuthModal } from '@/features/Auth/AuthModal';
 import { CardList } from '@/shared/ui/CardList';
 import {
   $userProfile,
@@ -21,6 +22,7 @@ import {
   setShowPinyin,
   type Language,
 } from '@/stores/userProfile';
+import { $isAuthenticated, $user, logoutFx, refreshFx } from '@/stores/auth';
 
 import styles from './page.module.css';
 
@@ -35,10 +37,14 @@ export default function Home() {
   const wordsPending = useUnit(fetchWordsFx.pending);
   const kanjiPending = useUnit(fetchKanjiFx.pending);
   const inspectedWord = useUnit($inspectedWord);
+  const isAuthenticated = useUnit($isAuthenticated);
+  const user = useUnit($user);
+  const [authOpen, setAuthOpen] = useState(false);
 
   useEffect(() => {
     loadUserProfile();
     loadDictionaryFx();
+    refreshFx();
   }, []);
 
   const sentences = useList($sentences, (sentence, key) => (
@@ -95,13 +101,36 @@ export default function Home() {
 
         <div className={styles.navSpacer} />
 
-        <Link
-          href="/dictionary"
-          style={{ textDecoration: 'none', color: 'var(--g-color-text-secondary)' }}
-        >
-          <Text variant="body-2">Мой словарь</Text>
-        </Link>
+        {isAuthenticated && (
+          <Link
+            href="/dictionary"
+            style={{ textDecoration: 'none', color: 'var(--g-color-text-secondary)' }}
+          >
+            <Text variant="body-2">Мой словарь</Text>
+          </Link>
+        )}
+
+        <div className={styles.navDivider} />
+
+        {isAuthenticated ? (
+          <>
+            {user && (
+              <Text variant="body-2" color="secondary">
+                {user.email}
+              </Text>
+            )}
+            <Button size="s" view="outlined" onClick={() => logoutFx()}>
+              Выйти
+            </Button>
+          </>
+        ) : (
+          <Button size="s" view="action" onClick={() => setAuthOpen(true)}>
+            Войти
+          </Button>
+        )}
       </nav>
+
+      <AuthModal open={authOpen} onOpenChange={setAuthOpen} />
 
       <Search />
 
