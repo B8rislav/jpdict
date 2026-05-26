@@ -1,37 +1,48 @@
 import { fetchData } from '@/shared/api/fetchData';
-import { paths } from '@/shared/api/generatedTypes';
+import { DictEntry } from '@/shared/api/types';
+import { Word } from '../model';
 
-export type WordsResponse =
-  paths['/word/search']['get']['responses']['200']['content']['application/json'];
-type GetWords = Promise<WordsResponse>;
+type SearchPage = {
+  total: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
+  items: DictEntry[];
+};
 
-export async function fetchWords(value: string, language: 'jp' | 'cn' | null): GetWords {
-  if (language === 'cn') {
-    // Mock Chinese words
-    return {
-      result_count: 2,
-      pg: 1,
-      per_pg: 10,
-      words: [
-        {
-          id: '1',
-          kanji_full: '中国',
-          hiragana_full: 'Zhōngguó',
-          pitch: ['zhōng guó'],
-          markers: ['HSK 1'],
-          def: ['Китай'],
-        },
-        {
-          id: '2',
-          kanji_full: '国家',
-          hiragana_full: 'Guójiā',
-          pitch: ['guó jiā'],
-          markers: ['HSK 2'],
-          def: ['государство, страна'],
-        },
-      ],
-    };
-  }
+export type WordsResponse = {
+  result_count?: number;
+  total_pg?: number;
+  per_pg?: number;
+  pg?: number;
+  query?: string;
+  words?: Word[];
+};
 
-  return fetchData(`word/search?value=${value}&pg=1`);
+function dictEntryToWord(entry: DictEntry): Word {
+  const markers: string[] = [];
+  if (entry.jlpt_level != null) markers.push(`JLPT N${entry.jlpt_level}`);
+  if (entry.hsk_level != null) markers.push(`HSK ${entry.hsk_level}`);
+
+  return {
+    id: entry.id,
+    kanji_full: entry.headword ?? entry.simplified ?? entry.traditional,
+    hiragana_full: entry.reading ?? entry.pinyin,
+    def_en: entry.definitions,
+    typeofspeech: entry.part_of_speech ?? undefined,
+    markers,
+  };
+}
+
+export async function fetchWords(value: string, language: 'jp' | 'cn' | null): Promise<WordsResponse> {
+  if (!language) return {};
+  const page = await fetchData<SearchPage>(
+    `search?q=${encodeURIComponent(value)}&lang=${language}`,
+  );
+  return {
+    result_count: page.total,
+    pg: page.page,
+    per_pg: page.per_page,
+    words: page.items.map(dictEntryToWord),
+  };
 }

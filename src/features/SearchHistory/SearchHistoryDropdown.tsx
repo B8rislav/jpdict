@@ -1,11 +1,12 @@
 import { FC } from 'react';
 import { Text } from '@gravity-ui/uikit';
 import styles from './SearchHistoryDropdown.module.css';
+import type { HistoryItem } from './model';
 
 type Props = {
-  entries: string[];
-  onSelect: (entry: string) => void;
-  onDelete: (entry: string) => void;
+  entries: HistoryItem[];
+  onSelect: (query: string) => void;
+  onDelete: (id: string) => void;
   onClear: () => void;
 };
 
@@ -22,14 +23,14 @@ export const SearchHistoryDropdown: FC<Props> = ({ entries, onSelect, onDelete, 
       </div>
       <ul className={styles.list}>
         {entries.map((entry) => (
-          <li key={entry} className={styles.item}>
-            <button className={styles.entryBtn} onClick={() => onSelect(entry)}>
-              {entry}
+          <li key={entry.id} className={styles.item}>
+            <button className={styles.entryBtn} onClick={() => onSelect(entry.query)}>
+              {entry.query}
             </button>
             <button
               className={styles.deleteBtn}
-              onClick={() => onDelete(entry)}
-              aria-label={`Удалить ${entry}`}
+              onClick={() => onDelete(entry.id)}
+              aria-label={`Удалить ${entry.query}`}
             >
               ×
             </button>

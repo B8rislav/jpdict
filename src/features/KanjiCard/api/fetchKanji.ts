@@ -1,61 +1,39 @@
 import { fetchData } from '@/shared/api/fetchData';
-import { paths } from '@/shared/api/generatedTypes';
+import { BackendKanjiCard } from '@/shared/api/types';
+import { Kanji } from '../model';
 
-type KanjiSearchResponse =
-  paths['/kanji/search']['get']['responses']['200']['content']['application/json'];
-export type KanjiResponse =
-  paths['/kanji/{kanji}']['get']['responses']['200']['content']['application/json'][];
-type GetKanji = Promise<KanjiResponse>;
+export type KanjiResponse = Kanji[];
 
-export async function fetchKanji(value: string, language: 'jp' | 'cn' | null): GetKanji {
-  if (language === 'cn') {
-    // Mock Chinese kanji
-    return [
-      {
-        id: '1',
-        kanji: '中',
-        scount: '4',
-        definition: 'середина, центр, Китай',
-        radical: '丨',
-        radical_name: 'zhōng',
-        onyomi: '', // Not used for Chinese
-        kunyomi: '', // Not used for Chinese
-        kanken: '', // Not used for Chinese
-        jlpt: '', // Not used for Chinese
-        rwords: [],
-        parts: [],
-        presence: {},
-        user_data: {},
-      },
-      {
-        id: '2',
-        kanji: '国',
-        scount: '8',
-        definition: 'страна, государство',
-        radical: '囗',
-        radical_name: 'guó',
-        onyomi: '',
-        kunyomi: '',
-        kanken: '',
-        jlpt: '',
-        rwords: [],
-        parts: [],
-        presence: {},
-        user_data: {},
-      },
-    ];
-  }
+const CJK_REGEX = /[一-鿿㐀-䶿]/;
 
-  const kanjisResponse: KanjiSearchResponse = await fetchData(
-    `kanji/search?value=${value}`,
+function backendCardToKanji(card: BackendKanjiCard): Kanji {
+  const markers: string[] = [];
+  if (card.jlpt_level) markers.push(`JLPT ${card.jlpt_level}`);
+  if (card.stroke_count != null) markers.push(`${card.stroke_count} черт`);
+
+  return {
+    kanji: card.character,
+    definition: card.meanings.join(', '),
+    radical: card.radicals[0] ?? '',
+    radical_name: card.radicals[0] ?? '',
+    onyomi: card.on_readings.join('、'),
+    kunyomi: card.kun_readings.join('、'),
+    markers,
+    rwords: [],
+    parts: [],
+  };
+}
+
+export async function fetchKanji(value: string, language: 'jp' | 'cn' | null): Promise<KanjiResponse> {
+  if (language !== 'jp') return [];
+  const chars = [...value].filter((c) => CJK_REGEX.test(c));
+  if (!chars.length) return [];
+
+  const results = await Promise.allSettled(
+    chars.map((char) => fetchData<BackendKanjiCard>(`kanji/${encodeURIComponent(char)}`)),
   );
-  const kanjis = kanjisResponse.kanjis;
-  if (!kanjis?.length) {
-    return [];
-  }
-  const requests = kanjis.map((kanji) =>
-    fetchData<KanjiResponse[number]>(`kanji/${kanji.kanji}`),
-  );
-  const kanjiDetails: KanjiResponse = await Promise.all(requests);
-  return kanjiDetails;
+
+  return results
+    .filter((r): r is PromiseFulfilledResult<BackendKanjiCard> => r.status === 'fulfilled')
+    .map((r) => backendCardToKanji(r.value));
 }

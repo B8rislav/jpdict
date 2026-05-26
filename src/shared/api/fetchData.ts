@@ -1,6 +1,8 @@
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:8000';
+
 export async function fetchData<Data>(
   endpoint: string,
-  maxRetries: number = 5,
+  maxRetries: number = 3,
 ): Promise<Data> {
   while (maxRetries > 0) {
     try {
@@ -14,11 +16,8 @@ export async function fetchData<Data>(
 }
 
 async function fetchDataInternal<Data>(endpoint: string): Promise<Data> {
-  const data = await fetch(`https://api.renshuu.org/v1/${endpoint}`, {
-    headers: {
-      Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_KEY}`,
-    },
-    signal: AbortSignal.timeout(5000),
+  const data = await fetch(`${BACKEND_URL}/api/${endpoint}`, {
+    signal: AbortSignal.timeout(8000),
   }).then((response) => {
     if (response.ok) {
       return response.json();

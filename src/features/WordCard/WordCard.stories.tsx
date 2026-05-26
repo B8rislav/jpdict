@@ -20,7 +20,7 @@ export const Primary: Story = {
   args: {
     kanji_full: '山',
     hiragana_full: 'やま',
-    def: ['mountain', 'hill'],
+    def_en: ['mountain', 'hill'],
     markers: [' JLPT N3', 'Frequency 1000'],
   },
 };

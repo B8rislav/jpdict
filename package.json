@@ -9,7 +9,7 @@
     "lint": "next lint",
     "test": "vitest run --project unit",
     "test:storybook": "vitest run --project storybook",
-    "generate-types": "npx openapi-typescript https://api.renshuu.org/api-docs -o ./src/shared/api/generatedTypes.d.ts",
+    "generate-types": "npx openapi-typescript http://localhost:8000/docs -o ./src/shared/api/generatedTypes.d.ts",
     "storybook": "storybook dev -p 6006",
     "build:storybook": "storybook build"
   },
@@ -21,7 +21,8 @@
     "next": "15.2.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-markdown": "^10.1.0"
+    "react-markdown": "^10.1.0",
+    "react-window": "^2.2.7"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.0.0",

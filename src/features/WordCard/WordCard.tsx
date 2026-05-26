@@ -13,10 +13,12 @@ import { $savedWords, addWordFx } from '@/features/Dictionary';
 type WordCardViewProps = Word;
 
 export const WordCard: FC<WordCardViewProps> = (props) => {
-  const { kanji_full, hiragana_full, def, markers, id } = props;
+  const { kanji_full, hiragana_full, def_ru, def_en, markers, id } = props;
+  const def = def_ru?.length ? def_ru : def_en;
   const selectedLanguage = useUnit($userProfile).selectedLanguage;
   const savedWords = useUnit($savedWords);
-  const isSaved = Boolean(id && savedWords.some((w) => w.id === id));
+  const expression = kanji_full ?? hiragana_full;
+  const isSaved = Boolean(expression && savedWords.some((w) => (w.kanji_full ?? w.hiragana_full) === expression));
   const readingLabel = selectedLanguage === 'cn' ? 'Pinyin' : 'Hiragana';
 
   const handleSave = () => {

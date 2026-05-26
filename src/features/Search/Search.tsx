@@ -8,13 +8,14 @@ import { fetchKanjiFx, clearKanji } from '../KanjiCard/model';
 import { fetchSentenceFx, clearSentences } from '../Sentence';
 import { useUnit } from 'effector-react';
 import { $userProfile } from '@/stores/userProfile';
+import { $isAuthenticated } from '@/stores/auth';
 import { clearInspectedWord } from '@/features/WordInspector';
 import {
   $searchHistory,
-  addToHistory,
-  removeFromHistory,
-  clearSearchHistory,
-  loadSearchHistory,
+  addHistoryFx,
+  removeHistoryFx,
+  clearHistoryFx,
+  loadHistoryFx,
 } from '@/features/SearchHistory';
 import { classifySearchQuery, type SearchQueryType } from './utils';
 import ruTranslations from '@/shared/i18n/ru.json';
@@ -30,10 +31,11 @@ export const Search: FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const selectedLanguage = useUnit($userProfile).selectedLanguage;
   const historyEntries = useUnit($searchHistory);
+  const isAuthenticated = useUnit($isAuthenticated);
 
   useEffect(() => {
-    loadSearchHistory();
-  }, []);
+    if (selectedLanguage && isAuthenticated) loadHistoryFx(selectedLanguage);
+  }, [selectedLanguage, isAuthenticated]);
 
   const queryType = manualQueryType ?? autoQueryType;
   const placeholder = selectedLanguage === 'jp'
@@ -78,7 +80,7 @@ export const Search: FC = () => {
   const executeSearch = async (query: string, type: SearchQueryType) => {
     if (!query.trim() || !selectedLanguage || isSubmitting) return;
 
-    addToHistory(query.trim());
+    addHistoryFx({ language: selectedLanguage, query: query.trim(), query_type: type });
     setIsSubmitting(true);
 
     try {
@@ -129,8 +131,8 @@ export const Search: FC = () => {
       onSetQueryType={setManualQueryType}
       historyEntries={historyEntries}
       onSelectHistoryEntry={handleSelectHistoryEntry}
-      onDeleteHistoryEntry={removeFromHistory}
-      onClearHistory={clearSearchHistory}
+      onDeleteHistoryEntry={(id) => removeHistoryFx(id)}
+      onClearHistory={() => clearHistoryFx()}
     />
   );
 };

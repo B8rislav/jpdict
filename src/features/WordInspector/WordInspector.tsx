@@ -54,7 +54,8 @@ export const WordInspector: FC<{ word: Word }> = ({ word }) => {
   const exampleSentences = useUnit($exampleSentences);
   const examplesPending = useUnit(fetchExampleSentencesFx.pending);
   const savedWords = useUnit($savedWords);
-  const isSaved = Boolean(word.id && savedWords.some((w) => w.id === word.id));
+  const expression = word.kanji_full ?? word.hiragana_full;
+  const isSaved = Boolean(expression && savedWords.some((w) => (w.kanji_full ?? w.hiragana_full) === expression));
   const [examplesRequested, setExamplesRequested] = useState(false);
 
   const kanjiChars = word.kanji_full
@@ -95,7 +96,7 @@ export const WordInspector: FC<{ word: Word }> = ({ word }) => {
 
       <AccordionSection title="Перевод" defaultOpen>
         <ol className={styles.definitions}>
-          {word.def?.map((d, i) => (
+          {(word.def_ru?.length ? word.def_ru : word.def_en)?.map((d, i) => (
             <li key={i}>
               <Text variant="body-2">{d}</Text>
             </li>

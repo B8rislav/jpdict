@@ -2,7 +2,7 @@
 
 import { useUnit } from 'effector-react';
 import { $userProfile, setSelectedLanguage, setShowFurigana, setShowPinyin, type Language } from '@/stores/userProfile';
-import { $searchHistory, clearSearchHistory } from '@/features/SearchHistory/model';
+import { $searchHistory, clearHistoryFx } from '@/features/SearchHistory/model';
 import { Button, Switch, Text } from '@gravity-ui/uikit';
 import Link from 'next/link';
 import styles from './page.module.css';
@@ -50,7 +50,7 @@ export default function Settings() {
       <div className={styles.section}>
         <Text variant="subheader-2">История поиска</Text>
         <Text variant="body-2">{searchHistory.length} записей</Text>
-        <Button view="outlined-danger" onClick={() => clearSearchHistory()}>
+        <Button view="outlined-danger" onClick={() => clearHistoryFx()}>
           Очистить историю
         </Button>
       </div>

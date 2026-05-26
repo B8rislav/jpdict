@@ -19,7 +19,7 @@ type Story = StoryObj<typeof DictionaryWordCard>;
 const baseWord = {
   id: '239',
   hiragana_full: 'こちら',
-  def: ['this way, this direction', 'here', 'this one'],
+  def_en: ['this way, this direction', 'here', 'this one'],
   markers: ['JLPT N5'],
   savedAt: '2026-05-19T10:00:00.000Z',
 };
@@ -48,7 +48,7 @@ export const Known: Story = {
       id: '500',
       kanji_full: '食べる',
       hiragana_full: 'たべる',
-      def: ['to eat', 'to live on (e.g. a salary)'],
+      def_en: ['to eat', 'to live on (e.g. a salary)'],
       markers: ['JLPT N5', 'News/Web 10k'],
       status: 'known',
     },
@@ -62,7 +62,7 @@ export const HSKWord: Story = {
       id: '2',
       kanji_full: '国家',
       hiragana_full: 'Guójiā',
-      def: ['state, country, nation'],
+      def_en: ['state, country, nation'],
       markers: ['HSK 2'],
       status: 'new',
     },

@@ -1,11 +1,16 @@
-import { components } from '@/shared/api/generatedTypes';
 import { createEffect, createEvent, createStore } from 'effector';
 import { fetchWords, WordsResponse } from '../api/fetchWords';
 
-export type Word = Pick<
-  components['schemas']['Word'],
-  'id' | 'kanji_full' | 'pitch' | 'hiragana_full' | 'markers' | 'def' | 'typeofspeech'
->;
+export type Word = {
+  id?: string;
+  kanji_full?: string;
+  hiragana_full?: string;
+  markers?: string[];
+  pitch?: string[];
+  def_en?: string[];
+  def_ru?: string[];
+  typeofspeech?: string;
+};
 
 export const clearWords = createEvent();
 export const $words = createStore<Word[]>([]);
@@ -21,11 +26,4 @@ fetchWordsFx.fail.watch(({ params, error }) =>
 
 $words.on(clearWords, () => []);
 
-$words.on(fetchWordsFx.doneData, (_, data) => {
-  return data?.words?.map((word) => {
-    if (typeof word.def == 'string') {
-      word.def = [word.def];
-    }
-    return word;
-  });
-});
+$words.on(fetchWordsFx.doneData, (_, data) => data?.words ?? []);

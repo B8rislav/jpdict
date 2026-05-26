@@ -1,32 +1,45 @@
-import { createEvent, createStore } from 'effector';
+import { createEffect, createStore } from 'effector';
 
-const MAX_HISTORY = 20;
-const STORAGE_KEY = 'searchHistory';
+export interface HistoryItem {
+  id: string;
+  query: string;
+}
 
-export const addToHistory = createEvent<string>();
-export const removeFromHistory = createEvent<string>();
-export const clearSearchHistory = createEvent();
-export const loadSearchHistory = createEvent<void>();
+export const $searchHistory = createStore<HistoryItem[]>([]);
 
-export const $searchHistory = createStore<string[]>([])
-  .on(addToHistory, (history, query) => {
-    const deduped = history.filter((h) => h !== query);
-    return [query, ...deduped].slice(0, MAX_HISTORY);
-  })
-  .on(removeFromHistory, (history, query) => history.filter((h) => h !== query))
-  .on(clearSearchHistory, () => [])
-  .on(loadSearchHistory, () => {
-    if (typeof window === 'undefined') return [];
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? (JSON.parse(stored) as string[]) : [];
-    } catch {
-      return [];
-    }
-  });
-
-$searchHistory.updates.watch((history) => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-  }
+export const loadHistoryFx = createEffect(async (language: 'jp' | 'cn') => {
+  const res = await fetch(`/api/history?lang=${language}&limit=20`);
+  if (!res.ok) return [];
+  return (await res.json()) as HistoryItem[];
 });
+
+export const addHistoryFx = createEffect(
+  async ({ language, query, query_type }: { language: string; query: string; query_type: string }) => {
+    const res = await fetch('/api/history', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ language, query, query_type }),
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as HistoryItem;
+  },
+);
+
+export const removeHistoryFx = createEffect(async (id: string) => {
+  await fetch(`/api/history/${id}`, { method: 'DELETE' });
+  return id;
+});
+
+export const clearHistoryFx = createEffect(async () => {
+  await fetch('/api/history', { method: 'DELETE' });
+});
+
+$searchHistory
+  .on(loadHistoryFx.doneData, (_, items) => items)
+  .on(addHistoryFx.doneData, (items, newItem) => {
+    if (!newItem) return items;
+    const deduped = items.filter((item) => item.query !== newItem.query);
+    return [newItem, ...deduped].slice(0, 20);
+  })
+  .on(removeHistoryFx, (items, id) => items.filter((item) => item.id !== id))
+  .on(clearHistoryFx, () => []);

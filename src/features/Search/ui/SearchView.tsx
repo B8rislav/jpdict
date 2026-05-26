@@ -2,7 +2,7 @@
 
 import { Button, TextInput } from '@gravity-ui/uikit';
 import { type FC, type MouseEventHandler, useRef, useState } from 'react';
-import { SearchHistoryDropdown } from '@/features/SearchHistory';
+import { SearchHistoryDropdown, type HistoryItem } from '@/features/SearchHistory';
 
 import styles from './SearchView.module.css';
 import ruTranslations from '@/shared/i18n/ru.json';
@@ -23,9 +23,9 @@ type SearchViewProps = {
   queryType?: QueryType;
   queryTypeLabel?: string;
   onSetQueryType?: (type: QueryType) => void;
-  historyEntries?: string[];
+  historyEntries?: HistoryItem[];
   onSelectHistoryEntry?: (entry: string) => void;
-  onDeleteHistoryEntry?: (entry: string) => void;
+  onDeleteHistoryEntry?: (id: string) => void;
   onClearHistory?: () => void;
 };
 

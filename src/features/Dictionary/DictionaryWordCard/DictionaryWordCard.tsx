@@ -31,7 +31,7 @@ export const DictionaryWordCard: FC<Props> = ({ word }) => {
           </Text>
         )}
         <Text className={styles.definition} variant="body-2">
-          {word.def?.[0]}
+          {(word.def_ru?.length ? word.def_ru : word.def_en)?.[0]}
         </Text>
       </div>
       <div className={styles.actions}>
