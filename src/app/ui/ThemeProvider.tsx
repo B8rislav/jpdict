@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, PropsWithChildren } from 'react';
+import { type FC, type PropsWithChildren } from 'react';
 import { ThemeProvider as GravityThemeProvider } from '@gravity-ui/uikit';
 
 export const ThemeProvider: FC<PropsWithChildren> = ({ children }) => {

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { MasteryStatus, SavedWord } from '@/shared/api/types';
+import { type MasteryStatus, type SavedWord } from '@/shared/api/types';
 
 export function useDictionaryFilters(words: SavedWord[]) {
   const [levelFilter, setLevelFilter] = useState<string | null>(null);
@@ -18,10 +18,8 @@ export function useDictionaryFilters(words: SavedWord[]) {
     [words, levelFilter, statusFilter],
   );
 
-  const toggleLevel = (level: string) =>
-    setLevelFilter((prev) => (prev === level ? null : level));
-  const toggleStatus = (s: MasteryStatus) =>
-    setStatusFilter((prev) => (prev === s ? null : s));
+  const toggleLevel = (level: string) => setLevelFilter((prev) => (prev === level ? null : level));
+  const toggleStatus = (s: MasteryStatus) => setStatusFilter((prev) => (prev === s ? null : s));
 
   return { filtered, levelFilter, statusFilter, toggleLevel, toggleStatus, hasJlpt, hasHsk };
 }

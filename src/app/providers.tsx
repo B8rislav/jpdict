@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, PropsWithChildren } from 'react';
+import { type FC, type PropsWithChildren } from 'react';
 import { ThemeProvider } from './ui/ThemeProvider';
 
 export const Providers: FC<PropsWithChildren> = ({ children }) => {

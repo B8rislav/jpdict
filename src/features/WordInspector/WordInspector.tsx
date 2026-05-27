@@ -1,11 +1,11 @@
 'use client';
 
-import { FC, useState, useCallback } from 'react';
+import { type FC, useState, useCallback } from 'react';
 import { Text, Button, Skeleton } from '@gravity-ui/uikit';
 import { useUnit } from 'effector-react';
 import { $userProfile } from '@/stores/userProfile';
 import { fetchKanjiFx, clearKanji } from '@/features/KanjiCard/model';
-import { Word } from '@/shared/api/types';
+import { type Word } from '@/shared/api/types';
 import { fetchExampleSentencesFx, $exampleSentences } from './model';
 import { addWordFx, $savedWords } from '@/features/Dictionary';
 import { CJK_REGEX } from '@/shared/utils/cjk';
@@ -21,12 +21,12 @@ export const WordInspector: FC<{ word: Word }> = ({ word }) => {
   const examplesPending = useUnit(fetchExampleSentencesFx.pending);
   const savedWords = useUnit($savedWords);
   const expression = word.kanji_full ?? word.hiragana_full;
-  const isSaved = Boolean(expression && savedWords.some((w) => (w.kanji_full ?? w.hiragana_full) === expression));
+  const isSaved = Boolean(
+    expression && savedWords.some((w) => (w.kanji_full ?? w.hiragana_full) === expression),
+  );
   const [examplesRequested, setExamplesRequested] = useState(false);
 
-  const kanjiChars = word.kanji_full
-    ? [...word.kanji_full].filter((c) => CJK_REGEX.test(c))
-    : [];
+  const kanjiChars = word.kanji_full ? [...word.kanji_full].filter((c) => CJK_REGEX.test(c)) : [];
 
   const handleExpandExamples = useCallback(() => {
     if (!examplesRequested && word.id) {
@@ -104,11 +104,7 @@ export const WordInspector: FC<{ word: Word }> = ({ word }) => {
         <AccordionSection title="Иероглифы">
           <div className={styles.kanjiGrid}>
             {kanjiChars.map((char) => (
-              <button
-                key={char}
-                className={styles.kanjiBtn}
-                onClick={() => handleKanjiClick(char)}
-              >
+              <button key={char} className={styles.kanjiBtn} onClick={() => handleKanjiClick(char)}>
                 <Text variant="display-2">{char}</Text>
               </button>
             ))}

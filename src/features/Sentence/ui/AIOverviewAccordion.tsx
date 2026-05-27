@@ -1,8 +1,9 @@
-import { FC, useState } from 'react';
+import { type FC, useState } from 'react';
 import { Text, Button } from '@gravity-ui/uikit';
 import styles from './AIOverviewAccordion.module.css';
 import Markdown from 'react-markdown';
-import { SentenceToken } from '@/shared/api/types';
+import { type SentenceToken } from '@/shared/api/types';
+import { SENTENCE_PREVIEW_LENGTH } from '../constants';
 
 interface AIOverviewAccordionProps {
   sentence: string;
@@ -45,7 +46,7 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
   };
 
   const sentenceSummary = sentence
-    ? `${sentence.slice(0, 60)}${sentence.length > 60 ? '…' : ''}`
+    ? `${sentence.slice(0, SENTENCE_PREVIEW_LENGTH)}${sentence.length > SENTENCE_PREVIEW_LENGTH ? '…' : ''}`
     : '';
   const tokenCount = tokens.length;
 
@@ -64,11 +65,7 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
           <Text variant="caption-1" className={styles.tokenCount}>
             Токенов: {tokenCount}
           </Text>
-          <Button
-            view={isExpanded ? 'normal' : 'outlined-info'}
-            size="l"
-            onClick={handleToggle}
-          >
+          <Button view={isExpanded ? 'normal' : 'outlined-info'} size="l" onClick={handleToggle}>
             {isExpanded ? 'Свернуть обзор' : 'Показать обзор'}
           </Button>
         </div>
@@ -106,12 +103,7 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
               <Text variant="body-2">
                 Нажмите кнопку ниже, чтобы получить AI-анализ этого предложения
               </Text>
-              <Button
-                view="action"
-                size="m"
-                onClick={fetchOverview}
-                className={styles.fetchButton}
-              >
+              <Button view="action" size="m" onClick={fetchOverview} className={styles.fetchButton}>
                 Получить AI-анализ
               </Button>
             </div>

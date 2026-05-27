@@ -1,0 +1,2 @@
+export const QUERY_TYPE_DEBOUNCE_MS = 300;
+export const SUBMIT_RESET_DELAY_MS = 400;

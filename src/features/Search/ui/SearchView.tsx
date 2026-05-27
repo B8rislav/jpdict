@@ -110,17 +110,20 @@ export const SearchView: FC<SearchViewProps> = (props) => {
       </div>
 
       <div className={styles.statusRow}>
-        <span className={styles.hintText}>{hintText || 'Одиночный иероглиф, слово или предложение'}</span>
+        <span className={styles.hintText}>
+          {hintText || 'Одиночный иероглиф, слово или предложение'}
+        </span>
         {queryTypeLabel && <span className={styles.queryType}>{queryTypeLabel}</span>}
       </div>
 
       <div className={styles.tips}>
         {(['kanji', 'word', 'sentence'] as QueryType[]).map((type) => {
-          const label = type === 'kanji'
-            ? t('ui', 'query_type_kanji')
-            : type === 'sentence'
-            ? t('ui', 'query_type_sentence')
-            : t('ui', 'query_type_word');
+          const label =
+            type === 'kanji'
+              ? t('ui', 'query_type_kanji')
+              : type === 'sentence'
+                ? t('ui', 'query_type_sentence')
+                : t('ui', 'query_type_word');
 
           return (
             <button

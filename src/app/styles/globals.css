@@ -10,7 +10,7 @@
   --font-cjk: var(--font-noto-jp), sans-serif;
 }
 
-[data-lang="cn"] {
+[data-lang='cn'] {
   --font-cjk: var(--font-noto-sc), sans-serif;
 }
 
@@ -32,5 +32,10 @@ ol {
   padding: 0;
 }
 
-ruby { ruby-align: center; }
-rt { font-size: 0.55em; color: var(--text-secondary); }
+ruby {
+  ruby-align: center;
+}
+rt {
+  font-size: 0.55em;
+  color: var(--text-secondary);
+}

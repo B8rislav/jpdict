@@ -1,4 +1,4 @@
-import { FC, ReactNode, useState } from 'react';
+import { type FC, type ReactNode, useState } from 'react';
 import { Text } from '@gravity-ui/uikit';
 import styles from './AccordionSection.module.css';
 

@@ -1,10 +1,6 @@
-export const runtime = 'nodejs';
+import { SSE_HEADERS } from './constants';
 
-const SSE_HEADERS = {
-  'Content-Type': 'text/event-stream',
-  'Cache-Control': 'no-cache, no-transform',
-  'Connection': 'keep-alive',
-};
+export const runtime = 'nodejs';
 
 interface AiToken {
   surface_form: string;
@@ -27,7 +23,7 @@ function textToSSEStream(text: string): ReadableStream {
 }
 
 function detectLanguage(tokens: AiToken[]): 'cn' | 'jp' {
-  return tokens.some(t => /[一-鿿]/.test(t.surface_form) && !t.pos.includes('助')) ? 'cn' : 'jp';
+  return tokens.some((t) => /[一-鿿]/.test(t.surface_form) && !t.pos.includes('助')) ? 'cn' : 'jp';
 }
 
 function buildMessages(sentence: string, tokens: AiToken[], lang: 'cn' | 'jp') {
@@ -39,8 +35,11 @@ function buildMessages(sentence: string, tokens: AiToken[], lang: 'cn' | 'jp') {
 
 Токены (разбор):
 ${tokens
-    .map((t, i) => `${i + 1}. ${t.surface_form} (${t.basic_form || t.surface_form}) — ${t.pos}${t.pos_detail_1 ? ` (${t.pos_detail_1})` : ''}`)
-    .join('\n')}
+  .map(
+    (t, i) =>
+      `${i + 1}. ${t.surface_form} (${t.basic_form || t.surface_form}) — ${t.pos}${t.pos_detail_1 ? ` (${t.pos_detail_1})` : ''}`,
+  )
+  .join('\n')}
 
 Пожалуйста, выведи результат в формате:
 1. Общий смысл.
@@ -111,7 +110,7 @@ function pipeOpenRouterStream(upstream: ReadableStream): ReadableStream {
 function createMockOverview(sentence: string, tokens: AiToken[]): string {
   const keyTokens = tokens
     .slice(0, 4)
-    .map(t => `- ${t.surface_form} — ${t.basic_form || t.surface_form} (${t.pos})`)
+    .map((t) => `- ${t.surface_form} — ${t.basic_form || t.surface_form} (${t.pos})`)
     .join('\n');
   return `
 1. Общий смысл:
@@ -137,7 +136,7 @@ export async function POST(request: Request) {
   let tokens: AiToken[] | undefined;
 
   try {
-    const body = await request.json() as { sentence?: string; tokens?: AiToken[] };
+    const body = (await request.json()) as { sentence?: string; tokens?: AiToken[] };
     sentence = body.sentence;
     tokens = body.tokens;
 
@@ -150,7 +149,9 @@ export async function POST(request: Request) {
 
     const apiKey = process.env.OPENROUTER_KEY;
     if (!apiKey) {
-      return new Response(textToSSEStream(createMockOverview(sentence, tokens)), { headers: SSE_HEADERS });
+      return new Response(textToSSEStream(createMockOverview(sentence, tokens)), {
+        headers: SSE_HEADERS,
+      });
     }
 
     const lang = detectLanguage(tokens);
@@ -161,7 +162,10 @@ export async function POST(request: Request) {
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: process.env.OPENROUTER_MODEL ?? 'deepseek/deepseek-v4-flash',
-        messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: user },
+        ],
         max_tokens: 5000,
         temperature: 0.5,
         stream: true,
@@ -171,15 +175,16 @@ export async function POST(request: Request) {
     if (!upstreamResponse.ok || !upstreamResponse.body) {
       const errorText = await upstreamResponse.text().catch(() => '');
       console.error('OpenRouter API error:', upstreamResponse.status, errorText);
-      return new Response(textToSSEStream(createMockOverview(sentence, tokens)), { headers: SSE_HEADERS });
+      return new Response(textToSSEStream(createMockOverview(sentence, tokens)), {
+        headers: SSE_HEADERS,
+      });
     }
 
     return new Response(pipeOpenRouterStream(upstreamResponse.body), { headers: SSE_HEADERS });
   } catch (error) {
     console.error('Error in AI overview API:', error);
-    return new Response(
-      textToSSEStream(createMockOverview(sentence ?? '', tokens ?? [])),
-      { headers: SSE_HEADERS },
-    );
+    return new Response(textToSSEStream(createMockOverview(sentence ?? '', tokens ?? [])), {
+      headers: SSE_HEADERS,
+    });
   }
 }

@@ -14,7 +14,15 @@ export const loadHistoryFx = createEffect(async (language: 'jp' | 'cn') => {
 });
 
 export const addHistoryFx = createEffect(
-  async ({ language, query, query_type }: { language: string; query: string; query_type: string }) => {
+  async ({
+    language,
+    query,
+    query_type,
+  }: {
+    language: string;
+    query: string;
+    query_type: string;
+  }) => {
     const res = await fetch('/api/history', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

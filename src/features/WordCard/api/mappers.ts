@@ -1,4 +1,4 @@
-import { DictEntry, Word } from '@/shared/api/types';
+import { type DictEntry, type Word } from '@/shared/api/types';
 
 export function dictEntryToWord(entry: DictEntry): Word {
   const markers: string[] = [];

@@ -1,6 +1,6 @@
 import { fetchData } from '@/shared/api/fetchData';
-import { DictEntry } from '@/shared/api/types';
-import { Word } from '@/shared/api/types';
+import { type DictEntry } from '@/shared/api/types';
+import { type Word } from '@/shared/api/types';
 import { dictEntryToWord } from './mappers';
 
 type SearchPage = {
@@ -20,7 +20,10 @@ export type WordsResponse = {
   words?: Word[];
 };
 
-export async function fetchWords(value: string, language: 'jp' | 'cn' | null): Promise<WordsResponse> {
+export async function fetchWords(
+  value: string,
+  language: 'jp' | 'cn' | null,
+): Promise<WordsResponse> {
   if (!language) return {};
   const page = await fetchData<SearchPage>(
     `search?q=${encodeURIComponent(value)}&lang=${language}`,

@@ -1,4 +1,4 @@
-import { BackendKanjiCard, Kanji } from '@/shared/api/types';
+import { type BackendKanjiCard, type Kanji } from '@/shared/api/types';
 
 export function backendCardToKanji(card: BackendKanjiCard): Kanji {
   const markers: string[] = [];

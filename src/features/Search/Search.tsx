@@ -1,6 +1,6 @@
 'use client';
 
-import { FC, useEffect, useMemo, useState } from 'react';
+import { type FC, useEffect, useMemo, useState } from 'react';
 
 import { SearchView } from './ui/SearchView';
 import { fetchWordsFx } from '../WordCard';
@@ -19,6 +19,7 @@ import {
 } from '@/features/SearchHistory';
 import { classifySearchQuery, type SearchQueryType } from './utils';
 import { t } from '@/shared/i18n';
+import { QUERY_TYPE_DEBOUNCE_MS, SUBMIT_RESET_DELAY_MS } from './constants';
 
 export const Search: FC = () => {
   const [value, setValue] = useState('');
@@ -34,11 +35,12 @@ export const Search: FC = () => {
   }, [selectedLanguage, isAuthenticated]);
 
   const queryType = manualQueryType ?? autoQueryType;
-  const placeholder = selectedLanguage === 'jp'
-    ? t('ui', 'search_placeholder_jp')
-    : selectedLanguage === 'cn'
-    ? t('ui', 'search_placeholder_cn')
-    : 'Выберите язык для поиска';
+  const placeholder =
+    selectedLanguage === 'jp'
+      ? t('ui', 'search_placeholder_jp')
+      : selectedLanguage === 'cn'
+        ? t('ui', 'search_placeholder_cn')
+        : 'Выберите язык для поиска';
 
   const typedHint = useMemo(() => {
     if (!value.trim()) {
@@ -51,16 +53,19 @@ export const Search: FC = () => {
 
   const queryTypeLabel = useMemo(() => {
     switch (queryType) {
-      case 'kanji': return t('ui', 'query_type_kanji');
-      case 'sentence': return t('ui', 'query_type_sentence');
-      default: return t('ui', 'query_type_word');
+      case 'kanji':
+        return t('ui', 'query_type_kanji');
+      case 'sentence':
+        return t('ui', 'query_type_sentence');
+      default:
+        return t('ui', 'query_type_word');
     }
   }, [queryType]);
 
   useEffect(() => {
     const handler = window.setTimeout(() => {
       setAutoQueryType(classifySearchQuery(value, selectedLanguage));
-    }, 300);
+    }, QUERY_TYPE_DEBOUNCE_MS);
     return () => window.clearTimeout(handler);
   }, [value, selectedLanguage]);
 
@@ -91,7 +96,7 @@ export const Search: FC = () => {
     } catch (error) {
       console.error(error);
     } finally {
-      setTimeout(() => setIsSubmitting(false), 400);
+      setTimeout(() => setIsSubmitting(false), SUBMIT_RESET_DELAY_MS);
     }
   };
 

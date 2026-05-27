@@ -1,8 +1,8 @@
 'use client';
 
-import { FC } from 'react';
+import { type FC } from 'react';
 import { useUnit } from 'effector-react';
-import { Kanji } from '@/shared/api/types';
+import { type Kanji } from '@/shared/api/types';
 import { $userProfile } from '@/stores/userProfile';
 import { KanjiCardView } from './ui/KanjiCardView';
 

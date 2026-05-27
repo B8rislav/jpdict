@@ -121,7 +121,9 @@
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.9);
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
   line-height: 1;
 }
 

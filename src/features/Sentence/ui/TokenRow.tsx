@@ -1,9 +1,9 @@
 'use client';
 
-import { CSSProperties, ReactElement } from 'react';
+import { type CSSProperties, type ReactElement } from 'react';
 import { Label, Text } from '@gravity-ui/uikit';
-import { RowComponentProps } from 'react-window';
-import { SentenceToken } from '@/shared/api/types';
+import { type RowComponentProps } from 'react-window';
+import { type SentenceToken } from '@/shared/api/types';
 import { FuriganaText } from '@/shared/ui/FuriganaText/FuriganaText';
 import { t } from '@/shared/i18n';
 import styles from './SentenceCardView.module.css';

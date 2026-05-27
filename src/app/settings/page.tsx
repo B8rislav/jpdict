@@ -2,7 +2,12 @@
 
 import { useUnit } from 'effector-react';
 import { type Language } from '@/shared/api/types';
-import { $userProfile, setSelectedLanguage, setShowFurigana, setShowPinyin } from '@/stores/userProfile';
+import {
+  $userProfile,
+  setSelectedLanguage,
+  setShowFurigana,
+  setShowPinyin,
+} from '@/stores/userProfile';
 import { $searchHistory, clearHistoryFx } from '@/features/SearchHistory/model';
 import { Button, Switch, Text } from '@gravity-ui/uikit';
 import Link from 'next/link';
@@ -15,7 +20,9 @@ export default function Settings() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <Link href="/" className={styles.back}>← Назад</Link>
+        <Link href="/" className={styles.back}>
+          ← Назад
+        </Link>
         <Text variant="display-1">Настройки</Text>
       </div>
 

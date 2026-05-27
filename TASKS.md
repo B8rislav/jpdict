@@ -68,14 +68,14 @@
 
 ### R7 — Minor tidy
 - [ ] `src/features/WordCard/model/index.ts:23-25` and `KanjiCard/model/index.ts:24-26` log via `fetchXFx.fail.watch` — same pattern repeats 3+ times. Add `src/shared/utils/logEffectFailures.ts` `(fx, label) => fx.fail.watch(...)` and use it.
-- [ ] `src/features/Sentence/ui/AIOverviewAccordion.tsx:6-13` declares `AIToken` — remove after R2.
-- [ ] Verify after each slice: `npm run build` and `npm run test` are clean.
+- [x] `src/features/Sentence/ui/AIOverviewAccordion.tsx:6-13` declares `AIToken` — remove after R2.
+- [x] Verify after each slice: `npm run build` and `npm run test` are clean.
 
 ### R8 — Extract inline constants into `constants.ts` files
 > Follow the pattern already established by `src/features/Dictionary/constants.ts`.
 > Rule: if a `const` is uppercase, primitive/literal, and lives at module top-level, it belongs in a sibling `constants.ts` (not a component file).
 
-- [ ] **Backend URL** (`FASTAPI_URL = process.env.FASTAPI_URL ?? 'http://localhost:8000'`) is duplicated in 7 route files:
+- [x] **Backend URL** (`FASTAPI_URL = process.env.FASTAPI_URL ?? 'http://localhost:8000'`) is duplicated in 7 route files:
   - `src/app/api/history/route.ts:3`
   - `src/app/api/history/[id]/route.ts:3`
   - `src/app/api/dictionary/route.ts:3`
@@ -85,27 +85,27 @@
   - `src/app/api/auth/refresh/route.ts:3`
   - `src/app/api/auth/register/route.ts:3`
   Move to `src/shared/api/backend.ts` exporting `BACKEND_URL`. (Also covers the existing `BACKEND_URL` in `src/shared/api/fetchData.ts:1`.)
-- [ ] **Sentence virtual-list sizing** — move `ITEM_SIZE` and `MAX_VISIBLE_ITEMS` (`src/features/Sentence/ui/SentenceCardView.tsx:13-14`) → `src/features/Sentence/constants.ts`.
-- [ ] **KanjiVG CDN base** — move `CDN_BASE` (`src/features/KanjiCard/ui/StrokeOrder.tsx:10`) → `src/features/KanjiCard/constants.ts`.
-- [ ] **SSE headers** — move `SSE_HEADERS` (`src/app/api/ai-overview/route.ts:3`) → `src/app/api/ai-overview/constants.ts` (or `src/shared/api/sse.ts` if reused later).
-- [ ] **`CJK_REGEX`** — already covered in R4 (single export from `src/shared/utils/cjk.ts`); just verify it's a named constant, not inline.
-- [ ] Sweep for remaining inline magic numbers in components (e.g. `setTimeout(..., 400)` in `Search.tsx:104`, `slice(0, 60)` in `AIOverviewAccordion.tsx:63`, debounce delays). Promote any that have semantic meaning to named constants in the feature's `constants.ts`. Leave purely-cosmetic numbers (`gap: 8`, `paddingBottom: 16`) inline.
+- [x] **Sentence virtual-list sizing** — move `ITEM_SIZE` and `MAX_VISIBLE_ITEMS` (`src/features/Sentence/ui/SentenceCardView.tsx:13-14`) → `src/features/Sentence/constants.ts`.
+- [x] **KanjiVG CDN base** — move `CDN_BASE` (`src/features/KanjiCard/ui/StrokeOrder.tsx:10`) → `src/features/KanjiCard/constants.ts`.
+- [x] **SSE headers** — move `SSE_HEADERS` (`src/app/api/ai-overview/route.ts:3`) → `src/app/api/ai-overview/constants.ts` (or `src/shared/api/sse.ts` if reused later).
+- [x] **`CJK_REGEX`** — already covered in R4 (single export from `src/shared/utils/cjk.ts`); just verify it's a named constant, not inline.
+- [x] Sweep for remaining inline magic numbers in components (e.g. `setTimeout(..., 400)` in `Search.tsx:104`, `slice(0, 60)` in `AIOverviewAccordion.tsx:63`, debounce delays). Promote any that have semantic meaning to named constants in the feature's `constants.ts`. Leave purely-cosmetic numbers (`gap: 8`, `paddingBottom: 16`) inline.
 
 ### R9 — ESLint hardening + Prettier
 > Project already has `eslint.config.mjs` extending `next/core-web-vitals` + `next/typescript` + storybook. No Prettier yet.
 
 **ESLint**
-- [ ] Add rules to `eslint.config.mjs` to enforce the refactor's invariants going forward:
+- [x] Add rules to `eslint.config.mjs` to enforce the refactor's invariants going forward:
   - `no-restricted-imports` — forbid `effector-react` and `@/stores/*` from any file matching `**/ui/**` (enforces the R3 boundary).
   - `@typescript-eslint/no-unused-vars` with `{ argsIgnorePattern: '^_' }` (Next default already errors; tighten if needed).
   - `@typescript-eslint/consistent-type-imports` with `prefer: 'type-imports'`.
   - `no-console` with `{ allow: ['warn', 'error'] }` to flag stray `console.log` (we already use `console.error` in fail.watch handlers — those stay).
-- [ ] Add `lint:fix` script to `package.json`: `"lint:fix": "next lint --fix"`.
-- [ ] Run `npm run lint` and resolve any new violations.
+- [x] Add `lint:fix` script to `package.json`: `"lint:fix": "next lint --fix"`.
+- [x] Run `npm run lint` and resolve any new violations.
 
 **Prettier**
-- [ ] `npm install -D prettier eslint-config-prettier`.
-- [ ] Create `.prettierrc.json` matching current code style (observed: single quotes, semicolons, 2-space indent, trailing commas):
+- [x] `npm install -D prettier eslint-config-prettier`.
+- [x] Create `.prettierrc.json` matching current code style (observed: single quotes, semicolons, 2-space indent, trailing commas):
   ```json
   {
     "singleQuote": true,
@@ -116,12 +116,12 @@
     "arrowParens": "always"
   }
   ```
-- [ ] Create `.prettierignore`: `node_modules`, `.next`, `storybook-static`, `*.d.ts` (especially `src/shared/api/generatedTypes.d.ts`), `public`.
-- [ ] Append `eslint-config-prettier` to the `eslintConfig` array in `eslint.config.mjs` so Prettier wins formatting conflicts.
-- [ ] Add scripts to `package.json`:
+- [x] Create `.prettierignore`: `node_modules`, `.next`, `storybook-static`, `*.d.ts` (especially `src/shared/api/generatedTypes.d.ts`), `public`.
+- [x] Append `eslint-config-prettier` to the `eslintConfig` array in `eslint.config.mjs` so Prettier wins formatting conflicts.
+- [x] Add scripts to `package.json`:
   - `"format": "prettier --write \"src/**/*.{ts,tsx,css,json,md}\""`
   - `"format:check": "prettier --check \"src/**/*.{ts,tsx,css,json,md}\""`
-- [ ] Run `npm run format` once for a one-shot codebase reformat. Commit separately so the diff is a pure format pass.
+- [x] Run `npm run format` once for a one-shot codebase reformat. Commit separately so the diff is a pure format pass.
 - [ ] (Optional) Add a pre-commit hook via `husky` + `lint-staged` — leave out unless requested.
 
 ### Execution order

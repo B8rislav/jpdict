@@ -16,10 +16,7 @@ const LanguageCard = ({ language, title, description, onSelect }: LanguageCardPr
     <div className={styles.card}>
       <h2 className={styles.cardTitle}>{title}</h2>
       <p className={styles.cardDescription}>{description}</p>
-      <button
-        className={styles.selectButton}
-        onClick={() => onSelect(language)}
-      >
+      <button className={styles.selectButton} onClick={() => onSelect(language)}>
         {t('ui', 'select_button')}
       </button>
     </div>

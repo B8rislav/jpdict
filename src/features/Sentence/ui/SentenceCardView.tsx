@@ -1,18 +1,16 @@
 'use client';
 
-import { FC, useState } from 'react';
+import { type FC, useState } from 'react';
 import { Text } from '@gravity-ui/uikit';
 import { List } from 'react-window';
-import { SentenceToken } from '@/shared/api/types';
+import { type SentenceToken } from '@/shared/api/types';
 import { Card } from '@/shared/ui/Card';
 import { t } from '@/shared/i18n';
 import { getPosColorClass } from '../lib/posColor';
-import { TokenRow, TokenRowProps } from './TokenRow';
+import { TokenRow, type TokenRowProps } from './TokenRow';
 import { AIOverviewAccordion } from './AIOverviewAccordion';
 import styles from './SentenceCardView.module.css';
-
-const ITEM_SIZE = 110;
-const MAX_VISIBLE_ITEMS = 8;
+import { ITEM_SIZE, MAX_VISIBLE_ITEMS } from '../constants';
 
 type SentenceCardViewProps = {
   sentence: string;

@@ -1,8 +1,8 @@
 'use client';
 
 import { Button, Text } from '@gravity-ui/uikit';
-import { FC } from 'react';
-import { Word } from '@/shared/api/types';
+import { type FC } from 'react';
+import { type Word } from '@/shared/api/types';
 import { Card } from '@/shared/ui/Card';
 import { MarkerList } from '@/shared/ui/MarkerList/MarkerList';
 import { DefinitionList } from '@/shared/ui/DefinitionList/DefinitionList';

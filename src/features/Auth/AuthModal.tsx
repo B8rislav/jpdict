@@ -2,7 +2,7 @@
 
 import { Button, Modal, Radio, RadioGroup, Text, TextInput } from '@gravity-ui/uikit';
 import { useUnit } from 'effector-react';
-import { FormEvent, useState } from 'react';
+import { type FormEvent, useState } from 'react';
 
 import { loginFx, registerFx } from '@/stores/auth';
 
@@ -45,7 +45,11 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   }
 
   return (
-    <Modal open={open} onOpenChange={(isOpen) => !isOpen && onOpenChange(false)} className={styles.modal}>
+    <Modal
+      open={open}
+      onOpenChange={(isOpen) => !isOpen && onOpenChange(false)}
+      className={styles.modal}
+    >
       <div className={styles.content}>
         <Text variant="header-1">{mode === 'login' ? 'Войти' : 'Регистрация'}</Text>
 

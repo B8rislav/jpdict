@@ -2,7 +2,7 @@
 
 import { Button, Text } from '@gravity-ui/uikit';
 import { useUnit } from 'effector-react';
-import { FC } from 'react';
+import { type FC } from 'react';
 
 import { $savedWords, removeWordFx, updateStatusFx } from './model';
 import { useDictionaryFilters } from './model/useDictionaryFilters';
@@ -78,7 +78,9 @@ export const DictionaryPanel: FC = () => {
               <DictionaryWordCard
                 word={word}
                 onDelete={() => word.id && removeWordFx(word.id)}
-                onAdvanceStatus={() => word.id && updateStatusFx({ id: word.id, status: nextStatus(word.status) })}
+                onAdvanceStatus={() =>
+                  word.id && updateStatusFx({ id: word.id, status: nextStatus(word.status) })
+                }
               />
             </li>
           ))}

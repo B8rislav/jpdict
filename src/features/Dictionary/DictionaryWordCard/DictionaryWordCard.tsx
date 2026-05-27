@@ -2,9 +2,9 @@
 
 import { Button, Label, Text } from '@gravity-ui/uikit';
 import { MarkerList } from '@/shared/ui/MarkerList/MarkerList';
-import { FC } from 'react';
+import { type FC } from 'react';
 
-import { SavedWord } from '@/shared/api/types';
+import { type SavedWord } from '@/shared/api/types';
 import { MASTERY_LABEL, MASTERY_THEME } from '../constants';
 import styles from './DictionaryWordCard.module.css';
 

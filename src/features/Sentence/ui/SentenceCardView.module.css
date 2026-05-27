@@ -23,7 +23,10 @@
   border-radius: 24px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(247, 251, 255, 0.95));
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
   border: 1px solid rgba(30, 70, 120, 0.08);
   box-shadow: 0 10px 24px rgba(32, 45, 75, 0.05);
 }
@@ -147,4 +150,3 @@
     width: 100%;
   }
 }
-

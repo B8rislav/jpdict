@@ -1,14 +1,11 @@
 import { createEffect, createEvent, createStore, sample } from 'effector';
-import { Word } from '@/shared/api/types';
+import { type Word } from '@/shared/api/types';
 import { fetchWordsFx } from '../../WordCard/model';
-import { fetchExampleSentences, SimpleSentence } from '../api/fetchExampleSentences';
+import { fetchExampleSentences, type SimpleSentence } from '../api/fetchExampleSentences';
 
 export const clearInspectedWord = createEvent();
 
-export const $inspectedWord = createStore<Word | null>(null).on(
-  clearInspectedWord,
-  () => null,
-);
+export const $inspectedWord = createStore<Word | null>(null).on(clearInspectedWord, () => null);
 
 sample({
   clock: fetchWordsFx.doneData,
@@ -29,4 +26,3 @@ sample({
   fn: () => [] as SimpleSentence[],
   target: $exampleSentences,
 });
-

@@ -1,9 +1,9 @@
 'use client';
 
-import { FC } from 'react';
+import { type FC } from 'react';
 import { Text } from '@gravity-ui/uikit';
 import { MarkerList } from '@/shared/ui/MarkerList/MarkerList';
-import { Kanji } from '@/shared/api/types';
+import { type Kanji } from '@/shared/api/types';
 import { Card } from '@/shared/ui/Card';
 import { StrokeOrder } from './StrokeOrder';
 import { t } from '@/shared/i18n';

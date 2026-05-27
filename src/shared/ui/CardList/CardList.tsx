@@ -1,4 +1,4 @@
-import { FC, PropsWithChildren, useMemo } from 'react';
+import { type FC, type PropsWithChildren, useMemo } from 'react';
 
 import styles from './CardList.module.css';
 import { Skeleton } from '@gravity-ui/uikit';
@@ -20,17 +20,10 @@ export const CardList: FC<PropsWithChildren<CardListProps>> = (props) => {
   }, [listHeight]);
 
   return (
-    <ul
-      style={{ width: listWidth, height: listHeight }}
-      className={styles.list}
-    >
+    <ul style={{ width: listWidth, height: listHeight }} className={styles.list}>
       {loading
         ? skeletonParts.map((i) => (
-            <Skeleton
-              key={i}
-              style={{ height: listHeight }}
-              className={styles.skeletonCard}
-            />
+            <Skeleton key={i} style={{ height: listHeight }} className={styles.skeletonCard} />
           ))
         : props.children}
     </ul>

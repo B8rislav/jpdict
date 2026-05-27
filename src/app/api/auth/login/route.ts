@@ -1,11 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-
-const FASTAPI_URL = process.env.FASTAPI_URL ?? 'http://localhost:8000';
+import { type NextRequest, NextResponse } from 'next/server';
+import { BACKEND_URL } from '@/shared/api/backend';
 
 export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
 
-  const upstream = await fetch(`${FASTAPI_URL}/api/auth/login`, {
+  const upstream = await fetch(`${BACKEND_URL}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     // FastAPI's UserCreate requires language even though login doesn't use it

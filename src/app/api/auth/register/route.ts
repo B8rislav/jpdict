@@ -1,11 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-
-const FASTAPI_URL = process.env.FASTAPI_URL ?? 'http://localhost:8000';
+import { type NextRequest, NextResponse } from 'next/server';
+import { BACKEND_URL } from '@/shared/api/backend';
 
 export async function POST(req: NextRequest) {
   const body = await req.json();
 
-  const upstream = await fetch(`${FASTAPI_URL}/api/auth/register`, {
+  const upstream = await fetch(`${BACKEND_URL}/api/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),

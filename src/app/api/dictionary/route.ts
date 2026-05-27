@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-
-const FASTAPI_URL = process.env.FASTAPI_URL ?? 'http://localhost:8000';
+import { type NextRequest, NextResponse } from 'next/server';
+import { BACKEND_URL } from '@/shared/api/backend';
 
 async function getAccessToken(refreshToken: string): Promise<string | null> {
-  const res = await fetch(`${FASTAPI_URL}/api/auth/refresh`, {
+  const res = await fetch(`${BACKEND_URL}/api/auth/refresh`, {
     method: 'POST',
     headers: { Cookie: `refresh_token=${refreshToken}` },
   });
@@ -45,7 +44,7 @@ export async function GET(req: NextRequest) {
   const accessToken = await getAccessToken(refreshToken);
   if (!accessToken) return NextResponse.json({ detail: 'Unauthorized' }, { status: 401 });
 
-  const upstream = await fetch(`${FASTAPI_URL}/api/vocabulary`, {
+  const upstream = await fetch(`${BACKEND_URL}/api/vocabulary`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   const words = (await upstream.json()) as BackendWord[];
@@ -61,8 +60,12 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
 
-  const jlptMatch = (body.markers as string[] | undefined)?.find((m: string) => m.startsWith('JLPT N'));
-  const hskMatch = (body.markers as string[] | undefined)?.find((m: string) => m.startsWith('HSK '));
+  const jlptMatch = (body.markers as string[] | undefined)?.find((m: string) =>
+    m.startsWith('JLPT N'),
+  );
+  const hskMatch = (body.markers as string[] | undefined)?.find((m: string) =>
+    m.startsWith('HSK '),
+  );
 
   const payload = {
     language: body.language ?? 'jp',
@@ -74,7 +77,7 @@ export async function POST(req: NextRequest) {
     status: 'new',
   };
 
-  const upstream = await fetch(`${FASTAPI_URL}/api/vocabulary`, {
+  const upstream = await fetch(`${BACKEND_URL}/api/vocabulary`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -83,7 +86,8 @@ export async function POST(req: NextRequest) {
     body: JSON.stringify(payload),
   });
 
-  if (upstream.status === 409) return NextResponse.json({ error: 'Already saved' }, { status: 409 });
+  if (upstream.status === 409)
+    return NextResponse.json({ error: 'Already saved' }, { status: 409 });
   const word = (await upstream.json()) as BackendWord;
   return NextResponse.json(toFrontend(word), { status: 201 });
 }

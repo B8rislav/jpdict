@@ -1,5 +1,5 @@
 import { createEffect, createStore } from 'effector';
-import { MasteryStatus, SavedWord, Word } from '@/shared/api/types';
+import { type MasteryStatus, type SavedWord, type Word } from '@/shared/api/types';
 import { $isAuthenticated } from '@/stores/auth';
 import { $userProfile } from '@/stores/userProfile';
 

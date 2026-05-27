@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { type FC } from 'react';
 import { Label } from '@gravity-ui/uikit';
 import styles from './MarkerList.module.css';
 

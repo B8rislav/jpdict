@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-
-const FASTAPI_URL = process.env.FASTAPI_URL ?? 'http://localhost:8000';
+import { BACKEND_URL } from '@/shared/api/backend';
 
 type BackendToken = {
   surface: string;
@@ -38,7 +37,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ sentence: '', tokens: [] });
   }
 
-  const upstream = await fetch(`${FASTAPI_URL}/api/analyze`, {
+  const upstream = await fetch(`${BACKEND_URL}/api/analyze`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ query: sentence, language }),

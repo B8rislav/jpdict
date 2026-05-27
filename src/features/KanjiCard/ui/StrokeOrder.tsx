@@ -1,13 +1,12 @@
 'use client';
 
-import { FC, useEffect, useState } from 'react';
+import { type FC, useEffect, useState } from 'react';
 import { Text } from '@gravity-ui/uikit';
+import { CDN_BASE } from '../constants';
 
 type StrokeOrderProps = {
   kanji: string;
 };
-
-const CDN_BASE = 'https://cdn.jsdelivr.net/gh/KanjiVG/kanjivg@master/kanji';
 
 function getCodepoint(char: string): string {
   return (char.codePointAt(0) ?? 0).toString(16).padStart(5, '0');
@@ -47,10 +46,7 @@ export const StrokeOrder: FC<StrokeOrderProps> = ({ kanji }) => {
   return (
     <div>
       <Text variant="subheader-3">Порядок черт</Text>
-      <div
-        dangerouslySetInnerHTML={{ __html: svg }}
-        style={{ width: 109, height: 109 }}
-      />
+      <div dangerouslySetInnerHTML={{ __html: svg }} style={{ width: 109, height: 109 }} />
     </div>
   );
 };

@@ -1,6 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-
-const FASTAPI_URL = process.env.FASTAPI_URL ?? 'http://localhost:8000';
+import { type NextRequest, NextResponse } from 'next/server';
+import { BACKEND_URL } from '@/shared/api/backend';
 
 export async function POST(req: NextRequest) {
   const refreshToken = req.cookies.get('refresh_token')?.value;
@@ -9,7 +8,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ detail: 'No refresh token' }, { status: 401 });
   }
 
-  const upstream = await fetch(`${FASTAPI_URL}/api/auth/refresh`, {
+  const upstream = await fetch(`${BACKEND_URL}/api/auth/refresh`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

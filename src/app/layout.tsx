@@ -23,7 +23,8 @@ const notoSansSC = Noto_Sans_SC({
 
 export const metadata: Metadata = {
   title: 'JapChin Dict — Изучение японского и китайского',
-  description: 'Платформа для изучения иероглифического письма с морфологическим анализом и AI-объяснениями',
+  description:
+    'Платформа для изучения иероглифического письма с морфологическим анализом и AI-объяснениями',
 };
 
 export default function RootLayout({

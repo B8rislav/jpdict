@@ -1,5 +1,5 @@
 import { fetchData } from '@/shared/api/fetchData';
-import { paths } from '@/shared/api/generatedTypes';
+import { type paths } from '@/shared/api/generatedTypes';
 
 export type ExampleSentencesResponse =
   paths['/reibun/search/{word_id}']['get']['responses']['200']['content']['application/json'];

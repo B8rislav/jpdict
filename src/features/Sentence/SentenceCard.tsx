@@ -1,7 +1,7 @@
-import { FC } from 'react';
+import { type FC } from 'react';
 import { useUnit } from 'effector-react';
-import { SentenceToken } from '@/shared/api/types';
-import { SentenceResult } from './model';
+import { type SentenceToken } from '@/shared/api/types';
+import { type SentenceResult } from './model';
 import { fetchAIOverview } from './api/fetchAIOverview';
 import { fetchWordsFx, clearWords } from '../WordCard';
 import { clearKanji } from '../KanjiCard/model';

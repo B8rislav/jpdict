@@ -1,4 +1,4 @@
-import { MasteryStatus } from '@/shared/api/types';
+import { type MasteryStatus } from '@/shared/api/types';
 
 export const JLPT_LEVELS = ['N5', 'N4', 'N3', 'N2', 'N1'] as const;
 export const HSK_LEVELS = ['HSK 1', 'HSK 2', 'HSK 3', 'HSK 4', 'HSK 5', 'HSK 6'] as const;

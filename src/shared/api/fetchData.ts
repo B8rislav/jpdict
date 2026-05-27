@@ -1,9 +1,6 @@
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'http://localhost:8000';
+import { BACKEND_URL } from './backend';
 
-export async function fetchData<Data>(
-  endpoint: string,
-  maxRetries: number = 3,
-): Promise<Data> {
+export async function fetchData<Data>(endpoint: string, maxRetries: number = 3): Promise<Data> {
   while (maxRetries > 0) {
     try {
       return await fetchDataInternal(endpoint);

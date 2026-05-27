@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 import { useUnit } from 'effector-react';
 
 import { $savedWords, DictionaryPanel, loadDictionaryFx } from '@/features/Dictionary';
-import { AuthGate } from '@/shared/ui/AuthGate';
+import { AuthGate } from '@/features/Auth/AuthGate';
 import { $isAuthenticated } from '@/stores/auth';
 import styles from './page.module.css';
 
@@ -21,7 +21,9 @@ export default function DictionaryPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <Link href="/" className={styles.back}>← Назад</Link>
+        <Link href="/" className={styles.back}>
+          ← Назад
+        </Link>
         <Text variant="display-1">Словарь</Text>
       </div>
       <AuthGate title="Личный словарь">

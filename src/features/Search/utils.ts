@@ -2,7 +2,8 @@ export type LanguageMode = 'jp' | 'cn' | null;
 export type SearchQueryType = 'kanji' | 'word' | 'sentence';
 
 const isSingleCharacter = (text: string) => text.trim().length === 1;
-const containsJapanese = (text: string) => /[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}]/u.test(text);
+const containsJapanese = (text: string) =>
+  /[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}]/u.test(text);
 const containsChinese = (text: string) => /[\p{Script=Han}]/u.test(text);
 const containsSpace = (text: string) => /\s/.test(text);
 

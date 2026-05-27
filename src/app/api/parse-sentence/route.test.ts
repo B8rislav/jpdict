@@ -73,10 +73,7 @@ describe('GET /api/parse-sentence', () => {
   });
 
   it('returns empty tokens when backend returns 400', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({ ok: false, status: 400 }),
-    );
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 400 }));
 
     const sentence = encodeURIComponent('   ');
     const req = new Request(`http://localhost/api/parse-sentence?sentence=${sentence}`);

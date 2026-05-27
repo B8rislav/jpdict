@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { type FC } from 'react';
 import { Text } from '@gravity-ui/uikit';
 import styles from './SearchHistoryDropdown.module.css';
 import type { HistoryItem } from './model';

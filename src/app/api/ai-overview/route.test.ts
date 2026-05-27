@@ -84,10 +84,7 @@ describe('POST /api/ai-overview', () => {
   it('falls back to mock when OpenRouter returns non-ok', async () => {
     process.env.OPENROUTER_KEY = 'test-key';
 
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(new Response('error', { status: 500 })),
-    );
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('error', { status: 500 })));
 
     const res = await POST(makeRequest({ sentence: 'テスト', tokens: SAMPLE_TOKENS }));
     expect(res.headers.get('Content-Type')).toBe('text/event-stream');

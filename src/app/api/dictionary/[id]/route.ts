@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
-
-const FASTAPI_URL = process.env.FASTAPI_URL ?? 'http://localhost:8000';
+import { type NextRequest, NextResponse } from 'next/server';
+import { BACKEND_URL } from '@/shared/api/backend';
 
 async function getAccessToken(refreshToken: string): Promise<string | null> {
-  const res = await fetch(`${FASTAPI_URL}/api/auth/refresh`, {
+  const res = await fetch(`${BACKEND_URL}/api/auth/refresh`, {
     method: 'POST',
     headers: { Cookie: `refresh_token=${refreshToken}` },
   });
@@ -38,10 +37,7 @@ function toFrontend(w: BackendWord) {
   };
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const refreshToken = req.cookies.get('refresh_token')?.value;
   if (!refreshToken) return NextResponse.json({ detail: 'Unauthorized' }, { status: 401 });
 
@@ -49,7 +45,7 @@ export async function DELETE(
   if (!accessToken) return NextResponse.json({ detail: 'Unauthorized' }, { status: 401 });
 
   const { id } = await params;
-  await fetch(`${FASTAPI_URL}/api/vocabulary/${id}`, {
+  await fetch(`${BACKEND_URL}/api/vocabulary/${id}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${accessToken}` },
   });
@@ -57,10 +53,7 @@ export async function DELETE(
   return new NextResponse(null, { status: 204 });
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const refreshToken = req.cookies.get('refresh_token')?.value;
   if (!refreshToken) return NextResponse.json({ detail: 'Unauthorized' }, { status: 401 });
 
@@ -70,7 +63,7 @@ export async function PATCH(
   const { id } = await params;
   const { status } = await req.json();
 
-  const upstream = await fetch(`${FASTAPI_URL}/api/vocabulary/${id}`, {
+  const upstream = await fetch(`${BACKEND_URL}/api/vocabulary/${id}`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
