@@ -5,11 +5,7 @@ import { type FC, type MouseEventHandler, useRef, useState } from 'react';
 import { SearchHistoryDropdown, type HistoryItem } from '@/features/SearchHistory';
 
 import styles from './SearchView.module.css';
-import ruTranslations from '@/shared/i18n/ru.json';
-
-const getTranslation = (category: keyof typeof ruTranslations, key: string) => {
-  return (ruTranslations[category] as Record<string, string>)?.[key] || key;
-};
+import { t } from '@/shared/i18n';
 
 type QueryType = 'kanji' | 'word' | 'sentence';
 
@@ -109,7 +105,7 @@ export const SearchView: FC<SearchViewProps> = (props) => {
           onClick={onButtonClick}
           disabled={isSubmitting || inputValue.trim().length === 0}
         >
-          {isSubmitting ? getTranslation('ui', 'search_button_loading') : getTranslation('ui', 'search_button')}
+          {isSubmitting ? t('ui', 'search_button_loading') : t('ui', 'search_button')}
         </Button>
       </div>
 
@@ -121,10 +117,10 @@ export const SearchView: FC<SearchViewProps> = (props) => {
       <div className={styles.tips}>
         {(['kanji', 'word', 'sentence'] as QueryType[]).map((type) => {
           const label = type === 'kanji'
-            ? getTranslation('ui', 'query_type_kanji')
+            ? t('ui', 'query_type_kanji')
             : type === 'sentence'
-            ? getTranslation('ui', 'query_type_sentence')
-            : getTranslation('ui', 'query_type_word');
+            ? t('ui', 'query_type_sentence')
+            : t('ui', 'query_type_word');
 
           return (
             <button

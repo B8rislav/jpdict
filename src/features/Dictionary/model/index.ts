@@ -1,5 +1,5 @@
 import { createEffect, createStore } from 'effector';
-import { MasteryStatus, SavedWord, WordEntry } from '@/shared/api/types';
+import { MasteryStatus, SavedWord, Word } from '@/shared/api/types';
 import { $isAuthenticated } from '@/stores/auth';
 import { $userProfile } from '@/stores/userProfile';
 
@@ -11,7 +11,7 @@ export const loadDictionaryFx = createEffect(async () => {
   return res.json() as Promise<SavedWord[]>;
 });
 
-export const addWordFx = createEffect(async (word: WordEntry) => {
+export const addWordFx = createEffect(async (word: Word) => {
   if (!$isAuthenticated.getState()) throw new Error('not_authenticated');
   const language = $userProfile.getState().selectedLanguage ?? 'jp';
   const res = await fetch('/api/dictionary', {

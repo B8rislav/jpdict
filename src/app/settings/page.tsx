@@ -1,7 +1,8 @@
 'use client';
 
 import { useUnit } from 'effector-react';
-import { $userProfile, setSelectedLanguage, setShowFurigana, setShowPinyin, type Language } from '@/stores/userProfile';
+import { type Language } from '@/shared/api/types';
+import { $userProfile, setSelectedLanguage, setShowFurigana, setShowPinyin } from '@/stores/userProfile';
 import { $searchHistory, clearHistoryFx } from '@/features/SearchHistory/model';
 import { Button, Switch, Text } from '@gravity-ui/uikit';
 import Link from 'next/link';

@@ -1,6 +1,5 @@
 import { createStore, createEvent } from 'effector';
-
-export type Language = 'jp' | 'cn';
+import { Language } from '@/shared/api/types';
 
 export interface UserProfile {
   selectedLanguage: Language | null;

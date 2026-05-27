@@ -30,7 +30,7 @@ export function classifySearchQuery(value: string, mode: LanguageMode): SearchQu
 
   if (mode === 'cn') {
     if (isSingleCharacter(trimmed)) {
-      return 'word';
+      return 'kanji';
     }
 
     if (containsSpace(trimmed) || trimmed.length > 6) {

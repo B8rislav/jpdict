@@ -1,20 +1,6 @@
 import { createEffect, createEvent, createStore } from 'effector';
+import { logEffectFailures } from '@/shared/utils/logEffectFailures';
 import { fetchSentence, SentenceResponse } from '../api/fetchSentence';
-
-export type SentenceToken = {
-  surface_form: string;
-  pos: string;
-  pos_detail_1: string;
-  pos_detail_2: string;
-  pos_detail_3: string;
-  conjugated_type: string;
-  conjugated_form: string;
-  basic_form: string;
-  reading?: string;
-  pronunciation?: string;
-  jlpt_level?: number | null;
-  hsk_level?: number | null;
-};
 
 export type SentenceResult = SentenceResponse;
 
@@ -26,9 +12,7 @@ export const fetchSentenceFx = createEffect<FetchSentenceFX>(async ({ value, lan
   return await fetchSentence(value, language);
 });
 
-fetchSentenceFx.fail.watch(({ params, error }) =>
-  console.error(`Failed to fetch sentence ${params}:`, error),
-);
+logEffectFailures(fetchSentenceFx, 'sentence');
 
 $sentences.on(clearSentences, () => []);
 

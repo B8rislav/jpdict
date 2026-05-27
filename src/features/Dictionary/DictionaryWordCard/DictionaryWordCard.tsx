@@ -1,25 +1,22 @@
 'use client';
 
 import { Button, Label, Text } from '@gravity-ui/uikit';
+import { MarkerList } from '@/shared/ui/MarkerList/MarkerList';
 import { FC } from 'react';
 
 import { SavedWord } from '@/shared/api/types';
-import { removeWordFx, updateStatusFx } from '../model';
-import { MASTERY_LABEL, MASTERY_THEME, nextStatus } from '../constants';
+import { MASTERY_LABEL, MASTERY_THEME } from '../constants';
 import styles from './DictionaryWordCard.module.css';
 
-type Props = { word: SavedWord };
+type Props = {
+  word: SavedWord;
+  onDelete: () => void;
+  onAdvanceStatus: () => void;
+};
 
-export const DictionaryWordCard: FC<Props> = ({ word }) => {
-  const handleStatusClick = () => {
-    if (!word.id) return;
-    updateStatusFx({ id: word.id, status: nextStatus(word.status) });
-  };
-
-  const handleDelete = () => {
-    if (!word.id) return;
-    removeWordFx(word.id);
-  };
+export const DictionaryWordCard: FC<Props> = ({ word, onDelete, onAdvanceStatus }) => {
+  const handleStatusClick = () => onAdvanceStatus();
+  const handleDelete = () => onDelete();
 
   return (
     <div className={styles.card}>
@@ -35,9 +32,7 @@ export const DictionaryWordCard: FC<Props> = ({ word }) => {
         </Text>
       </div>
       <div className={styles.actions}>
-        {word.markers?.map((marker) => (
-          <Label key={marker}>{marker}</Label>
-        ))}
+        <MarkerList markers={word.markers} />
         <span onClick={handleStatusClick} style={{ cursor: 'pointer' }}>
           <Label theme={MASTERY_THEME[word.status]}>{MASTERY_LABEL[word.status]}</Label>
         </span>

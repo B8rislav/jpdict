@@ -1,10 +1,46 @@
-import { Word } from '@/features/WordCard/model';
-
 export type MasteryStatus = 'new' | 'learning' | 'known';
 
-export type WordEntry = Word;
+export type Language = 'jp' | 'cn';
 
-export type SavedWord = WordEntry & { savedAt: string; status: MasteryStatus };
+export type Word = {
+  id?: string;
+  kanji_full?: string;
+  hiragana_full?: string;
+  markers?: string[];
+  pitch?: string[];
+  def_en?: string[];
+  def_ru?: string[];
+  typeofspeech?: string;
+};
+
+export type Kanji = {
+  kanji?: string;
+  definition?: string;
+  radical?: string;
+  radical_name?: string;
+  rwords?: { reading?: string; words?: unknown[] }[];
+  kunyomi?: string;
+  onyomi?: string;
+  parts?: { piece?: string; definition?: string }[];
+  markers: string[];
+};
+
+export type SentenceToken = {
+  surface_form: string;
+  pos: string;
+  pos_detail_1: string;
+  pos_detail_2: string;
+  pos_detail_3: string;
+  conjugated_type: string;
+  conjugated_form: string;
+  basic_form: string;
+  reading?: string;
+  pronunciation?: string;
+  jlpt_level?: number | null;
+  hsk_level?: number | null;
+};
+
+export type SavedWord = Word & { savedAt: string; status: MasteryStatus };
 
 export type DictEntry = {
   id: string;

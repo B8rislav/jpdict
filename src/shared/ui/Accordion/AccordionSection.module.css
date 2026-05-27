@@ -1,0 +1,39 @@
+.section {
+  border-bottom: 1px solid var(--border-gray);
+}
+
+.section:last-of-type {
+  border-bottom: none;
+}
+
+.sectionToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  gap: 8px;
+}
+
+.sectionToggle:hover {
+  opacity: 0.75;
+}
+
+.chevron {
+  font-size: 16px;
+  color: var(--text-secondary);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.sectionContent {
+  padding-bottom: 16px;
+}

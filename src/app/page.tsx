@@ -14,13 +14,13 @@ import { $sentences, fetchSentenceFx, SentenceCard } from '@/features/Sentence';
 import { $inspectedWord, WordInspector } from '@/features/WordInspector';
 import { AuthModal } from '@/features/Auth/AuthModal';
 import { CardList } from '@/shared/ui/CardList';
+import { type Language } from '@/shared/api/types';
 import {
   $userProfile,
   loadUserProfile,
   setSelectedLanguage,
   setShowFurigana,
   setShowPinyin,
-  type Language,
 } from '@/stores/userProfile';
 import { $isAuthenticated, $user, logoutFx, refreshFx } from '@/stores/auth';
 

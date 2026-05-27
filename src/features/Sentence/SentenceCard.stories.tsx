@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { SentenceCard } from './SentenceCard';
-import { setSelectedLanguage } from '@/stores/userProfile';
-import type { SentenceToken } from './model';
+import { SentenceCardView } from './ui/SentenceCardView';
+import type { SentenceToken } from '@/shared/api/types';
 
 const jpTokens: SentenceToken[] = [
   {
@@ -93,9 +92,11 @@ const cnTokens: SentenceToken[] = [
   },
 ];
 
-const meta: Meta<typeof SentenceCard> = {
+const noop = () => Promise.resolve();
+
+const meta: Meta<typeof SentenceCardView> = {
   title: 'features/SentenceCard',
-  component: SentenceCard,
+  component: SentenceCardView,
   decorators: [
     (Story) => (
       <div style={{ width: 860, margin: 25 }}>
@@ -106,28 +107,40 @@ const meta: Meta<typeof SentenceCard> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof SentenceCard>;
+type Story = StoryObj<typeof SentenceCardView>;
 
 export const Japanese: Story = {
-  args: { sentence: '私は学生です。', tokens: jpTokens },
-  decorators: [
-    (Story) => {
-      setSelectedLanguage('jp');
-      return <Story />;
-    },
-  ],
+  args: {
+    sentence: '私は学生です。',
+    tokens: jpTokens,
+    selectedLanguage: 'jp',
+    showFurigana: true,
+    showPinyin: false,
+    onTokenClick: () => {},
+    onFetchOverview: noop,
+  },
 };
 
 export const Chinese: Story = {
-  args: { sentence: '我爱中国。', tokens: cnTokens },
-  decorators: [
-    (Story) => {
-      setSelectedLanguage('cn');
-      return <Story />;
-    },
-  ],
+  args: {
+    sentence: '我爱中国。',
+    tokens: cnTokens,
+    selectedLanguage: 'cn',
+    showFurigana: false,
+    showPinyin: true,
+    onTokenClick: () => {},
+    onFetchOverview: noop,
+  },
 };
 
 export const EmptyTokens: Story = {
-  args: { sentence: 'テスト', tokens: [] },
+  args: {
+    sentence: 'テスト',
+    tokens: [],
+    selectedLanguage: 'jp',
+    showFurigana: true,
+    showPinyin: false,
+    onTokenClick: () => {},
+    onFetchOverview: noop,
+  },
 };

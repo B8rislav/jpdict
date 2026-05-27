@@ -1,12 +1,8 @@
 'use client';
 
-import { type Language } from '@/stores/userProfile';
+import { type Language } from '@/shared/api/types';
 import styles from '../LanguageSelect.module.css';
-import ruTranslations from '@/shared/i18n/ru.json';
-
-const getTranslation = (category: keyof typeof ruTranslations, key: string) => {
-  return (ruTranslations[category] as Record<string, string>)?.[key] || key;
-};
+import { t } from '@/shared/i18n';
 
 interface LanguageCardProps {
   language: Language;
@@ -24,7 +20,7 @@ const LanguageCard = ({ language, title, description, onSelect }: LanguageCardPr
         className={styles.selectButton}
         onClick={() => onSelect(language)}
       >
-        {getTranslation('ui', 'select_button')}
+        {t('ui', 'select_button')}
       </button>
     </div>
   );

@@ -24,20 +24,21 @@ const baseWord = {
   savedAt: '2026-05-19T10:00:00.000Z',
 };
 
+const noop = () => {};
+
 export const New: Story = {
   args: {
     word: { ...baseWord, status: 'new' },
+    onDelete: noop,
+    onAdvanceStatus: noop,
   },
 };
 
 export const Learning: Story = {
   args: {
-    word: {
-      ...baseWord,
-      id: '1419',
-      kanji_full: '此方',
-      status: 'learning',
-    },
+    word: { ...baseWord, id: '1419', kanji_full: '此方', status: 'learning' },
+    onDelete: noop,
+    onAdvanceStatus: noop,
   },
 };
 
@@ -52,6 +53,8 @@ export const Known: Story = {
       markers: ['JLPT N5', 'News/Web 10k'],
       status: 'known',
     },
+    onDelete: noop,
+    onAdvanceStatus: noop,
   },
 };
 
@@ -66,11 +69,15 @@ export const HSKWord: Story = {
       markers: ['HSK 2'],
       status: 'new',
     },
+    onDelete: noop,
+    onAdvanceStatus: noop,
   },
 };
 
 export const NoKanji: Story = {
   args: {
     word: { ...baseWord, kanji_full: undefined, status: 'learning' },
+    onDelete: noop,
+    onAdvanceStatus: noop,
   },
 };

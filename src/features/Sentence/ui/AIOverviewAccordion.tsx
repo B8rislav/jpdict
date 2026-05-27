@@ -2,19 +2,11 @@ import { FC, useState } from 'react';
 import { Text, Button } from '@gravity-ui/uikit';
 import styles from './AIOverviewAccordion.module.css';
 import Markdown from 'react-markdown';
-
-interface AIToken {
-  surface_form: string;
-  basic_form?: string;
-  pos: string;
-  pos_detail_1?: string;
-  conjugated_form?: string;
-  reading?: string;
-}
+import { SentenceToken } from '@/shared/api/types';
 
 interface AIOverviewAccordionProps {
   sentence: string;
-  tokens: AIToken[];
+  tokens: SentenceToken[];
   onFetchOverview: (onChunk: (chunk: string) => void) => Promise<void>;
 }
 
@@ -52,13 +44,6 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
     }
   };
 
-  const formatOverview = (text: string) => {
-
-    return (
-      <Markdown>{text}</Markdown>
-    )
-  };
-
   const sentenceSummary = sentence
     ? `${sentence.slice(0, 60)}${sentence.length > 60 ? '…' : ''}`
     : '';
@@ -93,7 +78,7 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
         <div className={styles.overviewContentContainer}>
           {overview !== null ? (
             <div className={styles.overviewText}>
-              {formatOverview(overview)}
+              <Markdown>{overview}</Markdown>
             </div>
           ) : isLoading ? (
             <div className={styles.loadingContainer}>

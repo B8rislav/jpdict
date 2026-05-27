@@ -1,4 +1,4 @@
-import { SentenceToken } from './fetchSentence';
+import { SentenceToken } from '@/shared/api/types';
 
 export async function fetchAIOverview(
   sentence: string,

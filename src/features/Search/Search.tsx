@@ -3,13 +3,13 @@
 import { FC, useEffect, useMemo, useState } from 'react';
 
 import { SearchView } from './ui/SearchView';
-import { fetchWordsFx, clearWords } from '../WordCard';
-import { fetchKanjiFx, clearKanji } from '../KanjiCard/model';
-import { fetchSentenceFx, clearSentences } from '../Sentence';
+import { fetchWordsFx } from '../WordCard';
+import { fetchKanjiFx } from '../KanjiCard/model';
+import { fetchSentenceFx } from '../Sentence';
 import { useUnit } from 'effector-react';
 import { $userProfile } from '@/stores/userProfile';
 import { $isAuthenticated } from '@/stores/auth';
-import { clearInspectedWord } from '@/features/WordInspector';
+import { resetSearchResults } from './model';
 import {
   $searchHistory,
   addHistoryFx,
@@ -18,11 +18,7 @@ import {
   loadHistoryFx,
 } from '@/features/SearchHistory';
 import { classifySearchQuery, type SearchQueryType } from './utils';
-import ruTranslations from '@/shared/i18n/ru.json';
-
-const getTranslation = (category: keyof typeof ruTranslations, key: string) => {
-  return (ruTranslations[category] as Record<string, string>)?.[key] || key;
-};
+import { t } from '@/shared/i18n';
 
 export const Search: FC = () => {
   const [value, setValue] = useState('');
@@ -39,25 +35,25 @@ export const Search: FC = () => {
 
   const queryType = manualQueryType ?? autoQueryType;
   const placeholder = selectedLanguage === 'jp'
-    ? getTranslation('ui', 'search_placeholder_jp')
+    ? t('ui', 'search_placeholder_jp')
     : selectedLanguage === 'cn'
-    ? getTranslation('ui', 'search_placeholder_cn')
+    ? t('ui', 'search_placeholder_cn')
     : 'Выберите язык для поиска';
 
   const typedHint = useMemo(() => {
     if (!value.trim()) {
-      return getTranslation('ui', 'search_hint_empty');
+      return t('ui', 'search_hint_empty');
     }
-    if (queryType === 'kanji') return getTranslation('ui', 'search_hint_kanji');
-    if (queryType === 'sentence') return getTranslation('ui', 'search_hint_sentence');
-    return getTranslation('ui', 'search_hint_word');
+    if (queryType === 'kanji') return t('ui', 'search_hint_kanji');
+    if (queryType === 'sentence') return t('ui', 'search_hint_sentence');
+    return t('ui', 'search_hint_word');
   }, [queryType, value]);
 
   const queryTypeLabel = useMemo(() => {
     switch (queryType) {
-      case 'kanji': return getTranslation('ui', 'query_type_kanji');
-      case 'sentence': return getTranslation('ui', 'query_type_sentence');
-      default: return getTranslation('ui', 'query_type_word');
+      case 'kanji': return t('ui', 'query_type_kanji');
+      case 'sentence': return t('ui', 'query_type_sentence');
+      default: return t('ui', 'query_type_word');
     }
   }, [queryType]);
 
@@ -84,18 +80,12 @@ export const Search: FC = () => {
     setIsSubmitting(true);
 
     try {
+      resetSearchResults();
       if (type === 'kanji') {
-        clearWords();
-        clearSentences();
-        clearInspectedWord();
         await fetchKanjiFx({ value: query, language: selectedLanguage });
       } else if (type === 'sentence') {
-        clearWords();
-        clearKanji();
-        clearInspectedWord();
         await fetchSentenceFx({ value: query, language: selectedLanguage });
       } else {
-        clearSentences();
         await fetchWordsFx({ value: query, language: selectedLanguage });
       }
     } catch (error) {

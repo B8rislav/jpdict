@@ -1,53 +1,19 @@
 'use client';
 
-import { FC, ReactNode, useState, useCallback } from 'react';
-import { Text, Button, Label, Skeleton } from '@gravity-ui/uikit';
+import { FC, useState, useCallback } from 'react';
+import { Text, Button, Skeleton } from '@gravity-ui/uikit';
 import { useUnit } from 'effector-react';
 import { $userProfile } from '@/stores/userProfile';
 import { fetchKanjiFx, clearKanji } from '@/features/KanjiCard/model';
-import { Word } from '@/features/WordCard/model';
+import { Word } from '@/shared/api/types';
 import { fetchExampleSentencesFx, $exampleSentences } from './model';
 import { addWordFx, $savedWords } from '@/features/Dictionary';
+import { CJK_REGEX } from '@/shared/utils/cjk';
 import { Card } from '@/shared/ui/Card';
+import { MarkerList } from '@/shared/ui/MarkerList/MarkerList';
+import { DefinitionList } from '@/shared/ui/DefinitionList/DefinitionList';
+import { AccordionSection } from '@/shared/ui/Accordion/AccordionSection';
 import styles from './WordInspector.module.css';
-
-const CJK_REGEX = /[一-龯㐀-䶿]/;
-
-type AccordionSectionProps = {
-  title: string;
-  defaultOpen?: boolean;
-  onFirstExpand?: () => void;
-  children: ReactNode;
-};
-
-const AccordionSection: FC<AccordionSectionProps> = ({
-  title,
-  defaultOpen = false,
-  onFirstExpand,
-  children,
-}) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-  const [hasExpanded, setHasExpanded] = useState(defaultOpen);
-
-  const handleToggle = () => {
-    const next = !isOpen;
-    setIsOpen(next);
-    if (next && !hasExpanded) {
-      setHasExpanded(true);
-      onFirstExpand?.();
-    }
-  };
-
-  return (
-    <div className={styles.section}>
-      <button className={styles.sectionToggle} onClick={handleToggle}>
-        <Text variant="subheader-2">{title}</Text>
-        <span className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ''}`}>▾</span>
-      </button>
-      {isOpen && <div className={styles.sectionContent}>{children}</div>}
-    </div>
-  );
-};
 
 export const WordInspector: FC<{ word: Word }> = ({ word }) => {
   const { selectedLanguage } = useUnit($userProfile);
@@ -85,23 +51,11 @@ export const WordInspector: FC<{ word: Word }> = ({ word }) => {
             {readingLabel}: {word.hiragana_full}
           </Text>
         </div>
-        {word.markers && word.markers.length > 0 && (
-          <div className={styles.badges}>
-            {word.markers.map((marker) => (
-              <Label key={marker}>{marker}</Label>
-            ))}
-          </div>
-        )}
+        <MarkerList markers={word.markers} />
       </div>
 
       <AccordionSection title="Перевод" defaultOpen>
-        <ol className={styles.definitions}>
-          {(word.def_ru?.length ? word.def_ru : word.def_en)?.map((d, i) => (
-            <li key={i}>
-              <Text variant="body-2">{d}</Text>
-            </li>
-          ))}
-        </ol>
+        <DefinitionList items={word.def_ru?.length ? word.def_ru : word.def_en} />
       </AccordionSection>
 
       <AccordionSection title="Грамматика">

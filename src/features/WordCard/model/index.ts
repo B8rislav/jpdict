@@ -1,16 +1,7 @@
 import { createEffect, createEvent, createStore } from 'effector';
+import { logEffectFailures } from '@/shared/utils/logEffectFailures';
 import { fetchWords, WordsResponse } from '../api/fetchWords';
-
-export type Word = {
-  id?: string;
-  kanji_full?: string;
-  hiragana_full?: string;
-  markers?: string[];
-  pitch?: string[];
-  def_en?: string[];
-  def_ru?: string[];
-  typeofspeech?: string;
-};
+import { Word } from '@/shared/api/types';
 
 export const clearWords = createEvent();
 export const $words = createStore<Word[]>([]);
@@ -20,9 +11,7 @@ export const fetchWordsFx = createEffect<FetchWordsFX>(async ({ value, language 
   return await fetchWords(value, language);
 });
 
-fetchWordsFx.fail.watch(({ params, error }) =>
-  console.error(`Failed to fetch ${params}:`, error),
-);
+logEffectFailures(fetchWordsFx, 'words');
 
 $words.on(clearWords, () => []);
 

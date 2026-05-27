@@ -1,5 +1,6 @@
 import { createEffect, createEvent, createStore, sample } from 'effector';
-import { fetchWordsFx, Word } from '../../WordCard/model';
+import { Word } from '@/shared/api/types';
+import { fetchWordsFx } from '../../WordCard/model';
 import { fetchExampleSentences, SimpleSentence } from '../api/fetchExampleSentences';
 
 export const clearInspectedWord = createEvent();

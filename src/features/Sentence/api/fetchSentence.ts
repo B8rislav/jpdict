@@ -1,4 +1,4 @@
-import type { SentenceToken } from '../model';
+import type { SentenceToken } from '@/shared/api/types';
 
 export type { SentenceToken };
 

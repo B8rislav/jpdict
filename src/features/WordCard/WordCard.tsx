@@ -1,62 +1,26 @@
 'use client';
 
-import { Button, Label, Text } from '@gravity-ui/uikit';
 import { FC } from 'react';
 import { useUnit } from 'effector-react';
-
-import styles from './WordCard.module.css';
-import { Word } from './model';
-import { Card } from '@/shared/ui/Card';
+import { Word } from '@/shared/api/types';
 import { $userProfile } from '@/stores/userProfile';
 import { $savedWords, addWordFx } from '@/features/Dictionary';
+import { WordCardView } from './ui/WordCardView';
 
-type WordCardViewProps = Word;
-
-export const WordCard: FC<WordCardViewProps> = (props) => {
-  const { kanji_full, hiragana_full, def_ru, def_en, markers, id } = props;
-  const def = def_ru?.length ? def_ru : def_en;
+export const WordCard: FC<Word> = (props) => {
+  const { kanji_full, hiragana_full } = props;
   const selectedLanguage = useUnit($userProfile).selectedLanguage;
   const savedWords = useUnit($savedWords);
   const expression = kanji_full ?? hiragana_full;
   const isSaved = Boolean(expression && savedWords.some((w) => (w.kanji_full ?? w.hiragana_full) === expression));
   const readingLabel = selectedLanguage === 'cn' ? 'Pinyin' : 'Hiragana';
 
-  const handleSave = () => {
-    if (!isSaved) addWordFx(props);
-  };
-
   return (
-    <Card className={styles.card}>
-      <div className={styles.main_info}>
-        <div className={styles.title}>
-          <Text variant={kanji_full ? 'subheader-3' : 'header-2'}>
-            {readingLabel}: {hiragana_full}
-          </Text>
-          {kanji_full && <Text variant="header-2">{kanji_full}</Text>}
-        </div>
-        <ul className={styles.markers}>
-          {markers?.map((marker) => (
-            <li key={marker}>
-              <Label>{marker}</Label>
-            </li>
-          ))}
-        </ul>
-        <Button
-          size="s"
-          view={isSaved ? 'outlined-success' : 'outlined'}
-          onClick={handleSave}
-          disabled={isSaved}
-        >
-          {isSaved ? 'Сохранено' : 'Сохранить'}
-        </Button>
-      </div>
-      <ol className={styles.definition}>
-        {def?.map((definition) => (
-          <li key={definition}>
-            <Text variant="body-3">{definition}</Text>
-          </li>
-        ))}
-      </ol>
-    </Card>
+    <WordCardView
+      {...props}
+      readingLabel={readingLabel}
+      isSaved={isSaved}
+      onSave={() => { if (!isSaved) addWordFx(props); }}
+    />
   );
 };
