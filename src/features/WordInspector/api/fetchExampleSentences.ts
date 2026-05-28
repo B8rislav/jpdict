@@ -1,11 +1,21 @@
 import { fetchData } from '@/shared/api/fetchData';
-import { type paths } from '@/shared/api/generatedTypes';
+import { getLocale } from '@/shared/i18n';
 
-export type ExampleSentencesResponse =
-  paths['/reibun/search/{word_id}']['get']['responses']['200']['content']['application/json'];
+export interface ReibunEntry {
+  id: number;
+  sentence_jp: string;
+  reading_jp: string | null;
+  translation: string;
+  translation_lang: 'ru' | 'en';
+}
 
-export type SimpleSentence = NonNullable<ExampleSentencesResponse['reibuns']>[number];
+export interface ExampleSentencesResponse {
+  result_count: number;
+  pg: number;
+  perPage: number;
+  reibuns: ReibunEntry[];
+}
 
 export async function fetchExampleSentences(wordId: string): Promise<ExampleSentencesResponse> {
-  return fetchData(`reibun/search/${wordId}`);
+  return fetchData(`reibun/search/${wordId}?lang=${getLocale()}`);
 }

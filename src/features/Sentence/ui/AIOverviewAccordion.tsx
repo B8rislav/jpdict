@@ -4,6 +4,7 @@ import styles from './AIOverviewAccordion.module.css';
 import Markdown from 'react-markdown';
 import { type SentenceToken } from '@/shared/api/types';
 import { SENTENCE_PREVIEW_LENGTH } from '../constants';
+import { t } from '@/shared/i18n';
 
 interface AIOverviewAccordionProps {
   sentence: string;
@@ -38,7 +39,7 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
         setOverview((prev) => (prev ?? '') + chunk);
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Неизвестная ошибка');
+      setError(err instanceof Error ? err.message : t('ui', 'ai_unknown_error'));
       console.error('Failed to fetch AI overview:', err);
     } finally {
       setIsLoading(false);
@@ -54,7 +55,7 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
     <div className={styles.aiOverviewContainer}>
       <div className={styles.overviewHeader}>
         <div className={styles.overviewTitleBlock}>
-          <Text variant="subheader-2">🤖 AI Обзор предложения</Text>
+          <Text variant="subheader-2">{t('ui', 'ai_overview_title')}</Text>
           {sentenceSummary && (
             <Text variant="caption-1" className={styles.sentencePreview}>
               {sentenceSummary}
@@ -63,10 +64,10 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
         </div>
         <div className={styles.overviewActions}>
           <Text variant="caption-1" className={styles.tokenCount}>
-            Токенов: {tokenCount}
+            {t('ui', 'ai_overview_tokens')} {tokenCount}
           </Text>
           <Button view={isExpanded ? 'normal' : 'outlined-info'} size="l" onClick={handleToggle}>
-            {isExpanded ? 'Свернуть обзор' : 'Показать обзор'}
+            {isExpanded ? t('ui', 'ai_overview_collapse') : t('ui', 'ai_overview_expand')}
           </Button>
         </div>
       </div>
@@ -81,13 +82,13 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
             <div className={styles.loadingContainer}>
               <div className={styles.spinner} />
               <Text variant="body-2" className={styles.loadingText}>
-                AI анализирует предложение...
+                {t('ui', 'ai_overview_loading')}
               </Text>
             </div>
           ) : error ? (
             <div className={styles.errorContainer}>
               <Text variant="body-2" color="danger">
-                Ошибка: {error}
+                {t('ui', 'ai_overview_error_prefix')} {error}
               </Text>
               <Button
                 view="outlined"
@@ -95,16 +96,16 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
                 onClick={fetchOverview}
                 className={styles.retryButton}
               >
-                Попробовать снова
+                {t('ui', 'ai_overview_retry')}
               </Button>
             </div>
           ) : (
             <div className={styles.emptyState}>
               <Text variant="body-2">
-                Нажмите кнопку ниже, чтобы получить AI-анализ этого предложения
+                {t('ui', 'ai_overview_prompt')}
               </Text>
               <Button view="action" size="m" onClick={fetchOverview} className={styles.fetchButton}>
-                Получить AI-анализ
+                {t('ui', 'ai_overview_fetch')}
               </Button>
             </div>
           )}

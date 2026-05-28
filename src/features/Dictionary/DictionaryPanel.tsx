@@ -6,7 +6,8 @@ import { type FC } from 'react';
 
 import { $savedWords, removeWordFx, updateStatusFx } from './model';
 import { useDictionaryFilters } from './model/useDictionaryFilters';
-import { HSK_LEVELS, JLPT_LEVELS, MASTERY_CYCLE, MASTERY_LABEL, nextStatus } from './constants';
+import { HSK_LEVELS, JLPT_LEVELS, MASTERY_CYCLE, nextStatus } from './constants';
+import { t } from '@/shared/i18n';
 import { DictionaryWordCard } from './DictionaryWordCard';
 import styles from './DictionaryPanel.module.css';
 
@@ -21,7 +22,7 @@ export const DictionaryPanel: FC = () => {
         {(hasJlpt || hasHsk) && (
           <div className={styles.filterRow}>
             <Text className={styles.filterLabel} variant="caption-2">
-              Уровень
+              {t('ui', 'dict_filter_level')}
             </Text>
             {hasJlpt &&
               JLPT_LEVELS.map((lvl) => (
@@ -50,7 +51,7 @@ export const DictionaryPanel: FC = () => {
 
         <div className={styles.filterRow}>
           <Text className={styles.filterLabel} variant="caption-2">
-            Статус
+            {t('ui', 'dict_filter_status')}
           </Text>
           {MASTERY_CYCLE.map((s) => (
             <Button
@@ -59,7 +60,7 @@ export const DictionaryPanel: FC = () => {
               view={statusFilter === s ? 'normal' : 'outlined'}
               onClick={() => toggleStatus(s)}
             >
-              {MASTERY_LABEL[s]}
+              {t('mastery', s)}
             </Button>
           ))}
         </div>
@@ -68,7 +69,7 @@ export const DictionaryPanel: FC = () => {
       {filtered.length === 0 ? (
         <div className={styles.empty}>
           <Text variant="body-2">
-            {savedWords.length === 0 ? 'Словарь пуст' : 'Нет слов по фильтру'}
+            {t('ui', savedWords.length === 0 ? 'dict_empty' : 'dict_no_filter')}
           </Text>
         </div>
       ) : (

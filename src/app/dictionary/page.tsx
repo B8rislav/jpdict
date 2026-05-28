@@ -8,36 +8,35 @@ import { useUnit } from 'effector-react';
 import { $savedWords, DictionaryPanel, loadDictionaryFx } from '@/features/Dictionary';
 import { AuthGate } from '@/features/Auth/AuthGate';
 import { $isAuthenticated } from '@/stores/auth';
+import { $userProfile } from '@/stores/userProfile';
+import { t } from '@/shared/i18n';
 import styles from './page.module.css';
 
 export default function DictionaryPage() {
   const savedWords = useUnit($savedWords);
   const isAuthenticated = useUnit($isAuthenticated);
+  const { uiLocale } = useUnit($userProfile);
 
   useEffect(() => {
     if (isAuthenticated) loadDictionaryFx();
   }, [isAuthenticated]);
 
+  const wordCountLabel = t('dict_count', new Intl.PluralRules(uiLocale).select(savedWords.length));
+
   return (
     <div className={styles.page}>
       <div className={styles.header}>
         <Link href="/" className={styles.back}>
-          ← Назад
+          {t('ui', 'settings_back')}
         </Link>
-        <Text variant="display-1">Словарь</Text>
+        <Text variant="display-1">{t('ui', 'dict_title')}</Text>
       </div>
-      <AuthGate title="Личный словарь">
+      <AuthGate title={t('ui', 'dict_personal')}>
         <Text className={styles.count} variant="body-2">
-          {savedWords.length} {pluralize(savedWords.length)}
+          {savedWords.length} {wordCountLabel}
         </Text>
         <DictionaryPanel />
       </AuthGate>
     </div>
   );
-}
-
-function pluralize(n: number): string {
-  if (n % 10 === 1 && n % 100 !== 11) return 'слово';
-  if (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) return 'слова';
-  return 'слов';
 }

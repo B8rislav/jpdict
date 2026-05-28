@@ -1,5 +1,247 @@
 # Tasks
 
+## 🎨 Redesign — Human, Complete & Multilingual
+
+> Three orthogonal redesign slices. Do them in order: layout first (so reviews of i18n/CN
+> aren't poisoned by scrollbar noise), then i18n, then Chinese parity.
+> Each slice has a "Done when" line — finish only when that's true.
+
+### D1 — Single scroll source (kill the 3-scrollbar pile-up)
+
+**Symptom:** after sentence search, the page has three vertical scrollbars at once —
+the `react-window` `List` inside `SentenceCardView`, the `CardList` column, and the
+window itself. Tracking the scrollbar that owns the wheel event is impossible.
+
+**Target model:** the **window** is the only scroll surface. Cards grow to fit their
+content; the page below grows to fit the cards. `react-window` is kept only because
+sentences can have hundreds of tokens — but its viewport must be the *only* internal
+scroller in the document.
+
+- [x] **`CardList` — remove the inner scroll container.**
+  - [src/shared/ui/CardList/CardList.module.css:8](frontend/src/shared/ui/CardList/CardList.module.css#L8): delete `overflow-y: scroll` and the `::-webkit-scrollbar*` rules below it.
+  - [src/shared/ui/CardList/CardList.tsx:23](frontend/src/shared/ui/CardList/CardList.tsx#L23): drop the inline `height: listHeight` (let it size to content). Remove `padding-right: 15px` in the CSS — that gutter only exists for the now-removed scrollbar.
+  - [src/shared/ui/CardList/CardList.tsx:6-10](frontend/src/shared/ui/CardList/CardList.tsx#L6-L10): make `listHeight` / `listWidth` optional (skeleton sizing only). Then in [src/app/page.tsx:138,141](frontend/src/app/page.tsx#L138) drop `listHeight={800}` (keep `listWidth` for column width if still needed, or replace with a `max-width` CSS variable).
+- [x] **`SentenceCardView` virtual list — don't reserve a fixed scrollable viewport for short sentences.**
+  - [src/features/Sentence/ui/SentenceCardView.tsx:35](frontend/src/features/Sentence/ui/SentenceCardView.tsx#L35) computes `listHeight = min(tokens, MAX_VISIBLE_ITEMS) * ITEM_SIZE`. For sentences ≤ `MAX_VISIBLE_ITEMS` tokens (the common case), bypass `react-window` and render plain `<TokenRow>`s in a flex column — no virtualization, no inner scroll.
+  - For longer sentences, keep `react-window` but ensure its internal scrollbar is the only one in that card (no parent scroller above it).
+  - Extract a `useVirtualizeTokens(tokens)` hook (or a simple ternary in the view) that returns either `<List>` or `<TokenRow…>` rows.
+- [x] **Page chrome — let the window scroll.**
+  - [src/app/page.module.css:1-3](frontend/src/app/page.module.css#L1): the `.page` container is fine. Verify nothing in `globals.css` sets `html { overflow: hidden }` or similar that would suppress the window scrollbar.
+  - [src/app/page.module.css:28-31](frontend/src/app/page.module.css#L28) `.lists`: keep `display: flex` but allow children to grow vertically. `align-items: flex-start` so unequal-height columns don't stretch each other.
+- [x] **Audit other forced overflow rules.**
+  - [src/features/SearchHistory/SearchHistoryDropdown.module.css](frontend/src/features/SearchHistory/SearchHistoryDropdown.module.css) — the dropdown popover is allowed to scroll internally (it's bounded). Keep, but verify it doesn't introduce a *page-level* scrollbar when open.
+  - [src/features/Dictionary/DictionaryWordCard/DictionaryWordCard.module.css](frontend/src/features/Dictionary/DictionaryWordCard/DictionaryWordCard.module.css) — same check.
+- [x] **Sticky search bar (optional, but pairs naturally with single-scroll).**
+  Since the window now scrolls, the search input scrolls out of view on long result lists. Either wrap the nav + `<Search />` in a `position: sticky; top: 0` band, or accept the scroll and document it.
+- [x] **Done when:** searching `この本はとても面白いです。` (or any long sentence) produces exactly **one** scrollbar in the viewport, mouse-wheel events scroll the window from anywhere on the page, and the sentence card grows to its natural height with the `react-window` inner scroll only kicking in past `MAX_VISIBLE_ITEMS` rows.
+
+---
+
+### D2 — Full i18n (RU, EN, and ready for CN/JP)
+
+**State today:** [src/shared/i18n/index.ts](frontend/src/shared/i18n/index.ts) imports
+`ru.json` directly and ignores `en.json`. Roughly 30+ UI strings are still hardcoded
+in Russian inside components. There's no UI locale switcher and no `Intl.PluralRules`
+usage (see `pluralize` in [src/app/dictionary/page.tsx:39-43](frontend/src/app/dictionary/page.tsx#L39-L43)).
+
+> **Scope note:** "UI locale" ≠ "study language". `selectedLanguage` (jp/cn) drives
+> *what the user is learning*; `uiLocale` (ru/en/…) drives *what tongue the interface speaks*.
+> Don't conflate them.
+
+**D2.1 — Wire a real locale loader.**
+- [x] Rewrite [src/shared/i18n/index.ts](frontend/src/shared/i18n/index.ts) to support multiple dictionaries:
+  ```ts
+  import ru from './ru.json';
+  import en from './en.json';
+  type Dict = typeof ru;
+  type Locale = 'ru' | 'en';
+  const dicts: Record<Locale, Dict> = { ru, en: en as Dict };
+  let currentLocale: Locale = 'ru';
+  export const setLocale = (l: Locale) => { currentLocale = l; };
+  export const t = <C extends keyof Dict>(category: C, key: string): string =>
+    (dicts[currentLocale][category] as Record<string, string>)?.[key]
+      ?? (dicts.ru[category] as Record<string, string>)?.[key] // RU fallback
+      ?? key;
+  ```
+  (If you'd rather avoid the module-level mutable, lift `currentLocale` to an Effector store and have `t` read it via a React hook `useT()` — but the simple form above is fine.)
+- [x] Sync the dictionary shape. [src/shared/i18n/en.json](frontend/src/shared/i18n/en.json) is missing the entire `ui.*` and `word_type.*` sections that `ru.json` has — add them. Future locales must extend the same shape; consider a quick `npm` script that diffs keys and fails CI on missing entries.
+
+**D2.2 — Add a UI locale store + switcher.**
+- [x] Add `uiLocale: 'ru' | 'en'` to [src/stores/userProfile.ts](frontend/src/stores/userProfile.ts) (next to `selectedLanguage`, `showFurigana`, `showPinyin`). Default to `'ru'`. Persist to `localStorage` like the other profile fields.
+- [x] On profile load, call `setLocale(uiLocale)` so `t()` uses the right dict from the first render.
+- [x] Wire `<html lang>` via [src/app/HtmlLangSync.tsx](frontend/src/app/HtmlLangSync.tsx) — it currently only writes `data-lang` for the *study* language; also write `lang={uiLocale}`. Remove the hardcoded `lang="ru"` in [src/app/layout.tsx:37](frontend/src/app/layout.tsx#L37).
+- [x] Add a small locale picker (`RU | EN`) in the top nav of [src/app/page.tsx:70-131](frontend/src/app/page.tsx#L70-L131), to the right of the JP/CN switcher. Either two `<Button>`s or a tiny `<Select>` — match the existing nav style.
+
+**D2.3 — Sweep hardcoded strings.**
+Replace every literal Russian/English UI string with `t('ui', 'some_key')`. Add the keys to both `ru.json` and `en.json`. Files with confirmed offenders:
+
+  - [src/app/page.tsx:30-31,87,97,109,124,129](frontend/src/app/page.tsx#L30-L31): `'Японский'`, `'Китайский'`, `'Фуригана'`, `'Пиньинь'`, `'Мой словарь'`, `'Выйти'`, `'Войти'`.
+  - [src/app/settings/page.tsx:38](frontend/src/app/settings/page.tsx#L38): `'Японский' / 'Китайский'` ternary.
+  - [src/app/dictionary/page.tsx:40-42](frontend/src/app/dictionary/page.tsx#L40-L42): the `pluralize` helper for `слово / слова / слов` — replace with `new Intl.PluralRules(uiLocale).select(n)` keyed lookups in the dict (e.g. `t('dict_count', 'one' | 'few' | 'many' | 'other')`).
+  - [src/features/Search/Search.tsx:43](frontend/src/features/Search/Search.tsx#L43): `'Выберите язык для поиска'`.
+  - [src/features/Search/ui/SearchView.tsx:114](frontend/src/features/Search/ui/SearchView.tsx#L114): inline fallback `'Одиночный иероглиф, слово или предложение'`.
+  - [src/features/Auth/AuthModal.tsx:43,54,104](frontend/src/features/Auth/AuthModal.tsx#L43): `'Ошибка'`, `'Войти'/'Регистрация'`, `'Войти'/'Создать аккаунт'`. Plus all field labels in that modal.
+  - [src/features/Sentence/ui/AIOverviewAccordion.tsx:41,69](frontend/src/features/Sentence/ui/AIOverviewAccordion.tsx#L41): `'Неизвестная ошибка'`, `'Свернуть обзор'/'Показать обзор'`.
+  - [src/features/Dictionary/DictionaryPanel.tsx:71](frontend/src/features/Dictionary/DictionaryPanel.tsx#L71): `'Словарь пуст'/'Нет слов по фильтру'`. Sweep the rest of `DictionaryPanel` and `DictionaryWordCard` (status labels, level filters) in the same pass.
+  - [src/features/WordCard/ui/WordCardView.tsx:44](frontend/src/features/WordCard/ui/WordCardView.tsx#L44): `'Сохранено'/'Сохранить'`.
+  - [src/features/WordInspector/WordInspector.tsx:57,61,65,71,78,99,104,121](frontend/src/features/WordInspector/WordInspector.tsx#L57): `'Перевод'`, `'Грамматика'`, `'Часть речи'`, `'Pitch'`, `'Примеры'`, `'Примеры не найдены'`, `'Иероглифы'`, `'Сохранено'/'Добавить в словарь'`. Note the section title `'Иероглифы'` should be locale-aware *and* study-language-aware (see D3).
+  - [src/app/layout.tsx:25-28](frontend/src/app/layout.tsx#L25-L28): `metadata.title` / `metadata.description` — these are SSR'd. Either localize via `generateMetadata` reading a cookie/header, or pick a neutral default. Lowest-effort: leave them in RU for now and add a TODO.
+
+**D2.4 — Lint guard.**
+- [x] Add a quick custom ESLint rule (or a `no-restricted-syntax` regex) that errors on Cyrillic string literals (`/[А-Яа-яёЁ]/`) in `.tsx` files outside `src/shared/i18n/**` and `**/*.stories.tsx`. Stops the rot from re-growing.
+
+- [x] **Done when:** flipping the UI locale switcher swaps every visible string in the nav, search, cards, dictionary, auth modal, and settings page — and `git grep -nE "'[А-Яа-яёЁ]" src --include='*.tsx'` returns nothing outside i18n/stories.
+
+---
+
+### D3 — Chinese hanzi parity with Japanese kanji
+
+**Symptom:** after a Chinese word query, the WordInspector renders the "Иероглифы"
+grid but **clicking a character does nothing visible**. Root cause in
+[src/features/KanjiCard/api/fetchKanji.ts:13](frontend/src/features/KanjiCard/api/fetchKanji.ts#L13):
+
+```ts
+if (language !== 'jp') return [];
+```
+
+So `fetchKanjiFx` resolves to `[]`, `$kanji` stays empty, and no card mounts.
+Several adjacent gaps stack on top of that.
+
+> "Hanzi" / "hangxi" in the user prompt = 漢字/汉字, i.e. Chinese single-character lookup
+> with pinyin, radical, definition. Same shape as the Japanese kanji card.
+
+**D3.1 — Backend / data path.**
+- [ ] Decide where Chinese character data comes from. Two viable paths:
+  - **A.** Extend `backend/app/routers/kanji.py` to serve `/api/hanzi/{char}` (or accept a `?lang=cn` query) backed by a CC-CEDICT / Unihan dataset.
+  - **B.** Add a new BFF route `src/app/api/hanzi/[char]/route.ts` that hits a public hanzi API and maps the response into `BackendKanjiCard`-shape.
+  Pick one; document the choice in a one-paragraph note at the top of the slice.
+- [ ] If choosing A: add the migration / data load task to this slice's checklist (don't dump it on the backend phase).
+
+**D3.2 — Frontend wiring.**
+- [ ] [src/features/KanjiCard/api/fetchKanji.ts:13](frontend/src/features/KanjiCard/api/fetchKanji.ts#L13): drop the `language !== 'jp'` early return. Branch on `language` to pick the endpoint (`kanji/…` vs `hanzi/…`) and map both into the existing `Kanji` shape.
+- [ ] [src/shared/api/types.ts:16-26](frontend/src/shared/api/types.ts#L16-L26): the `Kanji` type today carries `kunyomi` / `onyomi` (Japanese-only) and has no `pinyin` field. Today's workaround in [src/features/KanjiCard/ui/KanjiCardView.tsx:46](frontend/src/features/KanjiCard/ui/KanjiCardView.tsx#L46) crams pinyin into `radical_name`, which is **a bug** — `radical_name` is then *also* displayed in the radical block at line 53. Fix by adding `pinyin?: string` to `Kanji` and rendering from the right field.
+- [ ] [src/features/KanjiCard/ui/KanjiCardView.tsx:43-48](frontend/src/features/KanjiCard/ui/KanjiCardView.tsx#L43-L48): rewrite the `cn` branch to render `pinyin` from `pinyin` (not `radical_name`), and add a `Tone marks` line if useful.
+- [ ] Verify [src/features/WordInspector/WordInspector.tsx:29](frontend/src/features/WordInspector/WordInspector.tsx#L29): the `kanjiChars` extraction uses `word.kanji_full` and `CJK_REGEX`. For Chinese words the field is *also* called `kanji_full` today (see [types.ts:5-14](frontend/src/shared/api/types.ts#L5-L14)), which is a misnomer but works. Either rename `kanji_full → cjk_full` (or split into `kanji_full` + `hanzi_full`) — pick now, before more code accumulates.
+- [ ] Verify the click in [src/features/WordInspector/WordInspector.tsx:38-41](frontend/src/features/WordInspector/WordInspector.tsx#L38-L41) actually surfaces a card in CN mode: after the fetch unblocks, the `<KanjiCard>` (or hanzi card) must render in the same column as it does for JP. Today the only renderer is [src/app/page.tsx:142-150](frontend/src/app/page.tsx#L142-L150) — confirm it mounts.
+
+**D3.3 — Locale-aware copy.**
+- [ ] Section title in WordInspector is `'Иероглифы'`. After D2 it'll come from `t('ui', 'inspector_chars_section')`. The *translation* of that key should also branch on `selectedLanguage` (study lang): RU/JP → "Кандзи", RU/CN → "Иероглифы", EN/JP → "Kanji", EN/CN → "Hanzi". Either pass `selectedLanguage` into `t()` or use composite keys (`inspector_chars_section_jp`, `inspector_chars_section_cn`).
+- [ ] Same treatment for the reading label in [src/features/WordCard/WordCard.tsx:18](frontend/src/features/WordCard/WordCard.tsx#L18) and [WordInspector.tsx:43](frontend/src/features/WordInspector/WordInspector.tsx#L43) — `'Hiragana' / 'Pinyin'` is already study-lang-conditional, but the *RU* user should see `'Хирагана' / 'Пиньинь'`.
+
+**D3.4 — Test it end-to-end.**
+- [ ] Add a manual test checklist to the PR:
+  - Search a Chinese word (e.g. `中国`), click each hanzi → card mounts with pinyin + radical + definition.
+  - Switch to JP, search a Japanese word with kanji (e.g. `日本語`), click each → still works (no regression).
+  - In CN mode, clicking a non-CJK char in a definition should not crash.
+- [ ] (Optional, recommended) Add a Vitest test for `fetchKanji` that asserts the `cn` branch hits the right endpoint and maps `pinyin` correctly.
+
+- [ ] **Done when:** in CN mode, clicking any hanzi inside `WordInspector`'s "Иероглифы/Hanzi" grid mounts a fully-populated hanzi card with **pinyin (not stuffed into `radical_name`)**, radical, and definition — matching the JP/kanji UX one-for-one.
+
+---
+
+### Execution order for this section
+D1 → D2 → D3. D1 is invisible-but-foundational (no diff churn for the others).
+D2 introduces a key-add discipline that D3 then *uses* for its hanzi-vs-kanji labels.
+D3 depends on the type cleanup in D2.2/D2.3 only loosely — if D2 stalls, D3 can run
+in parallel as long as it adds keys to both `ru.json` and `en.json` as it goes.
+
+---
+
+## 📚 S — Storybook coverage for view components
+
+> Goal: every pure view component under `*/ui/*.tsx` has a `*.stories.tsx` next to it.
+> Containers (files that import from `effector-react` or `@/stores/*`) are explicitly
+> out of scope — Storybook is meant for the pure render layer. The R3 boundary already
+> guarantees that split, so the test is mechanical.
+>
+> Pattern to follow (already used in [WordCard.stories.tsx](frontend/src/features/WordCard/WordCard.stories.tsx),
+> [KanjiCard.stories.tsx](frontend/src/features/KanjiCard/KanjiCard.stories.tsx),
+> [SentenceCard.stories.tsx](frontend/src/features/Sentence/SentenceCard.stories.tsx)):
+> - import the `*View` component (not the container);
+> - use `@storybook/nextjs-vite`;
+> - wrap with a width decorator;
+> - export at least one `Primary` story, plus one variant per meaningful prop axis
+>   (e.g. `WithMarkers` / `NoMarkers`, `Saved` / `Unsaved`, `JP` / `CN`, `Loading` / `Empty`).
+
+### S1 — Audit & checklist
+- [ ] Run `find src -path '*/ui/*.tsx' -not -name '*.stories.tsx' -not -name '*.test.tsx'` and cross-reference against existing `*.stories.tsx`. Confirmed current state at time of writing:
+  - **Has stories:** `WordCardView`, `KanjiCardView`, `SentenceCardView`, `DictionaryWordCard`, `FuriganaText`.
+  - **Missing — shared/ui:** `MarkerList`, `DefinitionList`, `AccordionSection`, `Card`, `CardList`.
+  - **Missing — feature view layer:** `SearchView`, `AIOverviewAccordion`, `TokenRow`, `LanguageCard`, `StrokeOrder`.
+  - **Maybe skip (judgement call):** `AuthGate` (logic-only wrapper, no visual surface), `HtmlLangSync` (no DOM output), `ThemeProvider` (effector + provider, no useful Story args).
+
+### S2 — Shared UI primitives (`src/shared/ui/*`)
+- [ ] **`MarkerList`** ([src/shared/ui/MarkerList/MarkerList.tsx](frontend/src/shared/ui/MarkerList/MarkerList.tsx)). Stories: `Empty`, `OneMarker`, `ManyMarkers` (e.g. `['N1','common','音読み','形容詞']`).
+- [ ] **`DefinitionList`** ([src/shared/ui/DefinitionList/DefinitionList.tsx](frontend/src/shared/ui/DefinitionList/DefinitionList.tsx)). Stories: `SingleItem`, `MultipleItems`, `LongDefinitions` (line-wrap behavior).
+- [ ] **`AccordionSection`** ([src/shared/ui/Accordion/AccordionSection.tsx](frontend/src/shared/ui/Accordion/AccordionSection.tsx)). Stories: `Closed`, `OpenByDefault`, `WithOnFirstExpand` (use Storybook actions to log calls).
+- [ ] **`Card`** ([src/shared/ui/Card/Card.tsx](frontend/src/shared/ui/Card/Card.tsx)). One `Primary` story with placeholder children — mostly a visual regression target for the global card chrome.
+- [ ] **`CardList`** ([src/shared/ui/CardList/CardList.tsx](frontend/src/shared/ui/CardList/CardList.tsx)). Stories: `Loading` (skeleton variant), `WithChildren`, `Empty`. **Note:** after D1 the `listHeight` prop becomes optional/dead — bring the stories in line with whatever D1 lands.
+
+### S3 — Feature view components
+- [ ] **`SearchView`** ([src/features/Search/ui/SearchView.tsx](frontend/src/features/Search/ui/SearchView.tsx)). Stories: `Empty`, `Typing`, `Submitting`, `WithHistory`, `QueryTypeKanji` / `QueryTypeSentence` / `QueryTypeWord`. Mock callbacks via Storybook `action()`.
+- [ ] **`AIOverviewAccordion`** ([src/features/Sentence/ui/AIOverviewAccordion.tsx](frontend/src/features/Sentence/ui/AIOverviewAccordion.tsx)). Stories: `Collapsed`, `Streaming` (pass a fake `onFetchOverview` that emits chunks on a setTimeout chain), `Loaded`, `Error`. The streaming story is the high-value one — it's the only way to eyeball chunk-flicker without a live OpenRouter key.
+- [ ] **`TokenRow`** ([src/features/Sentence/ui/TokenRow.tsx](frontend/src/features/Sentence/ui/TokenRow.tsx)). `TokenRow` is a `react-window` row component — render it standalone with a mocked `style`/`ariaAttributes` and a single-element `tokens` array. Stories: `JapaneseNoun`, `JapaneseVerb` (different `getPosClass` outcomes), `ChineseToken`, `FuriganaShown` / `FuriganaHidden`, `Selected`.
+- [ ] **`LanguageCard`** ([src/features/LanguageSelect/ui/LanguageCard.tsx](frontend/src/features/LanguageSelect/ui/LanguageCard.tsx)). Stories: `Japanese`, `Chinese`, `Selected`, `Disabled` (if applicable).
+- [ ] **`StrokeOrder`** ([src/features/KanjiCard/ui/StrokeOrder.tsx](frontend/src/features/KanjiCard/ui/StrokeOrder.tsx)). Stories: `WithSvg` (single common kanji like `日`), `MissingSvg` (synthetic char to exercise the fallback path), `Loading`. Be careful: this component fetches from a CDN — provide a Storybook decorator (or MSW handler) that stubs the network so stories are offline-reproducible.
+
+### S4 — Refactors that *unblock* stories
+Some view components today still close over store reads (R3 was thorough but not exhaustive). Before writing the Story, verify:
+- [ ] `WordInspector` ([src/features/WordInspector/WordInspector.tsx](frontend/src/features/WordInspector/WordInspector.tsx)) reads `$userProfile`, `$exampleSentences`, `$savedWords` and calls `fetchExampleSentencesFx`, `clearKanji`, `fetchKanjiFx`, `addWordFx`. To make it Story-friendly, extract a `WordInspectorView` taking everything as props (`onKanjiClick`, `onSave`, `onExpandExamples`, `exampleSentences`, `examplesPending`, `isSaved`, `selectedLanguage`). Then add `Primary`, `Saved`, `LoadingExamples`, `EmptyExamples` stories. This pairs naturally with D3.
+- [ ] `AuthModal` ([src/features/Auth/AuthModal.tsx](frontend/src/features/Auth/AuthModal.tsx)) similarly mixes state + side effects + view. Either split into `AuthModalView` first, or accept that this one stays story-less for now and document the skip.
+
+### S5 — CI / hygiene
+- [ ] Confirm `npm run test:storybook` runs all stories without crashing — that's the cheapest regression test.
+- [ ] Add a `storybook:build` smoke test to CI if not already wired (`npm run build:storybook` exists).
+- [ ] (Optional) `@chromatic-com/storybook` is already a devDep — if anyone wants visual-regression coverage, this is the moment to wire it.
+
+- [ ] **Done when:** every file matching `src/**/ui/*.tsx` (excluding the explicit skip-list in S1) has a co-located `*.stories.tsx` with ≥ 2 stories, and `npm run test:storybook` is green.
+
+---
+
+## 📖 DOC — Frontend architecture & component documentation
+
+> Mirror of `backend/TASKS.md` Phase 14. Goal: a self-contained `frontend/docs/` tree
+> that lets a new contributor (or future me) navigate the codebase without re-reading
+> every file. Keep prose tight: each doc should be skimmable in under five minutes.
+>
+> Existing artifacts to fold in (not delete blindly):
+> [PLAN.md](frontend/PLAN.md), [README.md](frontend/README.md),
+> [ux_ui_description_1.md](frontend/ux_ui_description_1.md). After this section,
+> `PLAN.md` and `ux_ui_description_1.md` should either move into `docs/` or be deleted
+> with a note in the commit.
+
+### DOC.1 — Scaffold
+- [ ] Create `frontend/docs/` and `frontend/docs/README.md` — index linking every doc below with one-line descriptions. Pattern: `- [ARCHITECTURE.md](./ARCHITECTURE.md) — request lifecycle from URL bar to API`.
+- [ ] Decide a one-line convention for cross-links: `src/features/Search/Search.tsx:80` (no markdown link to avoid rotting). State it in the index.
+
+### DOC.2 — Core docs (1 file each, ≤ 1 screen)
+- [ ] **`docs/ARCHITECTURE.md`** — high-level overview. Cover: Next.js App Router layout (RSC vs Client Components), the BFF pattern under `src/app/api/*` proxying FastAPI, Effector store layout (`stores/*` for global, `features/*/model` for slice-local), the R3 container/view boundary, where SSE streaming terminates ([src/app/api/ai-overview/route.ts](frontend/src/app/api/ai-overview/route.ts) → [AIOverviewAccordion](frontend/src/features/Sentence/ui/AIOverviewAccordion.tsx)), where auth cookies live. One ASCII diagram of the data flow is enough.
+- [ ] **`docs/STRUCTURE.md`** — directory-by-directory walkthrough of `src/app/`, `src/features/`, `src/shared/`, `src/stores/`, `src/types/`. For each folder list its purpose and the role of each subdirectory (e.g. `src/features/<Feature>/model/index.ts` — Effector stores + effects scoped to one feature; `src/features/<Feature>/ui/*.tsx` — pure view components, no store imports).
+- [ ] **`docs/COMPONENTS.md`** — table of every shared UI primitive and feature-level view component: name, purpose, key props, link to file and to Storybook story. Mark which components are container-only (no story). Generated by hand; refresh when adding new components. Cross-references S1's audit.
+- [ ] **`docs/STATE.md`** — Effector store map. For each store under `src/stores/*` and `src/features/*/model/*`: what it holds, who writes to it (events/effects), who reads it (containers), and the persistence path (none / localStorage / BFF). Include a one-line note on the `resetSearchResults` orchestration from R6.
+- [ ] **`docs/ROUTES.md`** — table of every route under `src/app/`: path, file, RSC vs client, auth required, what BFF endpoints it calls. Same shape as backend's `docs/API.md` but flipped — the consumer side.
+- [ ] **`docs/BFF.md`** — table of every Next route handler under `src/app/api/*`: method, path, auth, what backend endpoint it proxies, whether it streams. Link to [src/shared/api/backend.ts](frontend/src/shared/api/backend.ts) for the `BACKEND_URL` source of truth.
+- [ ] **`docs/I18N.md`** — locale system (post-D2): which dicts exist, how `t()` resolves, how `<html lang>` is set, the discipline for adding new strings, the lint guard from D2.4. Until D2 lands, write a "Status: not yet implemented; see TASKS.md D2" note.
+- [ ] **`docs/STYLING.md`** — CSS Modules + Gravity UI + custom CSS variables. List the CSS-variable contract (`--bg-light`, `--accent-red`, `--g-color-*`), where dark/light theme switching happens, and the font-loading strategy from [src/app/layout.tsx](frontend/src/app/layout.tsx). Mention the scrollbar rules post-D1.
+- [ ] **`docs/AUTH.md`** — JWT flow: login → BFF → FastAPI → httpOnly refresh cookie + access token in memory; the `refreshFx` boot path in [src/app/page.tsx:47](frontend/src/app/page.tsx#L47); the middleware in [src/middleware.ts](frontend/src/middleware.ts). Two paragraphs on threat model.
+- [ ] **`docs/TESTING.md`** — Vitest unit setup, Storybook test runner, Playwright if/when added; how to run each locally and in CI; the test-name convention from R7's `logEffectFailures` etc.
+- [ ] **`docs/RUNBOOK.md`** — operational recipes: spin up `npm run dev` against a local backend, point at a remote backend (env var pattern), regenerate API types via `npm run generate-types`, clear `localStorage` to simulate a fresh user, debug a stuck Effector chain.
+
+### DOC.3 — Migrate legacy docs
+- [ ] Read [PLAN.md](frontend/PLAN.md) — fold any still-relevant content into the new docs (probably ARCHITECTURE, STATE). Delete `PLAN.md` once everything is migrated.
+- [ ] Read [ux_ui_description_1.md](frontend/ux_ui_description_1.md) — extract the design rationale into `docs/UX.md` (or fold into ARCHITECTURE), then delete the source file.
+- [ ] Update [README.md](frontend/README.md) — add a `## Documentation` section linking `docs/README.md`, `docs/ARCHITECTURE.md`, `docs/RUNBOOK.md`. Trim duplicate content from README that now lives in docs.
+
+### DOC.4 — Verify
+- [ ] Every Markdown link in `docs/` resolves (no 404s).
+- [ ] Every file path mentioned in `docs/STRUCTURE.md` actually exists.
+- [ ] Every component listed in `docs/COMPONENTS.md` actually exports under the listed name.
+- [ ] Every store listed in `docs/STATE.md` is grep-able with `git grep -nE 'createStore|createEvent|createEffect' src/...`.
+
+- [ ] **Done when:** `docs/README.md` lists all of the above, every linked file exists, and a new contributor can clone the repo, read three docs (`ARCHITECTURE`, `STRUCTURE`, `RUNBOOK`), and start work without asking anyone questions.
+
+---
+
 ## 🟣 Refactor — Clean Architecture
 
 > Each slice below is independently shippable. Do one, review, then move on.

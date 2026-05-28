@@ -6,6 +6,7 @@ import { type Word } from '@/shared/api/types';
 import { Card } from '@/shared/ui/Card';
 import { MarkerList } from '@/shared/ui/MarkerList/MarkerList';
 import { DefinitionList } from '@/shared/ui/DefinitionList/DefinitionList';
+import { t } from '@/shared/i18n';
 import styles from './WordCardView.module.css';
 
 type WordCardViewProps = Word & {
@@ -41,7 +42,7 @@ export const WordCardView: FC<WordCardViewProps> = ({
           onClick={onSave}
           disabled={isSaved}
         >
-          {isSaved ? 'Сохранено' : 'Сохранить'}
+          {isSaved ? t('ui', 'wordcard_saved') : t('ui', 'wordcard_save')}
         </Button>
       </div>
       <DefinitionList items={def} />

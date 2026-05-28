@@ -19,6 +19,7 @@ export const KanjiCardView: FC<KanjiCardViewProps> = ({
   markers,
   kunyomi,
   onyomi,
+  pinyin,
   parts,
   selectedLanguage,
 }) => (
@@ -43,7 +44,7 @@ export const KanjiCardView: FC<KanjiCardViewProps> = ({
         ) : selectedLanguage === 'cn' ? (
           <div className={styles.pinyin}>
             <Text variant="subheader-3">{t('ui', 'kanji_pinyin')}: </Text>
-            <Text variant="body-2">{radical_name}</Text>
+            <Text variant="body-2">{pinyin}</Text>
           </div>
         ) : null}
         <div className={styles.radicalBlock}>

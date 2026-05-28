@@ -1,28 +1,29 @@
 import { createStore, createEvent } from 'effector';
 import { type Language } from '@/shared/api/types';
+import { setLocale, type Locale } from '@/shared/i18n';
 
 export interface UserProfile {
   selectedLanguage: Language | null;
   showFurigana: boolean;
   showPinyin: boolean;
+  uiLocale: Locale;
 }
 
 const defaultProfile: UserProfile = {
   selectedLanguage: null,
   showFurigana: true,
   showPinyin: true,
+  uiLocale: 'ru',
 };
 
-// Создаем store для профиля пользователя
 export const $userProfile = createStore<UserProfile>(defaultProfile);
 
-// Событие для установки выбранного языка
 export const setSelectedLanguage = createEvent<Language>();
 export const setShowFurigana = createEvent<boolean>();
 export const setShowPinyin = createEvent<boolean>();
+export const setUiLocale = createEvent<Locale>();
 export const loadUserProfile = createEvent<void>();
 
-// Обновляем store при выборе языка
 $userProfile.on(setSelectedLanguage, (state, language) => ({
   ...state,
   selectedLanguage: language,
@@ -38,7 +39,11 @@ $userProfile.on(setShowPinyin, (state, showPinyin) => ({
   showPinyin,
 }));
 
-// Загружаем профиль из localStorage только на клиенте
+$userProfile.on(setUiLocale, (state, uiLocale) => ({
+  ...state,
+  uiLocale,
+}));
+
 $userProfile.on(loadUserProfile, () => {
   if (typeof window === 'undefined') {
     return defaultProfile;
@@ -48,12 +53,16 @@ $userProfile.on(loadUserProfile, () => {
   return stored ? { ...defaultProfile, ...JSON.parse(stored) } : defaultProfile;
 });
 
-// Функция для сохранения в localStorage
 const saveToLocalStorage = (profile: UserProfile) => {
   if (typeof window !== 'undefined') {
     localStorage.setItem('userProfile', JSON.stringify(profile));
   }
 };
 
-// Сохраняем в localStorage при изменении (только при обновлении, не при инициализации)
 $userProfile.updates.watch(saveToLocalStorage);
+
+$userProfile.watch(profile => {
+  setLocale(profile.uiLocale);
+});
+
+export const $uiLocale = $userProfile.map(p => p.uiLocale);

@@ -5,6 +5,7 @@ import { useUnit } from 'effector-react';
 import { type FormEvent, useState } from 'react';
 
 import { loginFx, registerFx } from '@/stores/auth';
+import { t } from '@/shared/i18n';
 
 import styles from './AuthModal.module.css';
 
@@ -40,7 +41,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
         onOpenChange(false);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка');
+      setError(err instanceof Error ? err.message : t('ui', 'auth_error_default'));
     }
   }
 
@@ -51,7 +52,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
       className={styles.modal}
     >
       <div className={styles.content}>
-        <Text variant="header-1">{mode === 'login' ? 'Войти' : 'Регистрация'}</Text>
+        <Text variant="header-1">{mode === 'login' ? t('ui', 'auth_title_login') : t('ui', 'auth_title_register')}</Text>
 
         <RadioGroup
           value={mode}
@@ -61,8 +62,8 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           }}
           direction="horizontal"
         >
-          <Radio value="login">Войти</Radio>
-          <Radio value="register">Зарегистрироваться</Radio>
+          <Radio value="login">{t('ui', 'auth_tab_login')}</Radio>
+          <Radio value="register">{t('ui', 'auth_tab_register')}</Radio>
         </RadioGroup>
 
         <form onSubmit={handleSubmit} className={styles.form}>
@@ -76,7 +77,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           />
           <TextInput
             type="password"
-            placeholder="Пароль"
+            placeholder={t('ui', 'auth_password')}
             value={password}
             onUpdate={setPassword}
             disabled={pending}
@@ -89,8 +90,8 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
               onUpdate={(v) => setLanguage(v as 'jp' | 'cn')}
               direction="horizontal"
             >
-              <Radio value="jp">Японский</Radio>
-              <Radio value="cn">Китайский</Radio>
+              <Radio value="jp">{t('ui', 'lang_jp')}</Radio>
+              <Radio value="cn">{t('ui', 'lang_cn')}</Radio>
             </RadioGroup>
           )}
 
@@ -101,7 +102,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           )}
 
           <Button type="submit" view="action" loading={pending} width="max">
-            {mode === 'login' ? 'Войти' : 'Создать аккаунт'}
+            {mode === 'login' ? t('ui', 'auth_submit_login') : t('ui', 'auth_submit_register')}
           </Button>
         </form>
       </div>

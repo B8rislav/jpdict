@@ -21,11 +21,14 @@ const notoSansSC = Noto_Sans_SC({
   display: 'swap',
 });
 
+// TODO(D2): localize via generateMetadata reading Accept-Language header or a cookie
+/* eslint-disable no-restricted-syntax */
 export const metadata: Metadata = {
   title: 'JapChin Dict — Изучение японского и китайского',
   description:
     'Платформа для изучения иероглифического письма с морфологическим анализом и AI-объяснениями',
 };
+/* eslint-enable no-restricted-syntax */
 
 export default function RootLayout({
   children,
@@ -34,7 +37,7 @@ export default function RootLayout({
 }>) {
   return (
     <Providers>
-      <html lang="ru" className={`${notoSansJP.variable} ${notoSansSC.variable}`}>
+      <html className={`${notoSansJP.variable} ${notoSansSC.variable}`}>
         <body>
           <HtmlLangSync />
           {children}

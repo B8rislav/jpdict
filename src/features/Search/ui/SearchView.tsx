@@ -111,7 +111,7 @@ export const SearchView: FC<SearchViewProps> = (props) => {
 
       <div className={styles.statusRow}>
         <span className={styles.hintText}>
-          {hintText || 'Одиночный иероглиф, слово или предложение'}
+          {hintText || t('ui', 'search_hint_empty')}
         </span>
         {queryTypeLabel && <span className={styles.queryType}>{queryTypeLabel}</span>}
       </div>

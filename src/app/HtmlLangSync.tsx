@@ -5,7 +5,7 @@ import { useUnit } from 'effector-react';
 import { $userProfile } from '@/stores/userProfile';
 
 export function HtmlLangSync() {
-  const selectedLanguage = useUnit($userProfile).selectedLanguage;
+  const { selectedLanguage, uiLocale } = useUnit($userProfile);
 
   useEffect(() => {
     if (selectedLanguage) {
@@ -14,6 +14,10 @@ export function HtmlLangSync() {
       document.documentElement.removeAttribute('data-lang');
     }
   }, [selectedLanguage]);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('lang', uiLocale);
+  }, [uiLocale]);
 
   return null;
 }

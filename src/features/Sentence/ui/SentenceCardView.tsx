@@ -1,6 +1,6 @@
 'use client';
 
-import { type FC, useState } from 'react';
+import { type CSSProperties, type FC, useState } from 'react';
 import { Text } from '@gravity-ui/uikit';
 import { List } from 'react-window';
 import { type SentenceToken } from '@/shared/api/types';
@@ -11,6 +11,9 @@ import { TokenRow, type TokenRowProps } from './TokenRow';
 import { AIOverviewAccordion } from './AIOverviewAccordion';
 import styles from './SentenceCardView.module.css';
 import { ITEM_SIZE, MAX_VISIBLE_ITEMS } from '../constants';
+
+type PlainRowProps = { index: number; style: CSSProperties; ariaAttributes: Record<string, unknown> } & TokenRowProps;
+const PlainTokenRow = TokenRow as unknown as FC<PlainRowProps>;
 
 type SentenceCardViewProps = {
   sentence: string;
@@ -32,7 +35,6 @@ export const SentenceCardView: FC<SentenceCardViewProps> = ({
   onFetchOverview,
 }) => {
   const [selectedTokenIndex, setSelectedTokenIndex] = useState<number | null>(null);
-  const listHeight = Math.min(tokens.length, MAX_VISIBLE_ITEMS) * ITEM_SIZE;
 
   const rowProps: TokenRowProps = {
     tokens,
@@ -48,6 +50,8 @@ export const SentenceCardView: FC<SentenceCardViewProps> = ({
     },
   };
 
+  const needsVirtualization = tokens.length > MAX_VISIBLE_ITEMS;
+
   return (
     <>
       <Card className={styles.sentenceCard}>
@@ -55,13 +59,21 @@ export const SentenceCardView: FC<SentenceCardViewProps> = ({
           <Text variant="display-4">{t('ui', 'sentence_title')}</Text>
           <Text variant="body-2">{sentence}</Text>
         </div>
-        <List
-          rowCount={tokens.length}
-          rowHeight={ITEM_SIZE}
-          rowComponent={TokenRow}
-          rowProps={rowProps}
-          style={{ height: listHeight }}
-        />
+        {needsVirtualization ? (
+          <List
+            rowCount={tokens.length}
+            rowHeight={ITEM_SIZE}
+            rowComponent={TokenRow}
+            rowProps={rowProps}
+            style={{ height: MAX_VISIBLE_ITEMS * ITEM_SIZE }}
+          />
+        ) : (
+          <div style={{ display: 'grid' }}>
+            {tokens.map((_, i) => (
+              <PlainTokenRow key={i} index={i} style={{}} ariaAttributes={{}} {...rowProps} />
+            ))}
+          </div>
+        )}
       </Card>
       <Card className={styles.aiCard}>
         <AIOverviewAccordion

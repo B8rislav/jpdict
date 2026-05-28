@@ -40,7 +40,7 @@ export const Search: FC = () => {
       ? t('ui', 'search_placeholder_jp')
       : selectedLanguage === 'cn'
         ? t('ui', 'search_placeholder_cn')
-        : 'Выберите язык для поиска';
+        : t('ui', 'search_no_language');
 
   const typedHint = useMemo(() => {
     if (!value.trim()) {

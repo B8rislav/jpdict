@@ -5,7 +5,8 @@ import { MarkerList } from '@/shared/ui/MarkerList/MarkerList';
 import { type FC } from 'react';
 
 import { type SavedWord } from '@/shared/api/types';
-import { MASTERY_LABEL, MASTERY_THEME } from '../constants';
+import { MASTERY_THEME } from '../constants';
+import { t } from '@/shared/i18n';
 import styles from './DictionaryWordCard.module.css';
 
 type Props = {
@@ -34,7 +35,7 @@ export const DictionaryWordCard: FC<Props> = ({ word, onDelete, onAdvanceStatus 
       <div className={styles.actions}>
         <MarkerList markers={word.markers} />
         <span onClick={handleStatusClick} style={{ cursor: 'pointer' }}>
-          <Label theme={MASTERY_THEME[word.status]}>{MASTERY_LABEL[word.status]}</Label>
+          <Label theme={MASTERY_THEME[word.status]}>{t('mastery', word.status)}</Label>
         </span>
         <Button size="s" view="outlined-danger" onClick={handleDelete}>
           ✕

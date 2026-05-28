@@ -6,6 +6,7 @@ import { type ReactNode, useEffect, useState } from 'react';
 
 import { $isAuthenticated, refreshFx } from '@/stores/auth';
 import { AuthModal } from './AuthModal';
+import { t } from '@/shared/i18n';
 
 import styles from './AuthGate.module.css';
 
@@ -29,9 +30,9 @@ export function AuthGate({ children, title }: AuthGateProps) {
     return (
       <>
         <div className={styles.gate}>
-          <Text variant="subheader-2">Войдите, чтобы открыть {title}</Text>
+          <Text variant="subheader-2">{t('ui', 'auth_gate_prompt')} {title}</Text>
           <Button view="action" size="l" onClick={() => setAuthOpen(true)}>
-            Войти
+            {t('ui', 'nav_login')}
           </Button>
         </div>
         <AuthModal open={authOpen} onOpenChange={setAuthOpen} />

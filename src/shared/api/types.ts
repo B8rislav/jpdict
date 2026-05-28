@@ -21,6 +21,7 @@ export type Kanji = {
   rwords?: { reading?: string; words?: unknown[] }[];
   kunyomi?: string;
   onyomi?: string;
+  pinyin?: string;
   parts?: { piece?: string; definition?: string }[];
   markers: string[];
 };
@@ -65,4 +66,12 @@ export type BackendKanjiCard = {
   kun_readings: string[];
   meanings: string[];
   jlpt_level?: string | null;
+};
+
+export type BackendHanziCard = {
+  character: string;
+  pinyin: string;
+  meanings: string[];
+  hsk_level: number | null;
+  traditional: string | null;
 };

@@ -48,6 +48,19 @@ const eslintConfig = [
       ],
     },
   },
+  {
+    files: ["**/*.tsx"],
+    ignores: ["**/*.stories.tsx"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "Literal[value=/[А-Яа-яёЁ]/]",
+          message: "Hardcoded Cyrillic string. Use t() from @/shared/i18n instead.",
+        },
+      ],
+    },
+  },
   ...compat.extends("prettier"),
 ];
 

@@ -13,6 +13,7 @@ import { Card } from '@/shared/ui/Card';
 import { MarkerList } from '@/shared/ui/MarkerList/MarkerList';
 import { DefinitionList } from '@/shared/ui/DefinitionList/DefinitionList';
 import { AccordionSection } from '@/shared/ui/Accordion/AccordionSection';
+import { t } from '@/shared/i18n';
 import styles from './WordInspector.module.css';
 
 export const WordInspector: FC<{ word: Word }> = ({ word }) => {
@@ -54,15 +55,15 @@ export const WordInspector: FC<{ word: Word }> = ({ word }) => {
         <MarkerList markers={word.markers} />
       </div>
 
-      <AccordionSection title="Перевод" defaultOpen>
+      <AccordionSection title={t('ui', 'inspector_translation')} defaultOpen>
         <DefinitionList items={word.def_ru?.length ? word.def_ru : word.def_en} />
       </AccordionSection>
 
-      <AccordionSection title="Грамматика">
+      <AccordionSection title={t('ui', 'inspector_grammar')}>
         <div className={styles.grammarGrid}>
           {word.typeofspeech && (
             <div className={styles.grammarRow}>
-              <Text variant="caption-1">Часть речи</Text>
+              <Text variant="caption-1">{t('ui', 'inspector_pos')}</Text>
               <Text variant="body-2">{word.typeofspeech}</Text>
             </div>
           )}
@@ -75,7 +76,7 @@ export const WordInspector: FC<{ word: Word }> = ({ word }) => {
         </div>
       </AccordionSection>
 
-      <AccordionSection title="Примеры" onFirstExpand={handleExpandExamples}>
+      <AccordionSection title={t('ui', 'inspector_examples')} onFirstExpand={handleExpandExamples}>
         {examplesPending ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <Skeleton style={{ height: 20 }} />
@@ -86,22 +87,22 @@ export const WordInspector: FC<{ word: Word }> = ({ word }) => {
           <ul className={styles.sentenceList}>
             {exampleSentences.slice(0, 5).map((s) => (
               <li key={s.id} className={styles.sentenceItem}>
-                <Text variant="body-2">{s.japanese}</Text>
-                {s.meaning?.en && (
+                <Text variant="body-2">{s.sentence_jp}</Text>
+                {s.translation && (
                   <Text variant="body-3" className={styles.sentenceMeaning}>
-                    {s.meaning.en}
+                    {s.translation}
                   </Text>
                 )}
               </li>
             ))}
           </ul>
         ) : examplesRequested ? (
-          <Text variant="body-3">Примеры не найдены</Text>
+          <Text variant="body-3">{t('ui', 'inspector_no_examples')}</Text>
         ) : null}
       </AccordionSection>
 
       {kanjiChars.length > 0 && (
-        <AccordionSection title="Иероглифы">
+        <AccordionSection title={t('ui', 'inspector_kanji')}>
           <div className={styles.kanjiGrid}>
             {kanjiChars.map((char) => (
               <button key={char} className={styles.kanjiBtn} onClick={() => handleKanjiClick(char)}>
@@ -118,7 +119,7 @@ export const WordInspector: FC<{ word: Word }> = ({ word }) => {
           disabled={isSaved}
           onClick={() => addWordFx(word)}
         >
-          {isSaved ? 'Сохранено' : 'Добавить в словарь'}
+          {isSaved ? t('ui', 'inspector_saved') : t('ui', 'inspector_save')}
         </Button>
       </div>
     </Card>

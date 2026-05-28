@@ -15,24 +15,23 @@ import { $inspectedWord, WordInspector } from '@/features/WordInspector';
 import { AuthModal } from '@/features/Auth/AuthModal';
 import { CardList } from '@/shared/ui/CardList';
 import { type Language } from '@/shared/api/types';
+import { t } from '@/shared/i18n';
 import {
   $userProfile,
   loadUserProfile,
   setSelectedLanguage,
   setShowFurigana,
   setShowPinyin,
+  setUiLocale,
 } from '@/stores/userProfile';
 import { $isAuthenticated, $user, logoutFx, refreshFx } from '@/stores/auth';
 
 import styles from './page.module.css';
 
-const LANGUAGES: { value: Language; label: string }[] = [
-  { value: 'jp', label: 'Японский' },
-  { value: 'cn', label: 'Китайский' },
-];
+const LANGUAGES: Language[] = ['jp', 'cn'];
 
 export default function Home() {
-  const { selectedLanguage, showFurigana, showPinyin } = useUnit($userProfile);
+  const { selectedLanguage, showFurigana, showPinyin, uiLocale } = useUnit($userProfile);
   const sentencePending = useUnit(fetchSentenceFx.pending);
   const wordsPending = useUnit(fetchWordsFx.pending);
   const kanjiPending = useUnit(fetchKanjiFx.pending);
@@ -68,14 +67,27 @@ export default function Home() {
   return (
     <div className={styles.page}>
       <nav className={styles.nav}>
-        {LANGUAGES.map(({ value, label }) => (
+        {LANGUAGES.map((value) => (
           <Button
             key={value}
             size="s"
             view={selectedLanguage === value ? 'normal' : 'outlined'}
             onClick={() => setSelectedLanguage(value)}
           >
-            {label}
+            {t('ui', value === 'jp' ? 'lang_jp' : 'lang_cn')}
+          </Button>
+        ))}
+
+        <div className={styles.navDivider} />
+
+        {(['ru', 'en'] as const).map(locale => (
+          <Button
+            key={locale}
+            size="s"
+            view={uiLocale === locale ? 'normal' : 'outlined'}
+            onClick={() => setUiLocale(locale)}
+          >
+            {locale.toUpperCase()}
           </Button>
         ))}
 
@@ -84,7 +96,7 @@ export default function Home() {
             <div className={styles.navDivider} />
             <label className={styles.toggleRow}>
               <Switch checked={showFurigana} onUpdate={setShowFurigana} />
-              <Text variant="body-2">Фуригана</Text>
+              <Text variant="body-2">{t('ui', 'furigana')}</Text>
             </label>
           </>
         )}
@@ -94,7 +106,7 @@ export default function Home() {
             <div className={styles.navDivider} />
             <label className={styles.toggleRow}>
               <Switch checked={showPinyin} onUpdate={setShowPinyin} />
-              <Text variant="body-2">Пиньинь</Text>
+              <Text variant="body-2">{t('ui', 'pinyin_label')}</Text>
             </label>
           </>
         )}
@@ -106,7 +118,7 @@ export default function Home() {
             href="/dictionary"
             style={{ textDecoration: 'none', color: 'var(--g-color-text-secondary)' }}
           >
-            <Text variant="body-2">Мой словарь</Text>
+            <Text variant="body-2">{t('ui', 'nav_my_dictionary')}</Text>
           </Link>
         )}
 
@@ -120,12 +132,12 @@ export default function Home() {
               </Text>
             )}
             <Button size="s" view="outlined" onClick={() => logoutFx()}>
-              Выйти
+              {t('ui', 'nav_logout')}
             </Button>
           </>
         ) : (
           <Button size="s" view="action" onClick={() => setAuthOpen(true)}>
-            Войти
+            {t('ui', 'nav_login')}
           </Button>
         )}
       </nav>
@@ -135,10 +147,10 @@ export default function Home() {
       <Search />
 
       <div className={styles.lists}>
-        <CardList loading={sentencePending} listHeight={800} listWidth={1000}>
+        <CardList loading={sentencePending} listWidth={1000}>
           {sentences}
         </CardList>
-        <CardList loading={wordsPending || kanjiPending} listHeight={800} listWidth={600}>
+        <CardList loading={wordsPending || kanjiPending} listWidth={600}>
           {kanji}
           {inspectedWord ? (
             <li key={inspectedWord.id ?? inspectedWord.hiragana_full}>

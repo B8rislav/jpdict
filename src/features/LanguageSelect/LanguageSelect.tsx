@@ -33,13 +33,13 @@ const LanguageSelect = () => {
         <div className={styles.cards}>
           <LanguageCard
             language="jp"
-            title="Японский"
+            title={t('ui', 'lang_jp')}
             description={t('ui', 'language_select_jp_description')}
             onSelect={handleSelectLanguage}
           />
           <LanguageCard
             language="cn"
-            title="Китайский"
+            title={t('ui', 'lang_cn')}
             description={t('ui', 'language_select_cn_description')}
             onSelect={handleSelectLanguage}
           />

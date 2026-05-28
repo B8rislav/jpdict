@@ -2,6 +2,7 @@ import { fetchData } from '@/shared/api/fetchData';
 import { type DictEntry } from '@/shared/api/types';
 import { type Word } from '@/shared/api/types';
 import { dictEntryToWord } from './mappers';
+import { getLocale } from '@/shared/i18n';
 
 type SearchPage = {
   total: number;
@@ -26,7 +27,7 @@ export async function fetchWords(
 ): Promise<WordsResponse> {
   if (!language) return {};
   const page = await fetchData<SearchPage>(
-    `search?q=${encodeURIComponent(value)}&lang=${language}`,
+    `search?q=${encodeURIComponent(value)}&lang=${language}&def_lang=${getLocale()}`,
   );
   return {
     result_count: page.total,
