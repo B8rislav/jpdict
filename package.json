@@ -45,6 +45,7 @@
     "eslint-config-next": "15.2.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-storybook": "^9.0.12",
+    "markdown-to-jsx": "^9.8.1",
     "openapi-typescript": "^7.6.1",
     "playwright": "^1.53.1",
     "prettier": "^3.8.3",

@@ -26,6 +26,18 @@ export default defineConfig({
         plugins: [
           storybookTest({ configDir: path.join(dirname, '.storybook') }),
         ],
+        optimizeDeps: {
+          include: [
+            '@storybook/addon-a11y/preview',
+            '@storybook/nextjs-vite',
+            'effector-react',
+            'react',
+            '@gravity-ui/uikit',
+            'effector',
+            'motion/react',
+            'storybook/test',
+          ],
+        },
         test: {
           name: 'storybook',
           browser: {

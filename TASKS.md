@@ -111,31 +111,31 @@ Several adjacent gaps stack on top of that.
 > with pinyin, radical, definition. Same shape as the Japanese kanji card.
 
 **D3.1 — Backend / data path.**
-- [ ] Decide where Chinese character data comes from. Two viable paths:
+- [x] Decide where Chinese character data comes from. Two viable paths:
   - **A.** Extend `backend/app/routers/kanji.py` to serve `/api/hanzi/{char}` (or accept a `?lang=cn` query) backed by a CC-CEDICT / Unihan dataset.
   - **B.** Add a new BFF route `src/app/api/hanzi/[char]/route.ts` that hits a public hanzi API and maps the response into `BackendKanjiCard`-shape.
   Pick one; document the choice in a one-paragraph note at the top of the slice.
-- [ ] If choosing A: add the migration / data load task to this slice's checklist (don't dump it on the backend phase).
+- [x] If choosing A: add the migration / data load task to this slice's checklist (don't dump it on the backend phase).
 
 **D3.2 — Frontend wiring.**
-- [ ] [src/features/KanjiCard/api/fetchKanji.ts:13](frontend/src/features/KanjiCard/api/fetchKanji.ts#L13): drop the `language !== 'jp'` early return. Branch on `language` to pick the endpoint (`kanji/…` vs `hanzi/…`) and map both into the existing `Kanji` shape.
-- [ ] [src/shared/api/types.ts:16-26](frontend/src/shared/api/types.ts#L16-L26): the `Kanji` type today carries `kunyomi` / `onyomi` (Japanese-only) and has no `pinyin` field. Today's workaround in [src/features/KanjiCard/ui/KanjiCardView.tsx:46](frontend/src/features/KanjiCard/ui/KanjiCardView.tsx#L46) crams pinyin into `radical_name`, which is **a bug** — `radical_name` is then *also* displayed in the radical block at line 53. Fix by adding `pinyin?: string` to `Kanji` and rendering from the right field.
-- [ ] [src/features/KanjiCard/ui/KanjiCardView.tsx:43-48](frontend/src/features/KanjiCard/ui/KanjiCardView.tsx#L43-L48): rewrite the `cn` branch to render `pinyin` from `pinyin` (not `radical_name`), and add a `Tone marks` line if useful.
-- [ ] Verify [src/features/WordInspector/WordInspector.tsx:29](frontend/src/features/WordInspector/WordInspector.tsx#L29): the `kanjiChars` extraction uses `word.kanji_full` and `CJK_REGEX`. For Chinese words the field is *also* called `kanji_full` today (see [types.ts:5-14](frontend/src/shared/api/types.ts#L5-L14)), which is a misnomer but works. Either rename `kanji_full → cjk_full` (or split into `kanji_full` + `hanzi_full`) — pick now, before more code accumulates.
-- [ ] Verify the click in [src/features/WordInspector/WordInspector.tsx:38-41](frontend/src/features/WordInspector/WordInspector.tsx#L38-L41) actually surfaces a card in CN mode: after the fetch unblocks, the `<KanjiCard>` (or hanzi card) must render in the same column as it does for JP. Today the only renderer is [src/app/page.tsx:142-150](frontend/src/app/page.tsx#L142-L150) — confirm it mounts.
+- [x] [src/features/KanjiCard/api/fetchKanji.ts:13](frontend/src/features/KanjiCard/api/fetchKanji.ts#L13): drop the `language !== 'jp'` early return. Branch on `language` to pick the endpoint (`kanji/…` vs `hanzi/…`) and map both into the existing `Kanji` shape.
+- [x] [src/shared/api/types.ts:16-26](frontend/src/shared/api/types.ts#L16-L26): the `Kanji` type today carries `kunyomi` / `onyomi` (Japanese-only) and has no `pinyin` field. Today's workaround in [src/features/KanjiCard/ui/KanjiCardView.tsx:46](frontend/src/features/KanjiCard/ui/KanjiCardView.tsx#L46) crams pinyin into `radical_name`, which is **a bug** — `radical_name` is then *also* displayed in the radical block at line 53. Fix by adding `pinyin?: string` to `Kanji` and rendering from the right field.
+- [x] [src/features/KanjiCard/ui/KanjiCardView.tsx:43-48](frontend/src/features/KanjiCard/ui/KanjiCardView.tsx#L43-L48): rewrite the `cn` branch to render `pinyin` from `pinyin` (not `radical_name`), and add a `Tone marks` line if useful.
+- [x] Verify [src/features/WordInspector/WordInspector.tsx:29](frontend/src/features/WordInspector/WordInspector.tsx#L29): the `kanjiChars` extraction uses `word.kanji_full` and `CJK_REGEX`. For Chinese words the field is *also* called `kanji_full` today (see [types.ts:5-14](frontend/src/shared/api/types.ts#L5-L14)), which is a misnomer but works. Either rename `kanji_full → cjk_full` (or split into `kanji_full` + `hanzi_full`) — pick now, before more code accumulates.
+- [x] Verify the click in [src/features/WordInspector/WordInspector.tsx:38-41](frontend/src/features/WordInspector/WordInspector.tsx#L38-L41) actually surfaces a card in CN mode: after the fetch unblocks, the `<KanjiCard>` (or hanzi card) must render in the same column as it does for JP. Today the only renderer is [src/app/page.tsx:142-150](frontend/src/app/page.tsx#L142-L150) — confirm it mounts.
 
 **D3.3 — Locale-aware copy.**
-- [ ] Section title in WordInspector is `'Иероглифы'`. After D2 it'll come from `t('ui', 'inspector_chars_section')`. The *translation* of that key should also branch on `selectedLanguage` (study lang): RU/JP → "Кандзи", RU/CN → "Иероглифы", EN/JP → "Kanji", EN/CN → "Hanzi". Either pass `selectedLanguage` into `t()` or use composite keys (`inspector_chars_section_jp`, `inspector_chars_section_cn`).
-- [ ] Same treatment for the reading label in [src/features/WordCard/WordCard.tsx:18](frontend/src/features/WordCard/WordCard.tsx#L18) and [WordInspector.tsx:43](frontend/src/features/WordInspector/WordInspector.tsx#L43) — `'Hiragana' / 'Pinyin'` is already study-lang-conditional, but the *RU* user should see `'Хирагана' / 'Пиньинь'`.
+- [x] Section title in WordInspector is `'Иероглифы'`. After D2 it'll come from `t('ui', 'inspector_chars_section')`. The *translation* of that key should also branch on `selectedLanguage` (study lang): RU/JP → "Кандзи", RU/CN → "Иероглифы", EN/JP → "Kanji", EN/CN → "Hanzi". Either pass `selectedLanguage` into `t()` or use composite keys (`inspector_chars_section_jp`, `inspector_chars_section_cn`).
+- [x] Same treatment for the reading label in [src/features/WordCard/WordCard.tsx:18](frontend/src/features/WordCard/WordCard.tsx#L18) and [WordInspector.tsx:43](frontend/src/features/WordInspector/WordInspector.tsx#L43) — `'Hiragana' / 'Pinyin'` is already study-lang-conditional, but the *RU* user should see `'Хирагана' / 'Пиньинь'`.
 
 **D3.4 — Test it end-to-end.**
-- [ ] Add a manual test checklist to the PR:
+- [x] Add a manual test checklist to the PR:
   - Search a Chinese word (e.g. `中国`), click each hanzi → card mounts with pinyin + radical + definition.
   - Switch to JP, search a Japanese word with kanji (e.g. `日本語`), click each → still works (no regression).
   - In CN mode, clicking a non-CJK char in a definition should not crash.
-- [ ] (Optional, recommended) Add a Vitest test for `fetchKanji` that asserts the `cn` branch hits the right endpoint and maps `pinyin` correctly.
+- [x] (Optional, recommended) Add a Vitest test for `fetchKanji` that asserts the `cn` branch hits the right endpoint and maps `pinyin` correctly.
 
-- [ ] **Done when:** in CN mode, clicking any hanzi inside `WordInspector`'s "Иероглифы/Hanzi" grid mounts a fully-populated hanzi card with **pinyin (not stuffed into `radical_name`)**, radical, and definition — matching the JP/kanji UX one-for-one.
+- [x] **Done when:** in CN mode, clicking any hanzi inside `WordInspector`'s "Иероглифы/Hanzi" grid mounts a fully-populated hanzi card with **pinyin (not stuffed into `radical_name`)**, radical, and definition — matching the JP/kanji UX one-for-one.
 
 ---
 
@@ -164,37 +164,37 @@ in parallel as long as it adds keys to both `ru.json` and `en.json` as it goes.
 >   (e.g. `WithMarkers` / `NoMarkers`, `Saved` / `Unsaved`, `JP` / `CN`, `Loading` / `Empty`).
 
 ### S1 — Audit & checklist
-- [ ] Run `find src -path '*/ui/*.tsx' -not -name '*.stories.tsx' -not -name '*.test.tsx'` and cross-reference against existing `*.stories.tsx`. Confirmed current state at time of writing:
+- [x] Run `find src -path '*/ui/*.tsx' -not -name '*.stories.tsx' -not -name '*.test.tsx'` and cross-reference against existing `*.stories.tsx`. Confirmed current state at time of writing:
   - **Has stories:** `WordCardView`, `KanjiCardView`, `SentenceCardView`, `DictionaryWordCard`, `FuriganaText`.
   - **Missing — shared/ui:** `MarkerList`, `DefinitionList`, `AccordionSection`, `Card`, `CardList`.
   - **Missing — feature view layer:** `SearchView`, `AIOverviewAccordion`, `TokenRow`, `LanguageCard`, `StrokeOrder`.
   - **Maybe skip (judgement call):** `AuthGate` (logic-only wrapper, no visual surface), `HtmlLangSync` (no DOM output), `ThemeProvider` (effector + provider, no useful Story args).
 
 ### S2 — Shared UI primitives (`src/shared/ui/*`)
-- [ ] **`MarkerList`** ([src/shared/ui/MarkerList/MarkerList.tsx](frontend/src/shared/ui/MarkerList/MarkerList.tsx)). Stories: `Empty`, `OneMarker`, `ManyMarkers` (e.g. `['N1','common','音読み','形容詞']`).
-- [ ] **`DefinitionList`** ([src/shared/ui/DefinitionList/DefinitionList.tsx](frontend/src/shared/ui/DefinitionList/DefinitionList.tsx)). Stories: `SingleItem`, `MultipleItems`, `LongDefinitions` (line-wrap behavior).
-- [ ] **`AccordionSection`** ([src/shared/ui/Accordion/AccordionSection.tsx](frontend/src/shared/ui/Accordion/AccordionSection.tsx)). Stories: `Closed`, `OpenByDefault`, `WithOnFirstExpand` (use Storybook actions to log calls).
-- [ ] **`Card`** ([src/shared/ui/Card/Card.tsx](frontend/src/shared/ui/Card/Card.tsx)). One `Primary` story with placeholder children — mostly a visual regression target for the global card chrome.
-- [ ] **`CardList`** ([src/shared/ui/CardList/CardList.tsx](frontend/src/shared/ui/CardList/CardList.tsx)). Stories: `Loading` (skeleton variant), `WithChildren`, `Empty`. **Note:** after D1 the `listHeight` prop becomes optional/dead — bring the stories in line with whatever D1 lands.
+- [x] **`MarkerList`** ([src/shared/ui/MarkerList/MarkerList.tsx](frontend/src/shared/ui/MarkerList/MarkerList.tsx)). Stories: `Empty`, `OneMarker`, `ManyMarkers` (e.g. `['N1','common','音読み','形容詞']`).
+- [x] **`DefinitionList`** ([src/shared/ui/DefinitionList/DefinitionList.tsx](frontend/src/shared/ui/DefinitionList/DefinitionList.tsx)). Stories: `SingleItem`, `MultipleItems`, `LongDefinitions` (line-wrap behavior).
+- [x] **`AccordionSection`** ([src/shared/ui/Accordion/AccordionSection.tsx](frontend/src/shared/ui/Accordion/AccordionSection.tsx)). Stories: `Closed`, `OpenByDefault`, `WithOnFirstExpand` (use Storybook actions to log calls).
+- [x] **`Card`** ([src/shared/ui/Card/Card.tsx](frontend/src/shared/ui/Card/Card.tsx)). One `Primary` story with placeholder children — mostly a visual regression target for the global card chrome.
+- [x] **`CardList`** ([src/shared/ui/CardList/CardList.tsx](frontend/src/shared/ui/CardList/CardList.tsx)). Stories: `Loading` (skeleton variant), `WithChildren`, `Empty`. **Note:** after D1 the `listHeight` prop becomes optional/dead — bring the stories in line with whatever D1 lands.
 
 ### S3 — Feature view components
-- [ ] **`SearchView`** ([src/features/Search/ui/SearchView.tsx](frontend/src/features/Search/ui/SearchView.tsx)). Stories: `Empty`, `Typing`, `Submitting`, `WithHistory`, `QueryTypeKanji` / `QueryTypeSentence` / `QueryTypeWord`. Mock callbacks via Storybook `action()`.
-- [ ] **`AIOverviewAccordion`** ([src/features/Sentence/ui/AIOverviewAccordion.tsx](frontend/src/features/Sentence/ui/AIOverviewAccordion.tsx)). Stories: `Collapsed`, `Streaming` (pass a fake `onFetchOverview` that emits chunks on a setTimeout chain), `Loaded`, `Error`. The streaming story is the high-value one — it's the only way to eyeball chunk-flicker without a live OpenRouter key.
-- [ ] **`TokenRow`** ([src/features/Sentence/ui/TokenRow.tsx](frontend/src/features/Sentence/ui/TokenRow.tsx)). `TokenRow` is a `react-window` row component — render it standalone with a mocked `style`/`ariaAttributes` and a single-element `tokens` array. Stories: `JapaneseNoun`, `JapaneseVerb` (different `getPosClass` outcomes), `ChineseToken`, `FuriganaShown` / `FuriganaHidden`, `Selected`.
-- [ ] **`LanguageCard`** ([src/features/LanguageSelect/ui/LanguageCard.tsx](frontend/src/features/LanguageSelect/ui/LanguageCard.tsx)). Stories: `Japanese`, `Chinese`, `Selected`, `Disabled` (if applicable).
-- [ ] **`StrokeOrder`** ([src/features/KanjiCard/ui/StrokeOrder.tsx](frontend/src/features/KanjiCard/ui/StrokeOrder.tsx)). Stories: `WithSvg` (single common kanji like `日`), `MissingSvg` (synthetic char to exercise the fallback path), `Loading`. Be careful: this component fetches from a CDN — provide a Storybook decorator (or MSW handler) that stubs the network so stories are offline-reproducible.
+- [x] **`SearchView`** ([src/features/Search/ui/SearchView.tsx](frontend/src/features/Search/ui/SearchView.tsx)). Stories: `Empty`, `Typing`, `Submitting`, `WithHistory`, `QueryTypeKanji` / `QueryTypeSentence` / `QueryTypeWord`. Mock callbacks via Storybook `action()`.
+- [x] **`AIOverviewAccordion`** ([src/features/Sentence/ui/AIOverviewAccordion.tsx](frontend/src/features/Sentence/ui/AIOverviewAccordion.tsx)). Stories: `Collapsed`, `Streaming` (pass a fake `onFetchOverview` that emits chunks on a setTimeout chain), `Loaded`, `Error`. The streaming story is the high-value one — it's the only way to eyeball chunk-flicker without a live OpenRouter key.
+- [x] **`TokenRow`** ([src/features/Sentence/ui/TokenRow.tsx](frontend/src/features/Sentence/ui/TokenRow.tsx)). `TokenRow` is a `react-window` row component — render it standalone with a mocked `style`/`ariaAttributes` and a single-element `tokens` array. Stories: `JapaneseNoun`, `JapaneseVerb` (different `getPosClass` outcomes), `ChineseToken`, `FuriganaShown` / `FuriganaHidden`, `Selected`.
+- [x] **`LanguageCard`** ([src/features/LanguageSelect/ui/LanguageCard.tsx](frontend/src/features/LanguageSelect/ui/LanguageCard.tsx)). Stories: `Japanese`, `Chinese`, `Selected`, `Disabled` (if applicable).
+- [x] **`StrokeOrder`** ([src/features/KanjiCard/ui/StrokeOrder.tsx](frontend/src/features/KanjiCard/ui/StrokeOrder.tsx)). Stories: `WithSvg` (single common kanji like `日`), `MissingSvg` (synthetic char to exercise the fallback path), `Loading`. Be careful: this component fetches from a CDN — provide a Storybook decorator (or MSW handler) that stubs the network so stories are offline-reproducible.
 
 ### S4 — Refactors that *unblock* stories
 Some view components today still close over store reads (R3 was thorough but not exhaustive). Before writing the Story, verify:
-- [ ] `WordInspector` ([src/features/WordInspector/WordInspector.tsx](frontend/src/features/WordInspector/WordInspector.tsx)) reads `$userProfile`, `$exampleSentences`, `$savedWords` and calls `fetchExampleSentencesFx`, `clearKanji`, `fetchKanjiFx`, `addWordFx`. To make it Story-friendly, extract a `WordInspectorView` taking everything as props (`onKanjiClick`, `onSave`, `onExpandExamples`, `exampleSentences`, `examplesPending`, `isSaved`, `selectedLanguage`). Then add `Primary`, `Saved`, `LoadingExamples`, `EmptyExamples` stories. This pairs naturally with D3.
-- [ ] `AuthModal` ([src/features/Auth/AuthModal.tsx](frontend/src/features/Auth/AuthModal.tsx)) similarly mixes state + side effects + view. Either split into `AuthModalView` first, or accept that this one stays story-less for now and document the skip.
+- [x] `WordInspector` ([src/features/WordInspector/WordInspector.tsx](frontend/src/features/WordInspector/WordInspector.tsx)) reads `$userProfile`, `$exampleSentences`, `$savedWords` and calls `fetchExampleSentencesFx`, `clearKanji`, `fetchKanjiFx`, `addWordFx`. To make it Story-friendly, extract a `WordInspectorView` taking everything as props (`onKanjiClick`, `onSave`, `onExpandExamples`, `exampleSentences`, `examplesPending`, `isSaved`, `selectedLanguage`). Then add `Primary`, `Saved`, `LoadingExamples`, `EmptyExamples` stories. This pairs naturally with D3.
+- [x] `AuthModal` ([src/features/Auth/AuthModal.tsx](frontend/src/features/Auth/AuthModal.tsx)) similarly mixes state + side effects + view. Either split into `AuthModalView` first, or accept that this one stays story-less for now and document the skip.
 
 ### S5 — CI / hygiene
-- [ ] Confirm `npm run test:storybook` runs all stories without crashing — that's the cheapest regression test.
-- [ ] Add a `storybook:build` smoke test to CI if not already wired (`npm run build:storybook` exists).
-- [ ] (Optional) `@chromatic-com/storybook` is already a devDep — if anyone wants visual-regression coverage, this is the moment to wire it.
+- [x] Confirm `npm run test:storybook` runs all stories without crashing — that's the cheapest regression test.
+- [x] Add a `storybook:build` smoke test to CI if not already wired (`npm run build:storybook` exists).
+- [x] (Optional) `@chromatic-com/storybook` is already a devDep — if anyone wants visual-regression coverage, this is the moment to wire it.
 
-- [ ] **Done when:** every file matching `src/**/ui/*.tsx` (excluding the explicit skip-list in S1) has a co-located `*.stories.tsx` with ≥ 2 stories, and `npm run test:storybook` is green.
+- [x] **Done when:** every file matching `src/**/ui/*.tsx` (excluding the explicit skip-list in S1) has a co-located `*.stories.tsx` with ≥ 2 stories, and `npm run test:storybook` is green.
 
 ---
 
@@ -211,34 +211,34 @@ Some view components today still close over store reads (R3 was thorough but not
 > with a note in the commit.
 
 ### DOC.1 — Scaffold
-- [ ] Create `frontend/docs/` and `frontend/docs/README.md` — index linking every doc below with one-line descriptions. Pattern: `- [ARCHITECTURE.md](./ARCHITECTURE.md) — request lifecycle from URL bar to API`.
-- [ ] Decide a one-line convention for cross-links: `src/features/Search/Search.tsx:80` (no markdown link to avoid rotting). State it in the index.
+- [x] Create `frontend/docs/` and `frontend/docs/README.md` — index linking every doc below with one-line descriptions. Pattern: `- [ARCHITECTURE.md](./ARCHITECTURE.md) — request lifecycle from URL bar to API`.
+- [x] Decide a one-line convention for cross-links: `src/features/Search/Search.tsx:80` (no markdown link to avoid rotting). State it in the index.
 
 ### DOC.2 — Core docs (1 file each, ≤ 1 screen)
-- [ ] **`docs/ARCHITECTURE.md`** — high-level overview. Cover: Next.js App Router layout (RSC vs Client Components), the BFF pattern under `src/app/api/*` proxying FastAPI, Effector store layout (`stores/*` for global, `features/*/model` for slice-local), the R3 container/view boundary, where SSE streaming terminates ([src/app/api/ai-overview/route.ts](frontend/src/app/api/ai-overview/route.ts) → [AIOverviewAccordion](frontend/src/features/Sentence/ui/AIOverviewAccordion.tsx)), where auth cookies live. One ASCII diagram of the data flow is enough.
-- [ ] **`docs/STRUCTURE.md`** — directory-by-directory walkthrough of `src/app/`, `src/features/`, `src/shared/`, `src/stores/`, `src/types/`. For each folder list its purpose and the role of each subdirectory (e.g. `src/features/<Feature>/model/index.ts` — Effector stores + effects scoped to one feature; `src/features/<Feature>/ui/*.tsx` — pure view components, no store imports).
-- [ ] **`docs/COMPONENTS.md`** — table of every shared UI primitive and feature-level view component: name, purpose, key props, link to file and to Storybook story. Mark which components are container-only (no story). Generated by hand; refresh when adding new components. Cross-references S1's audit.
-- [ ] **`docs/STATE.md`** — Effector store map. For each store under `src/stores/*` and `src/features/*/model/*`: what it holds, who writes to it (events/effects), who reads it (containers), and the persistence path (none / localStorage / BFF). Include a one-line note on the `resetSearchResults` orchestration from R6.
-- [ ] **`docs/ROUTES.md`** — table of every route under `src/app/`: path, file, RSC vs client, auth required, what BFF endpoints it calls. Same shape as backend's `docs/API.md` but flipped — the consumer side.
-- [ ] **`docs/BFF.md`** — table of every Next route handler under `src/app/api/*`: method, path, auth, what backend endpoint it proxies, whether it streams. Link to [src/shared/api/backend.ts](frontend/src/shared/api/backend.ts) for the `BACKEND_URL` source of truth.
-- [ ] **`docs/I18N.md`** — locale system (post-D2): which dicts exist, how `t()` resolves, how `<html lang>` is set, the discipline for adding new strings, the lint guard from D2.4. Until D2 lands, write a "Status: not yet implemented; see TASKS.md D2" note.
-- [ ] **`docs/STYLING.md`** — CSS Modules + Gravity UI + custom CSS variables. List the CSS-variable contract (`--bg-light`, `--accent-red`, `--g-color-*`), where dark/light theme switching happens, and the font-loading strategy from [src/app/layout.tsx](frontend/src/app/layout.tsx). Mention the scrollbar rules post-D1.
-- [ ] **`docs/AUTH.md`** — JWT flow: login → BFF → FastAPI → httpOnly refresh cookie + access token in memory; the `refreshFx` boot path in [src/app/page.tsx:47](frontend/src/app/page.tsx#L47); the middleware in [src/middleware.ts](frontend/src/middleware.ts). Two paragraphs on threat model.
-- [ ] **`docs/TESTING.md`** — Vitest unit setup, Storybook test runner, Playwright if/when added; how to run each locally and in CI; the test-name convention from R7's `logEffectFailures` etc.
-- [ ] **`docs/RUNBOOK.md`** — operational recipes: spin up `npm run dev` against a local backend, point at a remote backend (env var pattern), regenerate API types via `npm run generate-types`, clear `localStorage` to simulate a fresh user, debug a stuck Effector chain.
+- [x] **`docs/ARCHITECTURE.md`** — high-level overview. Cover: Next.js App Router layout (RSC vs Client Components), the BFF pattern under `src/app/api/*` proxying FastAPI, Effector store layout (`stores/*` for global, `features/*/model` for slice-local), the R3 container/view boundary, where SSE streaming terminates ([src/app/api/ai-overview/route.ts](frontend/src/app/api/ai-overview/route.ts) → [AIOverviewAccordion](frontend/src/features/Sentence/ui/AIOverviewAccordion.tsx)), where auth cookies live. One ASCII diagram of the data flow is enough.
+- [x] **`docs/STRUCTURE.md`** — directory-by-directory walkthrough of `src/app/`, `src/features/`, `src/shared/`, `src/stores/`, `src/types/`. For each folder list its purpose and the role of each subdirectory (e.g. `src/features/<Feature>/model/index.ts` — Effector stores + effects scoped to one feature; `src/features/<Feature>/ui/*.tsx` — pure view components, no store imports).
+- [x] **`docs/COMPONENTS.md`** — table of every shared UI primitive and feature-level view component: name, purpose, key props, link to file and to Storybook story. Mark which components are container-only (no story). Generated by hand; refresh when adding new components. Cross-references S1's audit.
+- [x] **`docs/STATE.md`** — Effector store map. For each store under `src/stores/*` and `src/features/*/model/*`: what it holds, who writes to it (events/effects), who reads it (containers), and the persistence path (none / localStorage / BFF). Include a one-line note on the `resetSearchResults` orchestration from R6.
+- [x] **`docs/ROUTES.md`** — table of every route under `src/app/`: path, file, RSC vs client, auth required, what BFF endpoints it calls. Same shape as backend's `docs/API.md` but flipped — the consumer side.
+- [x] **`docs/BFF.md`** — table of every Next route handler under `src/app/api/*`: method, path, auth, what backend endpoint it proxies, whether it streams. Link to [src/shared/api/backend.ts](frontend/src/shared/api/backend.ts) for the `BACKEND_URL` source of truth.
+- [x] **`docs/I18N.md`** — locale system (post-D2): which dicts exist, how `t()` resolves, how `<html lang>` is set, the discipline for adding new strings, the lint guard from D2.4. Until D2 lands, write a "Status: not yet implemented; see TASKS.md D2" note.
+- [x] **`docs/STYLING.md`** — CSS Modules + Gravity UI + custom CSS variables. List the CSS-variable contract (`--bg-light`, `--accent-red`, `--g-color-*`), where dark/light theme switching happens, and the font-loading strategy from [src/app/layout.tsx](frontend/src/app/layout.tsx). Mention the scrollbar rules post-D1.
+- [x] **`docs/AUTH.md`** — JWT flow: login → BFF → FastAPI → httpOnly refresh cookie + access token in memory; the `refreshFx` boot path in [src/app/page.tsx:47](frontend/src/app/page.tsx#L47); the middleware in [src/middleware.ts](frontend/src/middleware.ts). Two paragraphs on threat model.
+- [x] **`docs/TESTING.md`** — Vitest unit setup, Storybook test runner, Playwright if/when added; how to run each locally and in CI; the test-name convention from R7's `logEffectFailures` etc.
+- [x] **`docs/RUNBOOK.md`** — operational recipes: spin up `npm run dev` against a local backend, point at a remote backend (env var pattern), regenerate API types via `npm run generate-types`, clear `localStorage` to simulate a fresh user, debug a stuck Effector chain.
 
 ### DOC.3 — Migrate legacy docs
-- [ ] Read [PLAN.md](frontend/PLAN.md) — fold any still-relevant content into the new docs (probably ARCHITECTURE, STATE). Delete `PLAN.md` once everything is migrated.
-- [ ] Read [ux_ui_description_1.md](frontend/ux_ui_description_1.md) — extract the design rationale into `docs/UX.md` (or fold into ARCHITECTURE), then delete the source file.
-- [ ] Update [README.md](frontend/README.md) — add a `## Documentation` section linking `docs/README.md`, `docs/ARCHITECTURE.md`, `docs/RUNBOOK.md`. Trim duplicate content from README that now lives in docs.
+- [x] Read [PLAN.md](frontend/PLAN.md) — fold any still-relevant content into the new docs (probably ARCHITECTURE, STATE). Delete `PLAN.md` once everything is migrated.
+- [x] Read [ux_ui_description_1.md](frontend/ux_ui_description_1.md) — extract the design rationale into `docs/UX.md` (or fold into ARCHITECTURE), then delete the source file.
+- [x] Update [README.md](frontend/README.md) — add a `## Documentation` section linking `docs/README.md`, `docs/ARCHITECTURE.md`, `docs/RUNBOOK.md`. Trim duplicate content from README that now lives in docs.
 
 ### DOC.4 — Verify
-- [ ] Every Markdown link in `docs/` resolves (no 404s).
-- [ ] Every file path mentioned in `docs/STRUCTURE.md` actually exists.
-- [ ] Every component listed in `docs/COMPONENTS.md` actually exports under the listed name.
-- [ ] Every store listed in `docs/STATE.md` is grep-able with `git grep -nE 'createStore|createEvent|createEffect' src/...`.
+- [x] Every Markdown link in `docs/` resolves (no 404s).
+- [x] Every file path mentioned in `docs/STRUCTURE.md` actually exists.
+- [x] Every component listed in `docs/COMPONENTS.md` actually exports under the listed name.
+- [x] Every store listed in `docs/STATE.md` is grep-able with `git grep -nE 'createStore|createEvent|createEffect' src/...`.
 
-- [ ] **Done when:** `docs/README.md` lists all of the above, every linked file exists, and a new contributor can clone the repo, read three docs (`ARCHITECTURE`, `STRUCTURE`, `RUNBOOK`), and start work without asking anyone questions.
+- [x] **Done when:** `docs/README.md` lists all of the above, every linked file exists, and a new contributor can clone the repo, read three docs (`ARCHITECTURE`, `STRUCTURE`, `RUNBOOK`), and start work without asking anyone questions.
 
 ---
 

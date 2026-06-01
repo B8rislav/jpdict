@@ -6,6 +6,7 @@ import { type Word } from '@/shared/api/types';
 import { $userProfile } from '@/stores/userProfile';
 import { $savedWords, addWordFx } from '@/features/Dictionary';
 import { WordCardView } from './ui/WordCardView';
+import { t } from '@/shared/i18n';
 
 export const WordCard: FC<Word> = (props) => {
   const { kanji_full, hiragana_full } = props;
@@ -15,7 +16,7 @@ export const WordCard: FC<Word> = (props) => {
   const isSaved = Boolean(
     expression && savedWords.some((w) => (w.kanji_full ?? w.hiragana_full) === expression),
   );
-  const readingLabel = selectedLanguage === 'cn' ? 'Pinyin' : 'Hiragana';
+  const readingLabel = t('ui', selectedLanguage === 'cn' ? 'reading_label_cn' : 'reading_label_jp');
 
   return (
     <WordCardView

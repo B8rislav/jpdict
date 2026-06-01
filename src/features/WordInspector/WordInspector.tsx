@@ -41,7 +41,7 @@ export const WordInspector: FC<{ word: Word }> = ({ word }) => {
     fetchKanjiFx({ value: char, language: selectedLanguage });
   };
 
-  const readingLabel = selectedLanguage === 'cn' ? 'Pinyin' : 'Hiragana';
+  const readingLabel = t('ui', selectedLanguage === 'cn' ? 'reading_label_cn' : 'reading_label_jp');
 
   return (
     <Card className={styles.card}>
@@ -102,7 +102,7 @@ export const WordInspector: FC<{ word: Word }> = ({ word }) => {
       </AccordionSection>
 
       {kanjiChars.length > 0 && (
-        <AccordionSection title={t('ui', 'inspector_kanji')}>
+        <AccordionSection title={t('ui', selectedLanguage === 'cn' ? 'inspector_chars_cn' : 'inspector_chars_jp')}>
           <div className={styles.kanjiGrid}>
             {kanjiChars.map((char) => (
               <button key={char} className={styles.kanjiBtn} onClick={() => handleKanjiClick(char)}>
