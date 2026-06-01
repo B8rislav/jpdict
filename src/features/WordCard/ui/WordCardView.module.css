@@ -1,6 +1,7 @@
 .card {
   display: flex;
   gap: 30px;
+  background: transparent;
 }
 
 .main_info {

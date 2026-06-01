@@ -14,7 +14,10 @@ export function backendCardToKanji(card: BackendKanjiCard): Kanji {
     kunyomi: card.kun_readings.join('、'),
     markers,
     rwords: [],
-    parts: [],
+    parts: (card.components ?? []).map((c) => ({
+      piece: c.character,
+      definition: c.meanings.join(', '),
+    })),
   };
 }
 

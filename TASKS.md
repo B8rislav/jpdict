@@ -647,3 +647,115 @@ Stop and confirm between slices.
   - Indexes: gin trigram on `saved_words.written`, btree on `search_history(user_id, searched_at DESC)`
 - [ ] Add `pgdata` named volume
 - [ ] Wire env vars: `BACKEND_URL`, `OPENROUTER_KEY`, `DATABASE_URL`
+
+---
+
+## 🤖 AI — Agent Comprehension & Repo Onboarding
+
+> Goal: a coding agent (Claude Code, Cursor, Copilot) or new contributor opens this repo and
+> is productive without guessing. We already keep `docs/`, Storybook, and a detailed README —
+> this adds the *machine-facing* entry points. Documentation/metadata only, no behaviour change.
+
+### AI.1 — Agent entry-point files
+
+- [ ] Add `AGENTS.md` at the frontend root (the cross-tool standard; copy or symlink to `CLAUDE.md` so Claude Code reads it too). Keep it ≤ 1 screen, link out to `docs/` instead of duplicating. Must contain:
+  - **One-paragraph overview** — Next.js 15 App Router frontend (React 19), Effector for state, Gravity UI components, Storybook, Vitest. Talks to a separate FastAPI backend.
+  - **Commands** — `npm run dev`, `npm run build`, `npm test` (Vitest unit), `npm run test:storybook`, `npm run lint`, `npm run format`, `npm run storybook`, `npm run generate-types` (regenerates `src/shared/api/generatedTypes.d.ts` from the backend's live OpenAPI at `:8000/docs` — backend must be running).
+  - **Architecture map** — FSD-ish layout: `src/app` (routes), `src/features/*` (each feature owns `ui/`, `model/`, `api/`, `lib/`), `src/shared` (`ui/`, `api/types.ts`, `i18n/`), `src/stores` (Effector). Note the `view = dumb / model = logic` split (see Refactor R3).
+  - **Conventions** — no hardcoded UI strings (use `t('category','key')`, see D2; there's an ESLint guard against Cyrillic literals), file references as markdown links, CSS Modules, Storybook story per view component (see section S).
+  - **Gotchas** — `uiLocale` (interface language) ≠ `selectedLanguage` (jp/cn study language); window is the only scroll surface (D1); types are generated, don't hand-edit `generatedTypes.d.ts`.
+- [ ] Add a `## For AI agents / contributors` section to `README.md` pointing at `AGENTS.md` and the `docs/` index.
+
+### AI.2 — Tooling baseline & doc hygiene
+
+- [ ] Add `.editorconfig` at the repo root (UTF-8, LF, 2-space indent for ts/tsx/css/json, trim trailing whitespace) — consistent with Prettier, auto-picked-up by editors/agents.
+- [ ] Ensure `docs/` has an index (`docs/README.md`, one line per doc) so an agent can fan out from a single file; cross-link it from `AGENTS.md`. (Pairs with the DOC section below.)
+- [ ] Add a short `CONTRIBUTING.md` — run `npm run lint && npm test` before pushing, story-per-view-component rule, i18n rule (no raw strings). Link from `AGENTS.md`.
+- [ ] Verify: a fresh `npm ci` + every command listed in `AGENTS.md` runs; all relative links in `AGENTS.md`/`README.md` resolve.
+
+---
+
+## 🃏 ANKI — Spaced-Repetition Study Mode (Anki-style cards)
+
+> Turn the personal dictionary into a study deck. Each saved word becomes a flashcard with
+> SRS scheduling; the user reviews due cards and grades recall. Depends on the personal
+> dictionary (Phase 8) and the backend SRS endpoints (backend Phase 17 — build against that
+> contract; mock it if the backend isn't ready). Reuse existing card UI where possible.
+
+### ANKI.1 — Data & store
+
+- [ ] Add `src/features/Review/api/` — typed clients for `GET /api/review/queue`, `POST /api/review/{id}` (body `{grade}`), `GET /api/review/stats`, suspend/unsuspend. Use generated types (`npm run generate-types`) once the backend ships them.
+- [ ] Add `src/stores/review.ts` (Effector) — `$queue`, `$current`, `$stats`, `fetchQueueFx`, `gradeFx`, `nextCard`. Grade optimistically advances to the next card; reconcile `due_at`/stats from the response. Language-aware (reads `selectedLanguage`).
+- [ ] Define the grade scale once in `src/features/Review/constants.ts` (`again | hard | good | easy`) and map to the backend's numeric grades in the api layer only.
+
+### ANKI.2 — UI
+
+- [ ] Add route `src/app/study/page.tsx` — the review session screen: shows the front (word/sentence), reveal button flips to the back (reading, meaning, POS, examples — reuse `WordInspector`/`WordCardView` fragments rather than re-implementing).
+- [ ] Add `src/features/Review/ui/ReviewCard.tsx` (+ `.module.css`, + story) — front/back flip, four grade buttons with the projected next interval shown on each (e.g. "Good · 1d"), keyboard shortcuts (`Space` reveal; `1–4` grade).
+- [ ] Add `src/features/Review/ui/StudyDashboard.tsx` — due / new / learned counts from `$stats`, a "Start review" button, empty state ("All caught up 🎉") when the queue is empty.
+- [ ] Add a "Study" entry point: a nav link in `src/app/page.tsx` (auth-gated, next to "My dictionary") and a "Review N due" badge on the dictionary page.
+- [ ] Add a per-word "Add to deck / suspend" affordance in `DictionaryPanel` / `DictionaryWordCard` (saving already creates the card server-side; expose suspend/unsuspend here).
+
+### ANKI.3 — Tests & polish
+
+- [ ] Vitest: store reducers (grade advances queue, stats update), grade→interval label mapping. Storybook: `ReviewCard` (front, revealed, each grade state), `StudyDashboard` (with cards / empty).
+- [ ] Done when: a logged-in user opens `/study`, sees due cards, reveals + grades with mouse or keyboard, the queue drains, and the dashboard reflects new counts after a session.
+
+---
+
+## 🖍️ HL — Inline Sentence Highlighting + Click-to-Scroll
+
+> After a sentence search, the **sentence text itself** (the string in the left/blue column
+> header) currently renders as plain `<Text>`. Make each word a span tinted by its
+> part-of-speech (reusing `getPosColorClass`), and clicking a word scrolls the token list
+> below to the matching `TokenRow` and selects it. Bidirectional: hovering/selecting a row
+> can also highlight the word in the sentence.
+
+**Where:** [src/features/Sentence/ui/SentenceCardView.tsx](frontend/src/features/Sentence/ui/SentenceCardView.tsx),
+[src/features/Sentence/ui/TokenRow.tsx](frontend/src/features/Sentence/ui/TokenRow.tsx),
+[src/features/Sentence/lib/posColor.ts](frontend/src/features/Sentence/lib/posColor.ts),
+[src/features/Sentence/ui/SentenceCardView.module.css](frontend/src/features/Sentence/ui/SentenceCardView.module.css).
+
+- [ ] **Render the sentence header as colored token spans.** Replace the plain `<Text variant="body-2">{sentence}</Text>` in `SentenceCardView`'s header with a `SentenceHighlight` sub-component that maps over `tokens` and renders each `token.surface_form` as a `<span>` with `getPosColorClass(token.pos, selectedLanguage, styles)` applied as a **background tint** (not just the left marker). Render any non-token characters (punctuation/whitespace between surfaces) verbatim so the original sentence reads naturally.
+  - Note: the sentence string may not be a simple concatenation of surfaces (spacing/punctuation). Walk the sentence and consume each `surface_form` in order; fall back to plain text for anything that doesn't line up, so a mismatch never drops characters.
+- [ ] **Add a `study/legend`-friendly POS color background.** `posColor.ts` currently returns classes used for a thin marker + selected state. Add background-tint variants in `SentenceCardView.module.css` (or reuse the existing per-POS classes with a softened `background-color`) so inline spans are readable. Ensure contrast for furigana/pinyin text on the tint.
+- [ ] **Lift selection state so clicking a word scrolls to its row.** `selectedTokenIndex` already lives in `SentenceCardView` — pass it (and a setter) down to both the highlight spans and the token rows.
+  - Clicking a highlighted span sets `selectedTokenIndex` to that token's index and calls `onTokenClick(token)` (same as clicking the row), so the right-column word lookup also fires.
+  - Scroll the row into view: for the **virtualized** path (`tokens.length > MAX_VISIBLE_ITEMS`), use the `react-window` `List` imperative API / ref to scroll to the index; for the **plain** path, keep a `ref` array (or `data-token-index` + `querySelector`) and call `scrollIntoView({ block: 'nearest', behavior: 'smooth' })`.
+- [ ] **Two-way highlight (nice-to-have).** When a `TokenRow` is hovered/selected, give the corresponding sentence span a `selected`/outline style so the eye connects sentence ↔ row.
+- [ ] **Tests & stories.** Vitest: the sentence→span mapping preserves the full original sentence (no dropped/duplicated chars) and assigns the right POS class per token. Storybook: a `SentenceHighlight` story (JP and CN samples) showing the colored spans; interaction test that clicking a span selects the matching row.
+- [ ] Done when: searching `この本はとても面白いです。` shows the sentence with each word tinted by POS; clicking 面白い (or any word) scrolls the token list to that row, selects it, and triggers the right-column word lookup — for both short (plain) and long (virtualized) sentences.
+
+---
+
+## 🔍 SEO — Search Engine Optimization
+
+> The app currently ships one hardcoded `metadata` block in `layout.tsx` and no robots/sitemap/
+> structured data/OG images. Add the standard Next.js App Router SEO surface. Coordinate with
+> D2 (i18n) — metadata should respect `uiLocale` where it's SSR-able. Most of this is static
+> config + small route handlers; no backend changes required for the baseline.
+
+### SEO.1 — Crawl & indexing basics
+
+- [ ] Add `src/app/robots.ts` (Next `MetadataRoute.Robots`) — allow indexing of public pages (`/`, search result pages), disallow `/api/*`, `/settings`, `/dictionary`, `/study` (private/auth-only). Point at the sitemap.
+- [ ] Add `src/app/sitemap.ts` (Next `MetadataRoute.Sitemap`) — list the public, indexable routes with `changeFrequency`/`priority`. If word/kanji detail pages become server-rendered (see SEO.4), generate their URLs here.
+- [ ] Set `metadataBase` in `src/app/layout.tsx` (e.g. `new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000')`) so all relative OG/canonical URLs resolve. Add `NEXT_PUBLIC_SITE_URL` to `.env`/`.env.example`.
+
+### SEO.2 — Metadata, Open Graph, canonical
+
+- [ ] Replace the static `metadata` in `layout.tsx` with `generateMetadata` (ties off the existing D2 TODO at [src/app/layout.tsx:24](frontend/src/app/layout.tsx#L24)): localized `title` (with a `title.template` like `%s · JapChin Dict`) and `description` read from i18n by `uiLocale` (cookie/`Accept-Language`), plus `alternates.canonical` and `alternates.languages` (`ru`/`en`), and `openGraph` + `twitter` card fields.
+- [ ] Add per-route metadata where pages exist (`dictionary`, `settings`, `study`) — even if `noindex`, set a sensible title. Mark private routes `robots: { index: false }`.
+- [ ] Add an Open Graph image: `src/app/opengraph-image.tsx` (Next `ImageResponse`) for a branded default card; optionally a Twitter variant.
+
+### SEO.3 — Icons, manifest, structured data
+
+- [ ] Add the icon set Next expects in `src/app/`: `icon.png`/`apple-icon.png` (and keep `favicon.ico`). Pairs with the PWA `manifest.json` task in Phase 11 — make `theme-color` and manifest consistent.
+- [ ] Add JSON-LD structured data: a `WebSite` + `SearchAction` (sitelinks search box) in `layout.tsx`, and `DefinedTerm`/`DefinedTermSet` on word/kanji detail content so dictionary entries are eligible for rich results. Inject via a `<script type="application/ld+json">` helper component.
+- [ ] Ensure language signals are correct: `<html lang={uiLocale}>` is already handled by D2/`HtmlLangSync` — verify it's SSR'd (not only set client-side) for crawlers, or accept the documented trade-off.
+
+### SEO.4 — Indexable content (the real SEO win)
+
+- [ ] **Decide & document the indexing model.** Today the app is a client-driven SPA-ish search box — there are no crawlable, linkable result URLs, so there's effectively nothing for Google to index beyond the home page. To get organic dictionary traffic, add **server-rendered, linkable detail pages**, e.g. `src/app/[lang]/word/[query]/page.tsx` and `.../kanji/[char]/page.tsx`, that fetch from the backend in a Server Component and render the definition with full metadata + JSON-LD. Wire the sitemap (SEO.1) to these.
+  - If full detail pages are out of scope now, at minimum make the search reflect the query in the URL (`/?q=…&lang=…`) and emit canonical + metadata for that state, and record this as the documented limitation.
+- [ ] Add `next-sitemap` or keep the native `sitemap.ts` — pick one and document it; don't run both.
+- [ ] Done when: `/robots.txt` and `/sitemap.xml` serve correctly, the home page and any detail pages return localized `<title>`/`<meta description>`/canonical/OG tags in **view-source** (SSR, not just hydrated), an OG image renders in a link-preview test, and structured data passes Google's Rich Results test.

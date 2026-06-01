@@ -81,24 +81,34 @@ describe('fetchKanji', () => {
 
   it('jp branch calls kanji endpoint and maps readings', async () => {
     mockFetch.mockResolvedValue({
-      character: '日',
-      stroke_count: 4,
-      radicals: ['日'],
-      on_readings: ['ニチ', 'ジツ'],
-      kun_readings: ['ひ', 'か'],
-      meanings: ['sun', 'day'],
+      character: '語',
+      stroke_count: 14,
+      radicals: ['言'],
+      components: [
+        { character: '言', meanings: ['слово'] },
+        { character: '口', meanings: ['рот'] },
+        { character: '五', meanings: ['пять'] },
+      ],
+      on_readings: ['ゴ'],
+      kun_readings: ['かた.る', 'かた.らう'],
+      meanings: ['язык', 'слово'],
       jlpt_level: 'N5',
     });
 
-    const result = await fetchKanji('日', 'jp');
+    const result = await fetchKanji('語', 'jp');
 
-    expect(mockFetch).toHaveBeenCalledWith('kanji/%E6%97%A5?def_lang=ru');
+    expect(mockFetch).toHaveBeenCalledWith('kanji/%E8%AA%9E?def_lang=ru');
     expect(result).toHaveLength(1);
-    expect(result[0].kanji).toBe('日');
-    expect(result[0].onyomi).toBe('ニチ、ジツ');
-    expect(result[0].kunyomi).toBe('ひ、か');
+    expect(result[0].kanji).toBe('語');
+    expect(result[0].onyomi).toBe('ゴ');
+    expect(result[0].kunyomi).toBe('かた.る、かた.らう');
     expect(result[0].markers).toContain('JLPT N5');
-    expect(result[0].markers).toContain('4 черт');
+    expect(result[0].markers).toContain('14 черт');
+    expect(result[0].parts).toEqual([
+      { piece: '言', definition: 'слово' },
+      { piece: '口', definition: 'рот' },
+      { piece: '五', definition: 'пять' },
+    ]);
     expect(result[0].pinyin).toBeUndefined();
   });
 });

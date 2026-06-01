@@ -61,6 +61,7 @@ export const SentenceCardView: FC<SentenceCardViewProps> = ({
         </div>
         {needsVirtualization ? (
           <List
+            className={styles.tokenList}
             rowCount={tokens.length}
             rowHeight={ITEM_SIZE}
             rowComponent={TokenRow}

@@ -147,10 +147,24 @@ export default function Home() {
       <Search />
 
       <div className={styles.lists}>
-        <CardList loading={sentencePending} listWidth={1000}>
+        <CardList
+          loading={sentencePending}
+          listWidth={1000}
+          style={{
+            background: '#e4f1f9',
+            borderRadius: 16,
+          } as React.CSSProperties}
+        >
           {sentences}
         </CardList>
-        <CardList loading={wordsPending || kanjiPending} listWidth={600}>
+        <CardList
+          loading={wordsPending || kanjiPending}
+          listWidth={600}
+          style={{
+            background: '#fcf2fb',
+            borderRadius: 16,
+          } as React.CSSProperties}
+        >
           {kanji}
           {inspectedWord ? (
             <li key={inspectedWord.id ?? inspectedWord.hiragana_full}>

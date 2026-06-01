@@ -1,5 +1,7 @@
 .sentenceCard {
   padding-bottom: 8px;
+  background-color: transparent;
+  border: none;
 }
 
 .header {
@@ -12,6 +14,28 @@
 .tokens {
   display: grid;
   gap: 16px;
+}
+
+.tokenList {
+  scrollbar-color: rgba(60, 126, 230, 0.35) transparent;
+  scrollbar-width: thin;
+}
+
+.tokenList::-webkit-scrollbar {
+  width: 10px;
+}
+
+.tokenList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tokenList::-webkit-scrollbar-thumb {
+  background: rgba(60, 126, 230, 0.35);
+  border-radius: 8px;
+}
+
+.tokenList::-webkit-scrollbar-thumb:hover {
+  background: rgba(60, 126, 230, 0.55);
 }
 
 .token {

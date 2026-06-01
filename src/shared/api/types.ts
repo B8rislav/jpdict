@@ -62,6 +62,7 @@ export type BackendKanjiCard = {
   character: string;
   stroke_count?: number | null;
   radicals: string[];
+  components?: { character: string; meanings: string[] }[];
   on_readings: string[];
   kun_readings: string[];
   meanings: string[];
