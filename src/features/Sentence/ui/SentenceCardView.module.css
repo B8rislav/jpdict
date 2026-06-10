@@ -109,6 +109,36 @@
   margin-top: 18px;
 }
 
+/* Inline POS-tinted spans rendered in the sentence header.
+   The POS class supplies `color`; we reuse it via currentColor for a soft
+   background tint, while the nested label resets the text color so it stays
+   readable (including furigana/pinyin) regardless of the POS hue. */
+.inlineToken {
+  display: inline;
+  padding: 1px 2px;
+  border-radius: 6px;
+  background-color: color-mix(in srgb, currentColor 16%, transparent);
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    outline-color 0.15s ease;
+}
+
+.inlineToken:hover {
+  background-color: color-mix(in srgb, currentColor 30%, transparent);
+}
+
+.inlineToken.inlineSelected {
+  background-color: color-mix(in srgb, currentColor 30%, transparent);
+  outline-color: currentColor;
+}
+
+.inlineLabel {
+  color: var(--g-color-text-primary);
+}
+
 .particle {
   color: #e74c3c;
 }

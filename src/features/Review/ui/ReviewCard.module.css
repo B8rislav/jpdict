@@ -1,8 +1,49 @@
+.root {
+  /* The fling/drag surface. transform-origin centered for a natural toss. */
+  transform-origin: center;
+  will-change: transform;
+}
+
 .card {
   display: flex;
   flex-direction: column;
   gap: 20px;
   padding: 32px 24px;
+}
+
+/* 3D flip scene: both faces share one grid cell so the card sizes to the taller
+   (back) face and the flip never causes a height jump. */
+.flipScene {
+  perspective: 1200px;
+}
+
+.flipInner {
+  position: relative;
+  display: grid;
+  transform-style: preserve-3d;
+}
+
+.face {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  /* The down-facing side never captures clicks; .active re-enables the visible one. */
+  pointer-events: none;
+}
+
+.face.active {
+  pointer-events: auto;
+}
+
+.faceBack {
+  transform: rotateY(180deg);
+}
+
+.reveal {
+  margin-top: auto;
 }
 
 .front {
@@ -26,6 +67,10 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
+}
+
+.gradeCell {
+  display: flex;
 }
 
 .grades button {

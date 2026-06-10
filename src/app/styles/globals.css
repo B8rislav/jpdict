@@ -39,3 +39,17 @@ rt {
   font-size: 0.55em;
   color: var(--text-secondary);
 }
+
+/* Honor OS "reduce motion": collapse CSS-side animations (spinner, chevron,
+   accordion transitions) to an instant state. Motion components read the JS
+   hook from src/shared/motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

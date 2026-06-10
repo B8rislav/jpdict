@@ -288,7 +288,12 @@
     "inspector_saved": "Сохранено",
     "inspector_save": "Добавить в словарь",
     "wordcard_saved": "Сохранено",
-    "wordcard_save": "Сохранить"
+    "wordcard_save": "Сохранить",
+    "meta_site_title": "JapChin Dict — Изучение японского и китайского",
+    "meta_description": "Платформа для изучения иероглифического письма с морфологическим анализом и AI-объяснениями",
+    "meta_title_dict": "Мой словарь",
+    "meta_title_study": "Учить",
+    "meta_title_settings": "Настройки"
   },
   "dict_count": {
     "one": "слово",

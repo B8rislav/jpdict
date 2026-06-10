@@ -1,6 +1,7 @@
 'use client';
 
 import { Button, Text } from '@gravity-ui/uikit';
+import { AnimatePresence } from 'motion/react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useUnit } from 'effector-react';
@@ -62,7 +63,14 @@ export default function StudyPage() {
             <Text variant="caption-2" color="secondary" className={styles.remaining}>
               {queue.length}
             </Text>
-            <ReviewCard card={current} readingLabel={readingLabel} onGrade={gradeCurrent} />
+            <AnimatePresence mode="wait">
+              <ReviewCard
+                key={current.id}
+                card={current}
+                readingLabel={readingLabel}
+                onGrade={gradeCurrent}
+              />
+            </AnimatePresence>
           </div>
         ) : (
           <div className={styles.done}>

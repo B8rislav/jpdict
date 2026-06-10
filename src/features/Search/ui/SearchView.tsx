@@ -1,9 +1,12 @@
 'use client';
 
 import { Button, TextInput } from '@gravity-ui/uikit';
+import { AnimatePresence, motion } from 'motion/react';
 import { type FC, type MouseEventHandler, useRef, useState } from 'react';
 import { SearchHistoryDropdown, type HistoryItem } from '@/features/SearchHistory';
 
+import { DURATION, EASE, useReducedMotion } from '@/shared/motion';
+import { Pressable } from '@/shared/ui/Pressable';
 import styles from './SearchView.module.css';
 import { t } from '@/shared/i18n';
 
@@ -42,6 +45,7 @@ export const SearchView: FC<SearchViewProps> = (props) => {
     onClearHistory,
   } = props;
 
+  const reduced = useReducedMotion();
   const button = useRef<HTMLButtonElement>(null);
   const [showHistory, setShowHistory] = useState(false);
 
@@ -88,25 +92,37 @@ export const SearchView: FC<SearchViewProps> = (props) => {
               }
             }}
           />
-          {showHistory && historyEntries.length > 0 && (
-            <div onMouseDown={(e) => e.preventDefault()}>
-              <SearchHistoryDropdown
-                entries={historyEntries}
-                onSelect={handleSelectEntry}
-                onDelete={handleDeleteEntry}
-                onClear={handleClear}
-              />
-            </div>
-          )}
+          {/* AnimatePresence gives the dropdown a real exit on close — CSS
+              can't animate an unmount. */}
+          <AnimatePresence>
+            {showHistory && historyEntries.length > 0 && (
+              <motion.div
+                onMouseDown={(e) => e.preventDefault()}
+                initial={reduced ? false : { opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={reduced ? { opacity: 0 } : { opacity: 0, y: -6 }}
+                transition={reduced ? { duration: 0 } : { duration: DURATION.fast, ease: EASE }}
+              >
+                <SearchHistoryDropdown
+                  entries={historyEntries}
+                  onSelect={handleSelectEntry}
+                  onDelete={handleDeleteEntry}
+                  onClear={handleClear}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-        <Button
-          view="action"
-          ref={button}
-          onClick={onButtonClick}
-          disabled={isSubmitting || inputValue.trim().length === 0}
-        >
-          {isSubmitting ? t('ui', 'search_button_loading') : t('ui', 'search_button')}
-        </Button>
+        <Pressable>
+          <Button
+            view="action"
+            ref={button}
+            onClick={onButtonClick}
+            disabled={isSubmitting || inputValue.trim().length === 0}
+          >
+            {isSubmitting ? t('ui', 'search_button_loading') : t('ui', 'search_button')}
+          </Button>
+        </Pressable>
       </div>
 
       <div className={styles.statusRow}>

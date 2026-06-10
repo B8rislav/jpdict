@@ -1,8 +1,10 @@
 import { type FC, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { Text, Button } from '@gravity-ui/uikit';
 import styles from './AIOverviewAccordion.module.css';
 import Markdown from 'react-markdown';
 import { type SentenceToken } from '@/shared/api/types';
+import { DURATION, EASE, useReducedMotion } from '@/shared/motion';
 import { SENTENCE_PREVIEW_LENGTH } from '../constants';
 import { t } from '@/shared/i18n';
 
@@ -17,6 +19,7 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
   tokens,
   onFetchOverview,
 }) => {
+  const reduced = useReducedMotion();
   const [isExpanded, setIsExpanded] = useState(false);
   const [overview, setOverview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -72,13 +75,24 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
         </div>
       </div>
 
-      {isExpanded && (
-        <div className={styles.overviewContentContainer}>
-          {overview !== null ? (
-            <div className={styles.overviewText}>
-              <Markdown>{overview}</Markdown>
-            </div>
-          ) : isLoading ? (
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <motion.div
+            key="overview-content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={reduced ? { duration: 0 } : { duration: DURATION.base, ease: EASE }}
+            style={{ overflow: 'hidden' }}
+          >
+            {/* `layout` smooths the height as SSE chunks stream in, instead of
+                the box jumping on every chunk. */}
+            <motion.div layout={!reduced} className={styles.overviewContentContainer}>
+              {overview !== null ? (
+                <div className={styles.overviewText}>
+                  <Markdown>{overview}</Markdown>
+                </div>
+              ) : isLoading ? (
             <div className={styles.loadingContainer}>
               <div className={styles.spinner} />
               <Text variant="body-2" className={styles.loadingText}>
@@ -108,9 +122,11 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
                 {t('ui', 'ai_overview_fetch')}
               </Button>
             </div>
-          )}
-        </div>
-      )}
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

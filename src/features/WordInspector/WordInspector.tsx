@@ -2,6 +2,7 @@
 
 import { type FC, useState, useCallback } from 'react';
 import { Text, Button, Skeleton } from '@gravity-ui/uikit';
+import { motion } from 'motion/react';
 import { useUnit } from 'effector-react';
 import { $userProfile } from '@/stores/userProfile';
 import { fetchKanjiFx, clearKanji } from '@/features/KanjiCard/model';
@@ -13,10 +14,12 @@ import { Card } from '@/shared/ui/Card';
 import { MarkerList } from '@/shared/ui/MarkerList/MarkerList';
 import { DefinitionList } from '@/shared/ui/DefinitionList/DefinitionList';
 import { AccordionSection } from '@/shared/ui/Accordion/AccordionSection';
+import { DURATION, EASE, TAP_SCALE, useReducedMotion } from '@/shared/motion';
 import { t } from '@/shared/i18n';
 import styles from './WordInspector.module.css';
 
 export const WordInspector: FC<{ word: Word }> = ({ word }) => {
+  const reduced = useReducedMotion();
   const { selectedLanguage } = useUnit($userProfile);
   const exampleSentences = useUnit($exampleSentences);
   const examplesPending = useUnit(fetchExampleSentencesFx.pending);
@@ -114,13 +117,20 @@ export const WordInspector: FC<{ word: Word }> = ({ word }) => {
       )}
 
       <div className={styles.footer}>
-        <Button
-          view={isSaved ? 'outlined-success' : 'action'}
-          disabled={isSaved}
-          onClick={() => addWordFx(word)}
+        <motion.span
+          style={{ display: 'inline-flex' }}
+          animate={reduced ? undefined : { scale: isSaved ? [1, 1.18, 1] : 1 }}
+          transition={reduced ? { duration: 0 } : { duration: DURATION.base, ease: EASE }}
+          whileTap={reduced || isSaved ? undefined : { scale: TAP_SCALE }}
         >
-          {isSaved ? t('ui', 'inspector_saved') : t('ui', 'inspector_save')}
-        </Button>
+          <Button
+            view={isSaved ? 'outlined-success' : 'action'}
+            disabled={isSaved}
+            onClick={() => addWordFx(word)}
+          >
+            {isSaved ? `✓ ${t('ui', 'inspector_saved')}` : t('ui', 'inspector_save')}
+          </Button>
+        </motion.span>
       </div>
     </Card>
   );

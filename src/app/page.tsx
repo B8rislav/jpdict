@@ -1,7 +1,8 @@
 'use client';
 
 import { Button, Switch, Text } from '@gravity-ui/uikit';
-import { useList, useUnit } from 'effector-react';
+import { useUnit } from 'effector-react';
+import { motion } from 'motion/react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
@@ -14,6 +15,7 @@ import { $sentences, fetchSentenceFx, SentenceCard } from '@/features/Sentence';
 import { $inspectedWord, WordInspector } from '@/features/WordInspector';
 import { AuthModal } from '@/features/Auth/AuthModal';
 import { CardList } from '@/shared/ui/CardList';
+import { cardEnter, springOrInstant, useReducedMotion } from '@/shared/motion';
 import { type Language } from '@/shared/api/types';
 import { t } from '@/shared/i18n';
 import {
@@ -31,6 +33,7 @@ import styles from './page.module.css';
 const LANGUAGES: Language[] = ['jp', 'cn'];
 
 export default function Home() {
+  const reduced = useReducedMotion();
   const { selectedLanguage, showFurigana, showPinyin, uiLocale } = useUnit($userProfile);
   const sentencePending = useUnit(fetchSentenceFx.pending);
   const wordsPending = useUnit(fetchWordsFx.pending);
@@ -46,49 +49,76 @@ export default function Home() {
     refreshFx();
   }, []);
 
-  const sentences = useList($sentences, (sentence, key) => (
-    <li key={key}>
+  const sentenceList = useUnit($sentences);
+  const wordList = useUnit($words);
+  const kanjiList = useUnit($kanji);
+
+  // Stable, domain-derived keys (not array index) so AnimatePresence can tell
+  // an outgoing result set from the next one and animate the swap.
+  const sentences = sentenceList.map((sentence) => (
+    <motion.li key={sentence.sentence} variants={cardEnter} exit="exit" layout>
       <SentenceCard {...sentence} />
-    </li>
+    </motion.li>
   ));
 
-  const words = useList($words, (word, key) => (
-    <li key={key}>
+  const words = wordList.map((word) => (
+    <motion.li
+      key={word.id ?? word.kanji_full ?? word.hiragana_full}
+      variants={cardEnter}
+      exit="exit"
+      layout
+    >
       <WordCard {...word} />
-    </li>
+    </motion.li>
   ));
 
-  const kanji = useList($kanji, (kanji, key) => (
-    <li key={key}>
-      <KanjiCard {...kanji} />
-    </li>
+  const kanji = kanjiList.map((k) => (
+    <motion.li key={k.kanji} variants={cardEnter} exit="exit" layout>
+      <KanjiCard {...k} />
+    </motion.li>
   ));
 
   return (
     <div className={styles.page}>
       <nav className={styles.nav}>
         {LANGUAGES.map((value) => (
-          <Button
-            key={value}
-            size="s"
-            view={selectedLanguage === value ? 'normal' : 'outlined'}
-            onClick={() => setSelectedLanguage(value)}
-          >
-            {t('ui', value === 'jp' ? 'lang_jp' : 'lang_cn')}
-          </Button>
+          <span key={value} className={styles.navBtnWrap}>
+            <Button
+              size="s"
+              view={selectedLanguage === value ? 'normal' : 'outlined'}
+              onClick={() => setSelectedLanguage(value)}
+            >
+              {t('ui', value === 'jp' ? 'lang_jp' : 'lang_cn')}
+            </Button>
+            {selectedLanguage === value && (
+              <motion.span
+                layoutId="langPill"
+                className={styles.navPill}
+                transition={springOrInstant(reduced)}
+              />
+            )}
+          </span>
         ))}
 
         <div className={styles.navDivider} />
 
-        {(['ru', 'en'] as const).map(locale => (
-          <Button
-            key={locale}
-            size="s"
-            view={uiLocale === locale ? 'normal' : 'outlined'}
-            onClick={() => setUiLocale(locale)}
-          >
-            {locale.toUpperCase()}
-          </Button>
+        {(['ru', 'en'] as const).map((locale) => (
+          <span key={locale} className={styles.navBtnWrap}>
+            <Button
+              size="s"
+              view={uiLocale === locale ? 'normal' : 'outlined'}
+              onClick={() => setUiLocale(locale)}
+            >
+              {locale.toUpperCase()}
+            </Button>
+            {uiLocale === locale && (
+              <motion.span
+                layoutId="localePill"
+                className={styles.navPill}
+                transition={springOrInstant(reduced)}
+              />
+            )}
+          </span>
         ))}
 
         {selectedLanguage === 'jp' && (
@@ -175,9 +205,14 @@ export default function Home() {
         >
           {kanji}
           {inspectedWord ? (
-            <li key={inspectedWord.id ?? inspectedWord.hiragana_full}>
+            <motion.li
+              key={inspectedWord.id ?? inspectedWord.hiragana_full}
+              variants={cardEnter}
+              exit="exit"
+              layout
+            >
               <WordInspector word={inspectedWord} />
-            </li>
+            </motion.li>
           ) : (
             words
           )}

@@ -15,6 +15,7 @@ Unit tests live next to their subject files with the `.test.ts` or `.test.tsx` s
 | Test file | What it covers |
 |-----------|---------------|
 | `src/features/Search/utils.test.ts` | `classifySearchQuery` edge cases |
+| `src/features/Sentence/lib/segmentSentence.test.ts` | sentence→span mapping preserves every character, correct token indices |
 | `src/features/KanjiCard/api/fetchKanji.test.ts` | kanji fetch and mapper |
 | `src/shared/utils/isJapaneseText.test.ts` | Unicode heuristics |
 | `src/app/api/ai-overview/route.test.ts` | SSE route handler |

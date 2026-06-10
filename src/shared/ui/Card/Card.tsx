@@ -1,5 +1,4 @@
 import { type FC, type PropsWithChildren } from 'react';
-import { motion } from 'motion/react';
 
 import styles from './Card.module.css';
 
@@ -7,14 +6,12 @@ type CardProps = {
   className?: string;
 };
 
+/**
+ * Presentational card surface. Entrance/exit motion is owned by the list layer
+ * (see CardList + the `cardEnter` variant in `@/shared/motion`) so the keyed
+ * list item is the element `AnimatePresence` tracks; `ReviewCard` brings its own
+ * entrance. Card itself stays a plain surface.
+ */
 export const Card: FC<PropsWithChildren<CardProps>> = ({ children, className }) => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <div className={`${styles.card} ${className ?? ''}`}>{children}</div>
-    </motion.div>
-  );
+  return <div className={`${styles.card} ${className ?? ''}`}>{children}</div>;
 };

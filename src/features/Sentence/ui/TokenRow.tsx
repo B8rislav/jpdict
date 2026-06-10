@@ -2,9 +2,11 @@
 
 import { type CSSProperties, type ReactElement } from 'react';
 import { Label, Text } from '@gravity-ui/uikit';
+import { motion } from 'motion/react';
 import { type RowComponentProps } from 'react-window';
 import { type SentenceToken } from '@/shared/api/types';
 import { FuriganaText } from '@/shared/ui/FuriganaText/FuriganaText';
+import { DURATION, EASE, useReducedMotion } from '@/shared/motion';
 import { t } from '@/shared/i18n';
 import styles from './SentenceCardView.module.css';
 
@@ -32,16 +34,21 @@ export const TokenRow = ({
   getPosClass,
   onTokenClick,
 }: RowComponentProps<TokenRowProps>): ReactElement | null => {
+  const reduced = useReducedMotion();
   const token = tokens[index];
   const wrapperStyle: CSSProperties = { ...style, paddingBottom: 16, boxSizing: 'border-box' };
 
   return (
-    <div style={wrapperStyle} {...ariaAttributes}>
-      <div
+    // The wrapper's `style` is owned by react-window — animate the inner token,
+    // never this virtualized row.
+    <div style={wrapperStyle} data-token-index={index} {...ariaAttributes}>
+      <motion.div
         className={`${styles.token} ${getPosClass(token.pos)} ${
           selectedTokenIndex === index ? styles.selected : ''
         }`}
         style={{ height: '100%', boxSizing: 'border-box' }}
+        whileHover={reduced ? undefined : { y: -2, scale: 1.01 }}
+        transition={reduced ? { duration: 0 } : { duration: DURATION.fast, ease: EASE }}
         onMouseEnter={() => setSelectedTokenIndex(index)}
         onMouseLeave={() => setSelectedTokenIndex(null)}
         onClick={() => {
@@ -85,7 +92,7 @@ export const TokenRow = ({
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

@@ -18,6 +18,12 @@
   gap: 4px;
 }
 
+.startWrap {
+  /* Shrink-wrap the button so the pulse scales the button, not a full-width box. */
+  display: inline-flex;
+  transform-origin: center;
+}
+
 .empty {
   padding: 8px 0;
 }

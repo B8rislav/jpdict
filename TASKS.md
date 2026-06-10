@@ -147,6 +147,125 @@ in parallel as long as it adds keys to both `ru.json` and `en.json` as it goes.
 
 ---
 
+## ✨ A — Liveliness & Motion
+
+> Goal: the app should feel **alive** — results breathe in instead of popping, the
+> review card flips and flings, numbers tick up, sections expand smoothly. We already
+> ship [`motion`](https://www.npmjs.com/package/motion) v12 (imported as `motion/react`),
+> but it's used in exactly **one** place ([src/shared/ui/Card/Card.tsx](frontend/src/shared/ui/Card/Card.tsx))
+> and that one usage has bugs (see A0). This section turns motion into a first-class,
+> consistent layer — not a pile of ad-hoc `whileInView`s.
+>
+> **Non-negotiables for every task below:**
+> - Animate **`transform` + `opacity` only** (and `height` via motion's layout where
+>   called out). Never animate `top`/`left`/`width` in a hot path.
+> - **Respect `prefers-reduced-motion`** — A0 builds the guard; every later task uses it.
+>   "Alive" must never mean "unusable for someone who gets motion-sick."
+> - Keep keyboard/focus flow intact. The review keyboard shortcuts
+>   ([ReviewCard.tsx:46-62](frontend/src/features/Review/ui/ReviewCard.tsx#L46-L62)) must
+>   still fire mid-animation.
+> - No new animation library. `motion` + CSS only. The existing `@keyframes spin`
+>   ([AIOverviewAccordion.module.css:65-72](frontend/src/features/Sentence/ui/AIOverviewAccordion.module.css#L65))
+>   and `chevron` rotate ([AccordionSection.module.css:28-35](frontend/src/shared/ui/Accordion/AccordionSection.module.css#L28))
+>   stay as-is unless a task says otherwise.
+
+### A0 — Motion foundation (do this first)
+
+The current [Card.tsx](frontend/src/shared/ui/Card/Card.tsx) is the whole motion story today, and it's subtly wrong:
+
+```tsx
+<motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+```
+
+- `whileInView` **re-fires every time the card scrolls back into view** — no `viewport={{ once: true }}`, so cards flicker on every scroll-up. It should animate in **once**.
+- There's no `AnimatePresence` wrapping the list, so cards never animate **out** — a new search hard-swaps the DOM.
+- This wrapper is applied to **`ReviewCard` too** ([ReviewCard.tsx:64](frontend/src/features/Review/ui/ReviewCard.tsx#L64)), so the study card inherits a fade-up it shouldn't have (A2 gives it a purpose-built entrance).
+
+- [ ] **Create `src/shared/motion/index.ts`** — the single source of truth for motion. Export:
+  - `DURATION` (e.g. `{ fast: 0.15, base: 0.25, slow: 0.4 }`) and `EASE` (a shared cubic-bezier array, e.g. `[0.22, 1, 0.36, 1]` for the "settle" feel).
+  - Reusable `Variants`: `fadeUp`, `staggerContainer` (with `staggerChildren`), `cardEnter`, `flip`.
+  - A `useReducedMotion()` re-export (motion ships one) **and** a `springOrInstant(reduced)` helper so every component has one call to neuter itself.
+- [ ] **Global reduced-motion guard.** Add to [src/app/styles/globals.css](frontend/src/app/styles/globals.css):
+  ```css
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  ```
+  This catches the CSS-side animations (spinner, chevron, accordion transitions) for free; motion components read the JS hook from `src/shared/motion`.
+- [ ] **Fix the existing `Card.tsx`.** Add `viewport={{ once: true, margin: '-40px' }}`, pull `initial`/`whileInView`/`transition` from the shared `cardEnter` variant, and gate it on `useReducedMotion()`. Don't add exit here — exit belongs to the `AnimatePresence` in A1.
+- [ ] **Done when:** `src/shared/motion/index.ts` exists and is the only place durations/eases are declared; scrolling a long result list up-and-down no longer re-triggers the card fade; toggling OS "reduce motion" makes every animation in the app collapse to an instant state.
+
+### A1 — Results breathe in (list stagger + swap-out)
+
+**Today:** [CardList.tsx](frontend/src/shared/ui/CardList/CardList.tsx) renders `props.children` (or skeletons) in a plain `<ul>`. Each `Card` independently fades up; there's no coordination, no exit, and the skeleton→content handoff is an instant cut.
+
+- [ ] **Stagger the children.** In [CardList.tsx](frontend/src/shared/ui/CardList/CardList.tsx), wrap the `<ul>` in a `motion.ul` using the `staggerContainer` variant so cards cascade in (~50–70ms apart) instead of all at once. The per-`Card` `cardEnter` from A0 becomes the child variant — switch `Card` from `whileInView` to `variants`/`initial`/`animate` driven by the parent container so the stagger actually propagates.
+- [ ] **Animate the swap.** When a new search replaces results, the old cards should leave (fade + slight `y`/scale-down) before/under the new set. Wrap the rendered children in `<AnimatePresence mode="popLayout">`. This requires **stable keys** — confirm the home page maps results with a domain id, not array index ([src/app/page.tsx:142-160](frontend/src/app/page.tsx#L142-L160) where `sentences`/`words`/`kanji` are built).
+- [ ] **Skeleton → content crossfade.** The `loading ? skeletons : children` branch ([CardList.tsx:21-27](frontend/src/shared/ui/CardList/CardList.tsx#L21-L27)) is a hard cut. Give the two branches different `AnimatePresence` keys so the skeleton fades out as real cards fade in. Keep the Gravity `Skeleton` shimmer.
+- [ ] **Done when:** submitting a search makes results cascade in top-to-bottom; submitting a *second* search animates the first set out and the second in (no instant DOM swap); the loading skeletons crossfade into real cards.
+
+### A2 — The review card comes alive (flip + fling)
+
+This is the centerpiece — the study loop should feel tactile. [ReviewCard.tsx](frontend/src/features/Review/ui/ReviewCard.tsx) today does instant conditional swaps: `revealed ? <back+grades> : <reveal button>`, and a *new* card just replaces the old via `setRevealed(false)`.
+
+- [ ] **Card-to-card transition.** Wrap the card in `<AnimatePresence mode="wait">` keyed by `card.id` (the id is already tracked in [ReviewCard.tsx:28-35](frontend/src/features/Review/ui/ReviewCard.tsx#L28-L35)). The outgoing card flings off; the next slides/scales in. Do this at the session level in [src/app/study/page.tsx:60-66](frontend/src/app/study/page.tsx#L60-L66) (the `<ReviewCard … />` mount) so the *whole* card animates, not just its insides.
+- [ ] **Reveal = 3D flip.** Replace the instant `revealed` swap with a Y-axis flip (front face → back face) using `rotateY` + `backface-visibility: hidden` on two stacked faces, or motion's `<AnimatePresence>` with a flip variant. The front holds `card.kanji_full`/`MarkerList`; the back holds the reading + `DefinitionList`. Keep `Space` as the trigger.
+- [ ] **Grade = directional fling.** When the user grades, the card should leave in a direction that *means something*: `again` flings left/red, `easy` flings right/green (use `GRADE_VIEW`/the grade identity from [constants](frontend/src/features/Review/constants.ts)). Drive the exit variant from the chosen `Grade` before `onGrade` swaps in the next card. Grade buttons themselves spring in after the flip (stagger).
+- [ ] **(Optional) drag to grade.** Make the revealed card draggable (`drag="x"`) with a snap-back; cross a threshold left/right to grade `again`/`good`. Power-user affordance — keep keyboard + buttons as the primary path.
+- [ ] **Done when:** revealing flips the card in 3D; grading flings it off in a grade-appropriate direction and the next card animates in; spamming `Space`+`1–4` on the keyboard never desyncs the animation from the data; reduced-motion turns all of it into instant face-swaps.
+
+### A3 — Numbers that count up (StudyDashboard)
+
+[StudyDashboard.tsx](frontend/src/features/Review/ui/StudyDashboard.tsx) renders `due`/`new`/`learned` as static `<Text variant="display-2">`. Make them tick up on mount — small touch, big "alive" payoff on the first screen of the study flow.
+
+- [ ] Build a tiny `<CountUp value={n} />` (or `useAnimatedNumber`) on `useMotionValue` + `animate()` + `useTransform(v => Math.round(v))`, easing 0→`n` over ~`DURATION.slow`. Use it for all three counts ([StudyDashboard.tsx:24-40](frontend/src/features/Review/ui/StudyDashboard.tsx#L24-L40)).
+- [ ] When `due > 0`, give the **Start** button ([StudyDashboard.tsx:44-46](frontend/src/features/Review/ui/StudyDashboard.tsx#L44-L46)) a subtle attention pulse (one-shot scale breathe, or `whileHover`/`whileTap` scale). When `all_caught_up`, the empty-state text fades in gently — no pulse.
+- [ ] Re-run the count-up when stats change (e.g. returning from a session via `endSession` → `fetchStatsFx` in [study/page.tsx:42-45](frontend/src/app/study/page.tsx#L42-L45)) by keying on the stats values.
+- [ ] **Done when:** opening `/study` animates the three counters from 0 to their values; a due count > 0 visibly invites the user to the Start button; reduced-motion shows final numbers immediately.
+
+### A4 — Sections that expand, not jump (accordions + streaming)
+
+Two accordions snap open today. [AccordionSection.tsx](frontend/src/shared/ui/Accordion/AccordionSection.tsx) only rotates its chevron ([AccordionSection.module.css:28-35](frontend/src/shared/ui/Accordion/AccordionSection.module.css#L28)) — the content just appears. Used by `WordInspector` sections and (optionally) `AIOverviewAccordion`.
+
+- [ ] **Animate `height: auto`.** Wrap the `.sectionContent` of [AccordionSection.tsx](frontend/src/shared/ui/Accordion/AccordionSection.tsx) in `<AnimatePresence>` + `motion.div` with `initial/animate/exit` on `height` (0 ↔ `auto`) and `opacity`. Motion handles `auto` height measurement — no manual `scrollHeight` math. This upgrades every `WordInspector` section ([WordInspector.tsx](frontend/src/features/WordInspector/WordInspector.tsx)) at once.
+- [ ] **AI Overview reveal.** [AIOverviewAccordion.tsx](frontend/src/features/Sentence/ui/AIOverviewAccordion.tsx) expands the overview body on toggle — give the `.overviewContentContainer` the same height/opacity transition. Keep the existing spinner.
+- [ ] **Streaming feel.** The overview text arrives in SSE chunks ([AIOverviewAccordion](frontend/src/features/Sentence/ui/AIOverviewAccordion.tsx) accumulates a growing string). Instead of the text box jumping in height on each chunk, let the container `layout`-animate its height, and optionally fade the most-recent chunk in. Don't animate per-character — that fights the stream rate.
+- [ ] **Done when:** opening any `WordInspector` section glides its content open instead of snapping; the AI overview body expands smoothly and grows without jank as chunks stream; reduced-motion = instant open.
+
+### A5 — Search & navigation polish
+
+- [ ] **History dropdown enter/exit.** [SearchHistoryDropdown](frontend/src/features/SearchHistory/SearchHistoryDropdown.tsx) appears/disappears via CSS today. Wrap it in `<AnimatePresence>` for a fade+slide-down on open and a real exit on close (CSS can't animate unmount). Per-row delete should collapse the row (`layout` + exit), not pop it out.
+- [ ] **Active-nav indicator.** The top nav in [src/app/page.tsx](frontend/src/app/page.tsx) and the JP/CN + locale switchers have no animated "selected" state. Use a shared `layoutId` pill that slides under the active language/locale button (motion's `layout` shared-element transition). Same trick for the `/`, `/dictionary`, `/study`, `/settings` nav if there's a persistent nav bar.
+- [ ] **(Optional) route transitions.** With the App Router, wrap page content in a `motion.main` template (`src/app/template.tsx`) for a cross-route fade/slide. Keep it cheap — App Router re-mounts on navigation, so this is a per-page `initial`/`animate`, no `AnimatePresence` gymnastics needed.
+- [ ] **Done when:** the search-history dropdown animates in and out (not just CSS-fades while mounted); deleting a history row collapses it; the active language/locale has a sliding indicator that follows the selection.
+
+### A6 — Micro-interactions (the small alive moments)
+
+- [ ] **Save-word success.** [WordCardView.tsx:44](frontend/src/features/WordCard/ui/WordCardView.tsx#L44) flips a label `'Сохранить' → 'Сохранено'` with no feedback. On save, pop the button (scale spring) and morph the icon/label — a quick checkmark or heart-fill that confirms the action. Mirror in [WordInspector.tsx](frontend/src/features/WordInspector/WordInspector.tsx)'s add-to-dictionary button.
+- [ ] **Button press feedback.** Give the primary actions (`reveal`, `start`, grade buttons, search submit) a `whileTap={{ scale: 0.97 }}` via a tiny `motion`-wrapped button helper or a CSS `:active` transform. Keep it uniform — pull the scale value from `src/shared/motion`.
+- [ ] **Token hover/select.** Sentence tokens ([TokenRow.tsx](frontend/src/features/Sentence/ui/TokenRow.tsx)) are clickable; a subtle hover lift / selected-token highlight makes the sentence feel interactive. Mind that `TokenRow` is a `react-window` row — animate the inner content, not the virtualized row wrapper whose `style` is owned by the list.
+- [ ] **Done when:** saving a word gives a visible, satisfying confirmation; primary buttons depress on tap; hovering/selecting a sentence token reads as interactive — all of it off under reduced-motion.
+
+### A7 — Verify & guard
+
+- [ ] **Stories for the moving parts.** Add/extend stories so animations are eyeball-able offline (pairs with the **S** section): a `ReviewCard` story that flips and grades on a timer; a `CardList` story showing stagger + swap; a `StudyDashboard` story to watch the count-up. Reuse Storybook `action()` for callbacks.
+- [ ] **Reduced-motion story/check.** Add a Storybook a11y check (the `@storybook/addon-a11y` is already a devDep) or a manual checklist confirming each animated component honors `prefers-reduced-motion`.
+- [ ] **Perf sanity.** Spot-check in DevTools that animated frames stay on the compositor (no layout thrash): the only `height`-animated thing should be the accordions (A4), and those should still be smooth. No `console` warnings about non-animatable values.
+- [ ] **Done when:** `npm run test:storybook` is green with the new stories; every animated component has a documented reduced-motion behavior; no animation animates a layout-triggering property outside A4's intentional height transitions.
+
+### Execution order for this section
+A0 → A1 → A2 → (A3, A4, A5, A6 in any order) → A7.
+A0 is mandatory-first — everything else imports `src/shared/motion` and relies on the
+reduced-motion guard. A2 (review flip) is the highest-impact single task; do it right
+after A1 so the shared `AnimatePresence`/variant patterns from the card list carry over.
+
+---
+
 ## 📚 S — Storybook coverage for view components
 
 > Goal: every pure view component under `*/ui/*.tsx` has a `*.stories.tsx` next to it.
@@ -716,15 +835,15 @@ Stop and confirm between slices.
 [src/features/Sentence/lib/posColor.ts](frontend/src/features/Sentence/lib/posColor.ts),
 [src/features/Sentence/ui/SentenceCardView.module.css](frontend/src/features/Sentence/ui/SentenceCardView.module.css).
 
-- [ ] **Render the sentence header as colored token spans.** Replace the plain `<Text variant="body-2">{sentence}</Text>` in `SentenceCardView`'s header with a `SentenceHighlight` sub-component that maps over `tokens` and renders each `token.surface_form` as a `<span>` with `getPosColorClass(token.pos, selectedLanguage, styles)` applied as a **background tint** (not just the left marker). Render any non-token characters (punctuation/whitespace between surfaces) verbatim so the original sentence reads naturally.
+- [x] **Render the sentence header as colored token spans.** Replace the plain `<Text variant="body-2">{sentence}</Text>` in `SentenceCardView`'s header with a `SentenceHighlight` sub-component that maps over `tokens` and renders each `token.surface_form` as a `<span>` with `getPosColorClass(token.pos, selectedLanguage, styles)` applied as a **background tint** (not just the left marker). Render any non-token characters (punctuation/whitespace between surfaces) verbatim so the original sentence reads naturally.
   - Note: the sentence string may not be a simple concatenation of surfaces (spacing/punctuation). Walk the sentence and consume each `surface_form` in order; fall back to plain text for anything that doesn't line up, so a mismatch never drops characters.
-- [ ] **Add a `study/legend`-friendly POS color background.** `posColor.ts` currently returns classes used for a thin marker + selected state. Add background-tint variants in `SentenceCardView.module.css` (or reuse the existing per-POS classes with a softened `background-color`) so inline spans are readable. Ensure contrast for furigana/pinyin text on the tint.
-- [ ] **Lift selection state so clicking a word scrolls to its row.** `selectedTokenIndex` already lives in `SentenceCardView` — pass it (and a setter) down to both the highlight spans and the token rows.
+- [x] **Add a `study/legend`-friendly POS color background.** `posColor.ts` currently returns classes used for a thin marker + selected state. Add background-tint variants in `SentenceCardView.module.css` (or reuse the existing per-POS classes with a softened `background-color`) so inline spans are readable. Ensure contrast for furigana/pinyin text on the tint.
+- [x] **Lift selection state so clicking a word scrolls to its row.** `selectedTokenIndex` already lives in `SentenceCardView` — pass it (and a setter) down to both the highlight spans and the token rows.
   - Clicking a highlighted span sets `selectedTokenIndex` to that token's index and calls `onTokenClick(token)` (same as clicking the row), so the right-column word lookup also fires.
   - Scroll the row into view: for the **virtualized** path (`tokens.length > MAX_VISIBLE_ITEMS`), use the `react-window` `List` imperative API / ref to scroll to the index; for the **plain** path, keep a `ref` array (or `data-token-index` + `querySelector`) and call `scrollIntoView({ block: 'nearest', behavior: 'smooth' })`.
-- [ ] **Two-way highlight (nice-to-have).** When a `TokenRow` is hovered/selected, give the corresponding sentence span a `selected`/outline style so the eye connects sentence ↔ row.
-- [ ] **Tests & stories.** Vitest: the sentence→span mapping preserves the full original sentence (no dropped/duplicated chars) and assigns the right POS class per token. Storybook: a `SentenceHighlight` story (JP and CN samples) showing the colored spans; interaction test that clicking a span selects the matching row.
-- [ ] Done when: searching `この本はとても面白いです。` shows the sentence with each word tinted by POS; clicking 面白い (or any word) scrolls the token list to that row, selects it, and triggers the right-column word lookup — for both short (plain) and long (virtualized) sentences.
+- [x] **Two-way highlight (nice-to-have).** When a `TokenRow` is hovered/selected, give the corresponding sentence span a `selected`/outline style so the eye connects sentence ↔ row.
+- [x] **Tests & stories.** Vitest: the sentence→span mapping preserves the full original sentence (no dropped/duplicated chars) and assigns the right POS class per token. Storybook: a `SentenceHighlight` story (JP and CN samples) showing the colored spans; interaction test that clicking a span selects the matching row.
+- [x] Done when: searching `この本はとても面白いです。` shows the sentence with each word tinted by POS; clicking 面白い (or any word) scrolls the token list to that row, selects it, and triggers the right-column word lookup — for both short (plain) and long (virtualized) sentences.
 
 ---
 
@@ -737,25 +856,25 @@ Stop and confirm between slices.
 
 ### SEO.1 — Crawl & indexing basics
 
-- [ ] Add `src/app/robots.ts` (Next `MetadataRoute.Robots`) — allow indexing of public pages (`/`, search result pages), disallow `/api/*`, `/settings`, `/dictionary`, `/study` (private/auth-only). Point at the sitemap.
-- [ ] Add `src/app/sitemap.ts` (Next `MetadataRoute.Sitemap`) — list the public, indexable routes with `changeFrequency`/`priority`. If word/kanji detail pages become server-rendered (see SEO.4), generate their URLs here.
-- [ ] Set `metadataBase` in `src/app/layout.tsx` (e.g. `new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000')`) so all relative OG/canonical URLs resolve. Add `NEXT_PUBLIC_SITE_URL` to `.env`/`.env.example`.
+- [x] Add `src/app/robots.ts` (Next `MetadataRoute.Robots`) — allow indexing of public pages (`/`, search result pages), disallow `/api/*`, `/settings`, `/dictionary`, `/study` (private/auth-only). Point at the sitemap.
+- [x] Add `src/app/sitemap.ts` (Next `MetadataRoute.Sitemap`) — list the public, indexable routes with `changeFrequency`/`priority`. If word/kanji detail pages become server-rendered (see SEO.4), generate their URLs here.
+- [x] Set `metadataBase` in `src/app/layout.tsx` (e.g. `new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000')`) so all relative OG/canonical URLs resolve. Add `NEXT_PUBLIC_SITE_URL` to `.env`/`.env.example`.
 
 ### SEO.2 — Metadata, Open Graph, canonical
 
-- [ ] Replace the static `metadata` in `layout.tsx` with `generateMetadata` (ties off the existing D2 TODO at [src/app/layout.tsx:24](frontend/src/app/layout.tsx#L24)): localized `title` (with a `title.template` like `%s · JapChin Dict`) and `description` read from i18n by `uiLocale` (cookie/`Accept-Language`), plus `alternates.canonical` and `alternates.languages` (`ru`/`en`), and `openGraph` + `twitter` card fields.
-- [ ] Add per-route metadata where pages exist (`dictionary`, `settings`, `study`) — even if `noindex`, set a sensible title. Mark private routes `robots: { index: false }`.
-- [ ] Add an Open Graph image: `src/app/opengraph-image.tsx` (Next `ImageResponse`) for a branded default card; optionally a Twitter variant.
+- [x] Replace the static `metadata` in `layout.tsx` with `generateMetadata` (ties off the existing D2 TODO at [src/app/layout.tsx:24](frontend/src/app/layout.tsx#L24)): localized `title` (with a `title.template` like `%s · JapChin Dict`) and `description` read from i18n by `uiLocale` (cookie/`Accept-Language`), plus `alternates.canonical` and `alternates.languages` (`ru`/`en`), and `openGraph` + `twitter` card fields.
+- [x] Add per-route metadata where pages exist (`dictionary`, `settings`, `study`) — even if `noindex`, set a sensible title. Mark private routes `robots: { index: false }`.
+- [x] Add an Open Graph image: `src/app/opengraph-image.tsx` (Next `ImageResponse`) for a branded default card; optionally a Twitter variant.
 
 ### SEO.3 — Icons, manifest, structured data
 
-- [ ] Add the icon set Next expects in `src/app/`: `icon.png`/`apple-icon.png` (and keep `favicon.ico`). Pairs with the PWA `manifest.json` task in Phase 11 — make `theme-color` and manifest consistent.
-- [ ] Add JSON-LD structured data: a `WebSite` + `SearchAction` (sitelinks search box) in `layout.tsx`, and `DefinedTerm`/`DefinedTermSet` on word/kanji detail content so dictionary entries are eligible for rich results. Inject via a `<script type="application/ld+json">` helper component.
-- [ ] Ensure language signals are correct: `<html lang={uiLocale}>` is already handled by D2/`HtmlLangSync` — verify it's SSR'd (not only set client-side) for crawlers, or accept the documented trade-off.
+- [x] Add the icon set Next expects in `src/app/`: `icon.png`/`apple-icon.png` (and keep `favicon.ico`). Pairs with the PWA `manifest.json` task in Phase 11 — make `theme-color` and manifest consistent.
+- [x] Add JSON-LD structured data: a `WebSite` + `SearchAction` (sitelinks search box) in `layout.tsx`, and `DefinedTerm`/`DefinedTermSet` on word/kanji detail content so dictionary entries are eligible for rich results. Inject via a `<script type="application/ld+json">` helper component.
+- [x] Ensure language signals are correct: `<html lang={uiLocale}>` is already handled by D2/`HtmlLangSync` — verify it's SSR'd (not only set client-side) for crawlers, or accept the documented trade-off.
 
 ### SEO.4 — Indexable content (the real SEO win)
 
-- [ ] **Decide & document the indexing model.** Today the app is a client-driven SPA-ish search box — there are no crawlable, linkable result URLs, so there's effectively nothing for Google to index beyond the home page. To get organic dictionary traffic, add **server-rendered, linkable detail pages**, e.g. `src/app/[lang]/word/[query]/page.tsx` and `.../kanji/[char]/page.tsx`, that fetch from the backend in a Server Component and render the definition with full metadata + JSON-LD. Wire the sitemap (SEO.1) to these.
+- [x] **Decide & document the indexing model.** Today the app is a client-driven SPA-ish search box — there are no crawlable, linkable result URLs, so there's effectively nothing for Google to index beyond the home page. To get organic dictionary traffic, add **server-rendered, linkable detail pages**, e.g. `src/app/[lang]/word/[query]/page.tsx` and `.../kanji/[char]/page.tsx`, that fetch from the backend in a Server Component and render the definition with full metadata + JSON-LD. Wire the sitemap (SEO.1) to these.
   - If full detail pages are out of scope now, at minimum make the search reflect the query in the URL (`/?q=…&lang=…`) and emit canonical + metadata for that state, and record this as the documented limitation.
-- [ ] Add `next-sitemap` or keep the native `sitemap.ts` — pick one and document it; don't run both.
-- [ ] Done when: `/robots.txt` and `/sitemap.xml` serve correctly, the home page and any detail pages return localized `<title>`/`<meta description>`/canonical/OG tags in **view-source** (SSR, not just hydrated), an OG image renders in a link-preview test, and structured data passes Google's Rich Results test.
+- [x] Add `next-sitemap` or keep the native `sitemap.ts` — pick one and document it; don't run both.
+- [x] Done when: `/robots.txt` and `/sitemap.xml` serve correctly, the home page and any detail pages return localized `<title>`/`<meta description>`/canonical/OG tags in **view-source** (SSR, not just hydrated), an OG image renders in a link-preview test, and structured data passes Google's Rich Results test.

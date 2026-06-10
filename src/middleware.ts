@@ -20,5 +20,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/dictionary/:path*', '/api/history/:path*'],
+  matcher: ['/api/dictionary/:path*', '/api/history/:path*', '/api/review/:path*'],
 };

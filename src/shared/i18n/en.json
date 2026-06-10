@@ -288,7 +288,12 @@
     "inspector_saved": "Saved",
     "inspector_save": "Add to Dictionary",
     "wordcard_saved": "Saved",
-    "wordcard_save": "Save"
+    "wordcard_save": "Save",
+    "meta_site_title": "JapChin Dict — Learn Japanese and Chinese",
+    "meta_description": "Platform for studying Japanese and Chinese with morphological analysis and AI explanations",
+    "meta_title_dict": "My Dictionary",
+    "meta_title_study": "Study",
+    "meta_title_settings": "Settings"
   },
   "dict_count": {
     "one": "word",

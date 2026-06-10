@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
+import { expect, fn, userEvent } from 'storybook/test';
 import { SentenceCardView } from './ui/SentenceCardView';
 import type { SentenceToken } from '@/shared/api/types';
 
@@ -142,5 +143,31 @@ export const EmptyTokens: Story = {
     showPinyin: false,
     onTokenClick: () => {},
     onFetchOverview: noop,
+  },
+};
+
+// Clicking a highlighted word in the sentence header selects the matching
+// token row and fires the right-column lookup (onTokenClick).
+export const ClickWordSelectsRow: Story = {
+  args: {
+    sentence: '私は学生です。',
+    tokens: jpTokens,
+    selectedLanguage: 'jp',
+    showFurigana: true,
+    showPinyin: false,
+    onTokenClick: fn(),
+    onFetchOverview: noop,
+  },
+  play: async ({ canvasElement, args }) => {
+    // 学生 is token index 2; click its span in the sentence header.
+    const span = canvasElement.querySelector<HTMLElement>('[data-token-span-index="2"]');
+    await userEvent.click(span!);
+
+    await expect(args.onTokenClick).toHaveBeenCalledWith(
+      expect.objectContaining({ surface_form: '学生' }),
+    );
+    // The matching row picks up the selected state.
+    const row = canvasElement.querySelector('[data-token-index="2"] > div');
+    await expect(row?.className).toContain('selected');
   },
 };

@@ -46,6 +46,32 @@ File: `src/stores/userProfile.ts`
 
 ---
 
+### `$queue` → `$current`, `$stats` (review / SRS)
+
+File: `src/stores/review.ts`
+
+| Store | Type | Description |
+|-------|------|-------------|
+| `$queue` | `ReviewCard[]` | Cards still to study this session (due first, then new) |
+| `$stats` | `ReviewStats \| null` | Dashboard counts `{ new, due, learned, suspended }` for the active language |
+
+**Derived:** `$current` (`$queue[0] ?? null`) — the card on screen.
+
+**Language-aware:** `fetchQueueFx` / `fetchStatsFx` read `selectedLanguage` off `$userProfile` and no-op when unauthenticated.
+
+**Writers:**
+- `fetchQueueFx.doneData` → replaces `$queue`; `fetchStatsFx.doneData` → replaces `$stats`
+- `gradeCurrent` event → sampled against `$current` into `gradeRequested`, which (a) fires `gradeFx` to the backend, (b) optimistically advances `$queue` (drops the head), and (c) optimistically moves the card out of `new`/`due` into `learned` in `$stats`
+- `nextCard` event → drops the head without grading (skip)
+- `suspendFx.done` → removes the card from `$queue`; `suspendFx.done` / `unsuspendFx.done` → refetch `$stats`
+- `gradeFx.fail` → resync by refetching queue + stats (the optimistic advance was wrong)
+
+**Readers:** `src/app/study/page.tsx`, `src/app/dictionary/page.tsx` (the "due" badge)
+
+**Persistence:** none — server is the source of truth; SM-2 + learning-step scheduling and per-grade interval projection (`projectedIntervals`, in seconds) all come from the backend
+
+---
+
 ## Feature stores (`src/features/*/model/`)
 
 ### `$words`
@@ -125,7 +151,7 @@ File: `src/features/Dictionary/model/index.ts`
 
 Array of `SavedWord` objects from the user's vocabulary list.
 
-**Writers:** `loadDictionaryFx.doneData`, `addWordFx.doneData`, `removeWordFx`, `updateStatusFx`
+**Writers:** `loadDictionaryFx.doneData`, `addWordFx.doneData`, `removeWordFx`, `updateStatusFx`, `toggleSuspendFx.doneData` (flips `suspended` via the `/api/review/{id}/(un)suspend` BFF)
 
 **Readers:** `WordCard` container (isSaved check), `DictionaryPanel`, `src/app/dictionary/page.tsx`
 

@@ -1,11 +1,13 @@
 'use client';
 
 import { Button, Text } from '@gravity-ui/uikit';
+import { motion } from 'motion/react';
 import { type FC } from 'react';
 import { type Word } from '@/shared/api/types';
 import { Card } from '@/shared/ui/Card';
 import { MarkerList } from '@/shared/ui/MarkerList/MarkerList';
 import { DefinitionList } from '@/shared/ui/DefinitionList/DefinitionList';
+import { DURATION, EASE, TAP_SCALE, useReducedMotion } from '@/shared/motion';
 import { t } from '@/shared/i18n';
 import styles from './WordCardView.module.css';
 
@@ -25,6 +27,7 @@ export const WordCardView: FC<WordCardViewProps> = ({
   isSaved,
   onSave,
 }) => {
+  const reduced = useReducedMotion();
   const def = def_ru?.length ? def_ru : def_en;
   return (
     <Card className={styles.card}>
@@ -36,14 +39,22 @@ export const WordCardView: FC<WordCardViewProps> = ({
           {kanji_full && <Text variant="header-2">{kanji_full}</Text>}
         </div>
         <MarkerList markers={markers} />
-        <Button
-          size="s"
-          view={isSaved ? 'outlined-success' : 'outlined'}
-          onClick={onSave}
-          disabled={isSaved}
+        <motion.span
+          style={{ display: 'inline-flex' }}
+          // Pop once when the save lands; depress on tap.
+          animate={reduced ? undefined : { scale: isSaved ? [1, 1.18, 1] : 1 }}
+          transition={reduced ? { duration: 0 } : { duration: DURATION.base, ease: EASE }}
+          whileTap={reduced || isSaved ? undefined : { scale: TAP_SCALE }}
         >
-          {isSaved ? t('ui', 'wordcard_saved') : t('ui', 'wordcard_save')}
-        </Button>
+          <Button
+            size="s"
+            view={isSaved ? 'outlined-success' : 'outlined'}
+            onClick={onSave}
+            disabled={isSaved}
+          >
+            {isSaved ? `✓ ${t('ui', 'wordcard_saved')}` : t('ui', 'wordcard_save')}
+          </Button>
+        </motion.span>
       </div>
       <DefinitionList items={def} />
     </Card>
