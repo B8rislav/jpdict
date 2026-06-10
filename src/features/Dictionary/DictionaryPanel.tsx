@@ -4,7 +4,7 @@ import { Button, Text } from '@gravity-ui/uikit';
 import { useUnit } from 'effector-react';
 import { type FC } from 'react';
 
-import { $savedWords, removeWordFx, updateStatusFx } from './model';
+import { $savedWords, removeWordFx, toggleSuspendFx, updateStatusFx } from './model';
 import { useDictionaryFilters } from './model/useDictionaryFilters';
 import { HSK_LEVELS, JLPT_LEVELS, MASTERY_CYCLE, nextStatus } from './constants';
 import { t } from '@/shared/i18n';
@@ -81,6 +81,9 @@ export const DictionaryPanel: FC = () => {
                 onDelete={() => word.id && removeWordFx(word.id)}
                 onAdvanceStatus={() =>
                   word.id && updateStatusFx({ id: word.id, status: nextStatus(word.status) })
+                }
+                onToggleSuspend={() =>
+                  word.id && toggleSuspendFx({ id: word.id, suspend: !word.suspended })
                 }
               />
             </li>

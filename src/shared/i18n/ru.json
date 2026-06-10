@@ -241,6 +241,7 @@
     "furigana": "Фуригана",
     "pinyin_label": "Пиньинь",
     "nav_my_dictionary": "Мой словарь",
+    "nav_study": "Учить",
     "nav_logout": "Выйти",
     "nav_login": "Войти",
     "settings_title": "Настройки",
@@ -299,5 +300,28 @@
     "new": "Новое",
     "learning": "Учу",
     "known": "Знаю"
+  },
+  "review": {
+    "title": "Повторение",
+    "dashboard_back": "← К обзору",
+    "reveal": "Показать ответ",
+    "again": "Снова",
+    "hard": "Трудно",
+    "good": "Хорошо",
+    "easy": "Легко",
+    "start": "Начать повторение",
+    "all_caught_up": "Всё повторено 🎉",
+    "session_done": "Сессия завершена 🎉",
+    "count_due": "К повторению",
+    "count_new": "Новые",
+    "count_learned": "Изучено",
+    "suspend": "Исключить из колоды",
+    "unsuspend": "Вернуть в колоду",
+    "unit_minute": "мин",
+    "unit_hour": "ч",
+    "unit_day": "д",
+    "unit_week": "нед",
+    "unit_month": "мес",
+    "unit_year": "г"
   }
 }

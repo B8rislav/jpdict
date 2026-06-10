@@ -22,6 +22,7 @@ const baseWord = {
   def_en: ['this way, this direction', 'here', 'this one'],
   markers: ['JLPT N5'],
   savedAt: '2026-05-19T10:00:00.000Z',
+  suspended: false,
 };
 
 const noop = () => {};
@@ -31,6 +32,7 @@ export const New: Story = {
     word: { ...baseWord, status: 'new' },
     onDelete: noop,
     onAdvanceStatus: noop,
+    onToggleSuspend: noop,
   },
 };
 
@@ -39,6 +41,7 @@ export const Learning: Story = {
     word: { ...baseWord, id: '1419', kanji_full: '此方', status: 'learning' },
     onDelete: noop,
     onAdvanceStatus: noop,
+    onToggleSuspend: noop,
   },
 };
 
@@ -55,6 +58,7 @@ export const Known: Story = {
     },
     onDelete: noop,
     onAdvanceStatus: noop,
+    onToggleSuspend: noop,
   },
 };
 
@@ -71,6 +75,7 @@ export const HSKWord: Story = {
     },
     onDelete: noop,
     onAdvanceStatus: noop,
+    onToggleSuspend: noop,
   },
 };
 
@@ -79,5 +84,15 @@ export const NoKanji: Story = {
     word: { ...baseWord, kanji_full: undefined, status: 'learning' },
     onDelete: noop,
     onAdvanceStatus: noop,
+    onToggleSuspend: noop,
+  },
+};
+
+export const Suspended: Story = {
+  args: {
+    word: { ...baseWord, id: '7', kanji_full: '休む', hiragana_full: 'やすむ', status: 'learning', suspended: true },
+    onDelete: noop,
+    onAdvanceStatus: noop,
+    onToggleSuspend: noop,
   },
 };

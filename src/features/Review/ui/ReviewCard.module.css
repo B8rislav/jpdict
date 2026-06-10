@@ -1,0 +1,54 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 32px 24px;
+}
+
+.front {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  padding: 16px 0;
+}
+
+.back {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--g-color-line-generic);
+}
+
+.grades {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.grades button {
+  height: auto;
+  min-height: 60px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.gradeLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+}
+
+.interval {
+  font-size: 0.75em;
+  opacity: 0.7;
+}
+
+@media (max-width: 520px) {
+  .grades {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

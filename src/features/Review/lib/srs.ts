@@ -1,0 +1,24 @@
+import { t } from '@/shared/i18n';
+
+/**
+ * Interval formatting for review-grade buttons. The scheduling itself (SM-2 +
+ * Anki-style learning steps) lives on the backend, which returns the projected
+ * seconds-until-due per grade on each card; this only renders that number.
+ */
+
+const MINUTE = 60;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+const WEEK = 7 * DAY;
+const MONTH = 30 * DAY;
+const YEAR = 365 * DAY;
+
+/** A compact, localized interval label from seconds: e.g. "1m", "10m", "4d", "2w", "1y". */
+export function formatInterval(seconds: number): string {
+  if (seconds < HOUR) return `${Math.round(seconds / MINUTE)}${t('review', 'unit_minute')}`;
+  if (seconds < DAY) return `${Math.round(seconds / HOUR)}${t('review', 'unit_hour')}`;
+  if (seconds < WEEK) return `${Math.round(seconds / DAY)}${t('review', 'unit_day')}`;
+  if (seconds < MONTH) return `${Math.round(seconds / WEEK)}${t('review', 'unit_week')}`;
+  if (seconds < YEAR) return `${Math.round(seconds / MONTH)}${t('review', 'unit_month')}`;
+  return `${Math.round(seconds / YEAR)}${t('review', 'unit_year')}`;
+}

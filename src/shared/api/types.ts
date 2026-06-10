@@ -41,7 +41,7 @@ export type SentenceToken = {
   hsk_level?: number | null;
 };
 
-export type SavedWord = Word & { savedAt: string; status: MasteryStatus };
+export type SavedWord = Word & { savedAt: string; status: MasteryStatus; suspended: boolean };
 
 export type DictEntry = {
   id: string;

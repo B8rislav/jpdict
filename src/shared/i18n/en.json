@@ -241,6 +241,7 @@
     "furigana": "Furigana",
     "pinyin_label": "Pinyin",
     "nav_my_dictionary": "My Dictionary",
+    "nav_study": "Study",
     "nav_logout": "Log out",
     "nav_login": "Log in",
     "settings_title": "Settings",
@@ -299,5 +300,28 @@
     "new": "New",
     "learning": "Learning",
     "known": "Known"
+  },
+  "review": {
+    "title": "Review",
+    "dashboard_back": "← Dashboard",
+    "reveal": "Show answer",
+    "again": "Again",
+    "hard": "Hard",
+    "good": "Good",
+    "easy": "Easy",
+    "start": "Start review",
+    "all_caught_up": "All caught up 🎉",
+    "session_done": "Session complete 🎉",
+    "count_due": "Due",
+    "count_new": "New",
+    "count_learned": "Learned",
+    "suspend": "Suspend card",
+    "unsuspend": "Unsuspend card",
+    "unit_minute": "m",
+    "unit_hour": "h",
+    "unit_day": "d",
+    "unit_week": "w",
+    "unit_month": "mo",
+    "unit_year": "y"
   }
 }

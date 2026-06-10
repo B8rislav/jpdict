@@ -41,10 +41,24 @@ export const updateStatusFx = createEffect(
   },
 );
 
+export const toggleSuspendFx = createEffect(
+  async ({ id, suspend }: { id: string; suspend: boolean }) => {
+    if (!$isAuthenticated.getState()) throw new Error('not_authenticated');
+    const res = await fetch(`/api/review/${id}/${suspend ? 'suspend' : 'unsuspend'}`, {
+      method: 'POST',
+    });
+    if (!res.ok) throw new Error('suspend_failed');
+    return { id, suspended: suspend };
+  },
+);
+
 $savedWords
   .on(loadDictionaryFx.doneData, (_, words) => words)
   .on(addWordFx.doneData, (words, word) => [...words, word])
   .on(removeWordFx.doneData, (words, id) => words.filter((w) => w.id !== id))
   .on(updateStatusFx.doneData, (words, updated) =>
     words.map((w) => (w.id === updated.id ? updated : w)),
+  )
+  .on(toggleSuspendFx.doneData, (words, { id, suspended }) =>
+    words.map((w) => (w.id === id ? { ...w, suspended } : w)),
   );

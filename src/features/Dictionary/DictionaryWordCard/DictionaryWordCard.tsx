@@ -13,14 +13,20 @@ type Props = {
   word: SavedWord;
   onDelete: () => void;
   onAdvanceStatus: () => void;
+  onToggleSuspend: () => void;
 };
 
-export const DictionaryWordCard: FC<Props> = ({ word, onDelete, onAdvanceStatus }) => {
+export const DictionaryWordCard: FC<Props> = ({
+  word,
+  onDelete,
+  onAdvanceStatus,
+  onToggleSuspend,
+}) => {
   const handleStatusClick = () => onAdvanceStatus();
   const handleDelete = () => onDelete();
 
   return (
-    <div className={styles.card}>
+    <div className={`${styles.card} ${word.suspended ? styles.suspended : ''}`}>
       <div className={styles.wordInfo}>
         <Text variant="subheader-2">{word.kanji_full ?? word.hiragana_full}</Text>
         {word.kanji_full && (
@@ -37,6 +43,14 @@ export const DictionaryWordCard: FC<Props> = ({ word, onDelete, onAdvanceStatus 
         <span onClick={handleStatusClick} style={{ cursor: 'pointer' }}>
           <Label theme={MASTERY_THEME[word.status]}>{t('mastery', word.status)}</Label>
         </span>
+        <Button
+          size="s"
+          view={word.suspended ? 'outlined-warning' : 'flat'}
+          onClick={onToggleSuspend}
+          title={t('review', word.suspended ? 'unsuspend' : 'suspend')}
+        >
+          {word.suspended ? '⏵' : '⏸'}
+        </Button>
         <Button size="s" view="outlined-danger" onClick={handleDelete}>
           ✕
         </Button>

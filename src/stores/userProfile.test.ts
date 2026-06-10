@@ -9,7 +9,12 @@ import {
   type UserProfile,
 } from './userProfile';
 
-const DEFAULT: UserProfile = { selectedLanguage: null, showFurigana: true, showPinyin: true };
+const DEFAULT: UserProfile = {
+  selectedLanguage: null,
+  showFurigana: true,
+  showPinyin: true,
+  uiLocale: 'ru',
+};
 
 describe('$userProfile', () => {
   it('initial state matches defaults', () => {
@@ -58,7 +63,12 @@ describe('$userProfile', () => {
   });
 
   it('loadUserProfile reads from localStorage when window is defined', async () => {
-    const stored: UserProfile = { selectedLanguage: 'jp', showFurigana: false, showPinyin: true };
+    const stored: UserProfile = {
+      selectedLanguage: 'jp',
+      showFurigana: false,
+      showPinyin: true,
+      uiLocale: 'ru',
+    };
     // window must be truthy to pass the typeof window === 'undefined' guard
     vi.stubGlobal('window', {});
     vi.stubGlobal('localStorage', { getItem: () => JSON.stringify(stored) });

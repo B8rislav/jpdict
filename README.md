@@ -18,6 +18,15 @@ commands below are executed from the `backend/` directory unless stated otherwis
 
 ---
 
+## For AI agents / contributors
+
+New to the repo (human or coding agent)? Start with **[AGENTS.md](AGENTS.md)** — a
+one-screen map of commands, the FSD-ish architecture, conventions, and gotchas
+(`CLAUDE.md` is a symlink to it). Then fan out from the [docs index](docs/README.md).
+Before pushing, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+---
+
 ## Prerequisites
 
 | Tool | Version | Purpose |

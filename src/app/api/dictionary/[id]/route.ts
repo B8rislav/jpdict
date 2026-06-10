@@ -1,15 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { BACKEND_URL } from '@/shared/api/backend';
-
-async function getAccessToken(refreshToken: string): Promise<string | null> {
-  const res = await fetch(`${BACKEND_URL}/api/auth/refresh`, {
-    method: 'POST',
-    headers: { Cookie: `refresh_token=${refreshToken}` },
-  });
-  if (!res.ok) return null;
-  const data = (await res.json()) as { access_token?: string };
-  return data.access_token ?? null;
-}
+import { requireAccessToken } from '@/shared/api/serverAuth';
 
 interface BackendWord {
   id: string;
@@ -20,6 +11,7 @@ interface BackendWord {
   hsk_level: number | null;
   status: string;
   added_at: string;
+  suspended?: boolean;
 }
 
 function toFrontend(w: BackendWord) {
@@ -34,31 +26,26 @@ function toFrontend(w: BackendWord) {
     markers,
     savedAt: w.added_at,
     status: w.status,
+    suspended: w.suspended ?? false,
   };
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const refreshToken = req.cookies.get('refresh_token')?.value;
-  if (!refreshToken) return NextResponse.json({ detail: 'Unauthorized' }, { status: 401 });
-
-  const accessToken = await getAccessToken(refreshToken);
-  if (!accessToken) return NextResponse.json({ detail: 'Unauthorized' }, { status: 401 });
+  const auth = await requireAccessToken(req);
+  if (auth.error) return auth.error;
 
   const { id } = await params;
   await fetch(`${BACKEND_URL}/api/vocabulary/${id}`, {
     method: 'DELETE',
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: { Authorization: `Bearer ${auth.token}` },
   });
 
   return new NextResponse(null, { status: 204 });
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const refreshToken = req.cookies.get('refresh_token')?.value;
-  if (!refreshToken) return NextResponse.json({ detail: 'Unauthorized' }, { status: 401 });
-
-  const accessToken = await getAccessToken(refreshToken);
-  if (!accessToken) return NextResponse.json({ detail: 'Unauthorized' }, { status: 401 });
+  const auth = await requireAccessToken(req);
+  if (auth.error) return auth.error;
 
   const { id } = await params;
   const { status } = await req.json();
@@ -67,7 +54,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
+      Authorization: `Bearer ${auth.token}`,
     },
     body: JSON.stringify({ status }),
   });

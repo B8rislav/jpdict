@@ -658,20 +658,20 @@ Stop and confirm between slices.
 
 ### AI.1 — Agent entry-point files
 
-- [ ] Add `AGENTS.md` at the frontend root (the cross-tool standard; copy or symlink to `CLAUDE.md` so Claude Code reads it too). Keep it ≤ 1 screen, link out to `docs/` instead of duplicating. Must contain:
+- [x] Add `AGENTS.md` at the frontend root (the cross-tool standard; copy or symlink to `CLAUDE.md` so Claude Code reads it too). Keep it ≤ 1 screen, link out to `docs/` instead of duplicating. Must contain:
   - **One-paragraph overview** — Next.js 15 App Router frontend (React 19), Effector for state, Gravity UI components, Storybook, Vitest. Talks to a separate FastAPI backend.
   - **Commands** — `npm run dev`, `npm run build`, `npm test` (Vitest unit), `npm run test:storybook`, `npm run lint`, `npm run format`, `npm run storybook`, `npm run generate-types` (regenerates `src/shared/api/generatedTypes.d.ts` from the backend's live OpenAPI at `:8000/docs` — backend must be running).
   - **Architecture map** — FSD-ish layout: `src/app` (routes), `src/features/*` (each feature owns `ui/`, `model/`, `api/`, `lib/`), `src/shared` (`ui/`, `api/types.ts`, `i18n/`), `src/stores` (Effector). Note the `view = dumb / model = logic` split (see Refactor R3).
   - **Conventions** — no hardcoded UI strings (use `t('category','key')`, see D2; there's an ESLint guard against Cyrillic literals), file references as markdown links, CSS Modules, Storybook story per view component (see section S).
   - **Gotchas** — `uiLocale` (interface language) ≠ `selectedLanguage` (jp/cn study language); window is the only scroll surface (D1); types are generated, don't hand-edit `generatedTypes.d.ts`.
-- [ ] Add a `## For AI agents / contributors` section to `README.md` pointing at `AGENTS.md` and the `docs/` index.
+- [x] Add a `## For AI agents / contributors` section to `README.md` pointing at `AGENTS.md` and the `docs/` index.
 
 ### AI.2 — Tooling baseline & doc hygiene
 
-- [ ] Add `.editorconfig` at the repo root (UTF-8, LF, 2-space indent for ts/tsx/css/json, trim trailing whitespace) — consistent with Prettier, auto-picked-up by editors/agents.
-- [ ] Ensure `docs/` has an index (`docs/README.md`, one line per doc) so an agent can fan out from a single file; cross-link it from `AGENTS.md`. (Pairs with the DOC section below.)
-- [ ] Add a short `CONTRIBUTING.md` — run `npm run lint && npm test` before pushing, story-per-view-component rule, i18n rule (no raw strings). Link from `AGENTS.md`.
-- [ ] Verify: a fresh `npm ci` + every command listed in `AGENTS.md` runs; all relative links in `AGENTS.md`/`README.md` resolve.
+- [x] Add `.editorconfig` at the repo root (UTF-8, LF, 2-space indent for ts/tsx/css/json, trim trailing whitespace) — consistent with Prettier, auto-picked-up by editors/agents.
+- [x] Ensure `docs/` has an index (`docs/README.md`, one line per doc) so an agent can fan out from a single file; cross-link it from `AGENTS.md`. (Pairs with the DOC section below.) — index already existed; cross-linked from `AGENTS.md`.
+- [x] Add a short `CONTRIBUTING.md` — run `npm run lint && npm test` before pushing, story-per-view-component rule, i18n rule (no raw strings). Link from `AGENTS.md`.
+- [x] Verify: all relative links in `AGENTS.md`/`README.md`/`CONTRIBUTING.md` resolve; every documented npm script exists in `package.json`. (Skipped a full `npm ci` rebuild — docs/config-only changes, build graph unchanged.)
 
 ---
 
@@ -684,22 +684,22 @@ Stop and confirm between slices.
 
 ### ANKI.1 — Data & store
 
-- [ ] Add `src/features/Review/api/` — typed clients for `GET /api/review/queue`, `POST /api/review/{id}` (body `{grade}`), `GET /api/review/stats`, suspend/unsuspend. Use generated types (`npm run generate-types`) once the backend ships them.
-- [ ] Add `src/stores/review.ts` (Effector) — `$queue`, `$current`, `$stats`, `fetchQueueFx`, `gradeFx`, `nextCard`. Grade optimistically advances to the next card; reconcile `due_at`/stats from the response. Language-aware (reads `selectedLanguage`).
-- [ ] Define the grade scale once in `src/features/Review/constants.ts` (`again | hard | good | easy`) and map to the backend's numeric grades in the api layer only.
+- [x] Add `src/features/Review/api/` — typed clients for `GET /api/review/queue`, `POST /api/review/{id}` (body `{grade}`), `GET /api/review/stats`, suspend/unsuspend. Use generated types (`npm run generate-types`) once the backend ships them.
+- [x] Add `src/stores/review.ts` (Effector) — `$queue`, `$current`, `$stats`, `fetchQueueFx`, `gradeFx`, `nextCard`. Grade optimistically advances to the next card; reconcile `due_at`/stats from the response. Language-aware (reads `selectedLanguage`).
+- [x] Define the grade scale once in `src/features/Review/constants.ts` (`again | hard | good | easy`) and map to the backend's numeric grades in the api layer only.
 
 ### ANKI.2 — UI
 
-- [ ] Add route `src/app/study/page.tsx` — the review session screen: shows the front (word/sentence), reveal button flips to the back (reading, meaning, POS, examples — reuse `WordInspector`/`WordCardView` fragments rather than re-implementing).
-- [ ] Add `src/features/Review/ui/ReviewCard.tsx` (+ `.module.css`, + story) — front/back flip, four grade buttons with the projected next interval shown on each (e.g. "Good · 1d"), keyboard shortcuts (`Space` reveal; `1–4` grade).
-- [ ] Add `src/features/Review/ui/StudyDashboard.tsx` — due / new / learned counts from `$stats`, a "Start review" button, empty state ("All caught up 🎉") when the queue is empty.
-- [ ] Add a "Study" entry point: a nav link in `src/app/page.tsx` (auth-gated, next to "My dictionary") and a "Review N due" badge on the dictionary page.
-- [ ] Add a per-word "Add to deck / suspend" affordance in `DictionaryPanel` / `DictionaryWordCard` (saving already creates the card server-side; expose suspend/unsuspend here).
+- [x] Add route `src/app/study/page.tsx` — the review session screen: shows the front (word/sentence), reveal button flips to the back (reading, meaning, POS, examples — reuse `WordInspector`/`WordCardView` fragments rather than re-implementing).
+- [x] Add `src/features/Review/ui/ReviewCard.tsx` (+ `.module.css`, + story) — front/back flip, four grade buttons with the projected next interval shown on each (e.g. "Good · 1d"), keyboard shortcuts (`Space` reveal; `1–4` grade).
+- [x] Add `src/features/Review/ui/StudyDashboard.tsx` — due / new / learned counts from `$stats`, a "Start review" button, empty state ("All caught up 🎉") when the queue is empty.
+- [x] Add a "Study" entry point: a nav link in `src/app/page.tsx` (auth-gated, next to "My dictionary") and a "Review N due" badge on the dictionary page.
+- [x] Add a per-word "Add to deck / suspend" affordance in `DictionaryPanel` / `DictionaryWordCard` (saving already creates the card server-side; expose suspend/unsuspend here).
 
 ### ANKI.3 — Tests & polish
 
-- [ ] Vitest: store reducers (grade advances queue, stats update), grade→interval label mapping. Storybook: `ReviewCard` (front, revealed, each grade state), `StudyDashboard` (with cards / empty).
-- [ ] Done when: a logged-in user opens `/study`, sees due cards, reveals + grades with mouse or keyboard, the queue drains, and the dashboard reflects new counts after a session.
+- [x] Vitest: store reducers (grade advances queue, stats update), grade→interval label mapping. Storybook: `ReviewCard` (front, revealed, each grade state), `StudyDashboard` (with cards / empty).
+- [x] Done when: a logged-in user opens `/study`, sees due cards, reveals + grades with mouse or keyboard, the queue drains, and the dashboard reflects new counts after a session.
 
 ---
 

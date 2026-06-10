@@ -114,12 +114,20 @@ export default function Home() {
         <div className={styles.navSpacer} />
 
         {isAuthenticated && (
-          <Link
-            href="/dictionary"
-            style={{ textDecoration: 'none', color: 'var(--g-color-text-secondary)' }}
-          >
-            <Text variant="body-2">{t('ui', 'nav_my_dictionary')}</Text>
-          </Link>
+          <>
+            <Link
+              href="/dictionary"
+              style={{ textDecoration: 'none', color: 'var(--g-color-text-secondary)' }}
+            >
+              <Text variant="body-2">{t('ui', 'nav_my_dictionary')}</Text>
+            </Link>
+            <Link
+              href="/study"
+              style={{ textDecoration: 'none', color: 'var(--g-color-text-secondary)' }}
+            >
+              <Text variant="body-2">{t('ui', 'nav_study')}</Text>
+            </Link>
+          </>
         )}
 
         <div className={styles.navDivider} />
