@@ -49,6 +49,10 @@ and review routes.
 This means the browser never holds or sends an access token — it only holds the httpOnly
 `refresh_token` cookie.
 
+Under `MOCK_BACKEND=1` (`npm run dev:mock`) the upstream `fetch` is intercepted by
+`src/mocks/*` — every route below runs unchanged against an in-memory mock backend instead
+of FastAPI/OpenRouter (see RUNBOOK → "Run with a mocked backend").
+
 ## SSE streaming (`/api/ai-overview`)
 
 1. Receives `{ sentence, tokens }` JSON body

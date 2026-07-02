@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:mock": "MOCK_BACKEND=1 next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -46,11 +47,17 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-storybook": "^9.0.12",
     "markdown-to-jsx": "^9.8.1",
+    "msw": "^2.14.6",
     "openapi-typescript": "^7.6.1",
     "playwright": "^1.53.1",
     "prettier": "^3.8.3",
     "storybook": "^9.0.12",
     "typescript": "^5",
     "vitest": "^3.2.4"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }

@@ -26,6 +26,30 @@ FASTAPI_URL=https://api.example.com
 Resolution order: `NEXT_PUBLIC_BACKEND_URL` → `FASTAPI_URL` → `http://localhost:8000`
 (see `src/shared/api/backend.ts`).
 
+## Run with a mocked backend
+
+```sh
+cd frontend
+npm run dev:mock     # = MOCK_BACKEND=1 next dev, on http://localhost:3000
+```
+
+Runs the whole frontend with **no FastAPI and no OpenRouter** behind it — useful for UI
+work, demos, and onboarding without a Postgres/FastAPI stack. The BFF route handlers under
+`src/app/api/*` still run exactly as in real dev; only their server-side upstream `fetch`
+(to `BACKEND_URL` and to OpenRouter) is intercepted, by [MSW](https://mswjs.io).
+
+- **Toggle:** the `MOCK_BACKEND=1` env var. With it unset, `npm run dev` behaves exactly as
+  before — the mock layer never loads.
+- **Where it lives:** `src/instrumentation.ts` starts the mock server at startup (it lives
+  in `src/`, not the project root, because this app uses a `src/` dir). Handlers are in
+  `src/mocks/handlers.ts`; the seeded in-memory store and fixtures are in `src/mocks/db.ts`
+  and `src/mocks/fixtures.ts`. Handlers speak the backend's snake_case contract — the BFF
+  does the camelCase translation.
+- **State:** in-memory, seeded from fixtures. Adds/deletes/grades persist across navigation
+  but **reset on every server restart** — there's no database.
+- Auth works against the mock: `register` then `log in`, and the minted `refresh_token`
+  verifies against `JWT_SECRET` so protected routes (dictionary/history/review) work.
+
 ## Enable AI explanations
 
 ```sh
