@@ -1,8 +1,12 @@
 import { createEffect, createStore } from 'effector';
 
+/** How a recorded query was parsed. */
+export type HistoryQueryType = 'word' | 'kanji' | 'sentence';
+
 export interface HistoryItem {
   id: string;
   query: string;
+  query_type?: HistoryQueryType;
 }
 
 export const $searchHistory = createStore<HistoryItem[]>([]);

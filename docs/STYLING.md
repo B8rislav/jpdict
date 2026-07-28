@@ -3,8 +3,35 @@
 ## Stack
 
 - **CSS Modules** — scoped styles for every component (`*.module.css` co-located with the component)
-- **Gravity UI** (`@gravity-ui/uikit`) — design-system component library; provides its own `--g-color-*` design tokens and resets
+- **Designoslav** (`designoslav`) — the in-house design system we are migrating to;
+  provides `--do-*` design tokens and presentational React components. See
+  "Designoslav migration" below.
+- **Gravity UI** (`@gravity-ui/uikit`) — legacy design-system component library, being
+  phased out; provides its own `--g-color-*` design tokens and resets
 - **Global CSS** — `src/app/styles/globals.css` for CSS variables, body defaults, and element resets
+
+## Designoslav migration
+
+[Designoslav](https://github.com/B8rislav/designoslav) is the in-house design system
+(theme **Celadon Zen** — soft warm neutrals, celadon green + terracotta accents),
+built to replace Gravity UI. It lives in its own repo (local checkout:
+`~/Documents/designoslav`) and is installed from GitHub — after changing it, push and
+run `npm update designoslav` here.
+
+Rules while both systems coexist:
+
+- New or touched UI uses the Designoslav component when one exists (currently:
+  `Button`); otherwise Gravity UI stays until Designoslav grows the equivalent.
+- Don't introduce *new* Gravity usage in code that doesn't already have it.
+- Components read Designoslav's **semantic** tokens (`--do-color-primary`,
+  `--do-color-surface`, …), never the raw palette (`--do-celadon-500`, …).
+
+Usage:
+
+```tsx
+import { Button } from 'designoslav';
+import 'designoslav/tokens.css'; // once, in src/app/layout.tsx
+```
 
 ## CSS variable contract
 

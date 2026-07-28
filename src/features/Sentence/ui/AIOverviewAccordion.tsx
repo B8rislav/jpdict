@@ -1,6 +1,7 @@
 import { type FC, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Text, Button } from '@gravity-ui/uikit';
+import { Text } from '@gravity-ui/uikit';
+import { Button } from 'designoslav';
 import styles from './AIOverviewAccordion.module.css';
 import Markdown from 'react-markdown';
 import { type SentenceToken } from '@/shared/api/types';
@@ -69,7 +70,7 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
           <Text variant="caption-1" className={styles.tokenCount}>
             {t('ui', 'ai_overview_tokens')} {tokenCount}
           </Text>
-          <Button view={isExpanded ? 'normal' : 'outlined-info'} size="l" onClick={handleToggle}>
+          <Button variant={isExpanded ? 'secondary' : 'primary'} size="l" onClick={handleToggle}>
             {isExpanded ? t('ui', 'ai_overview_collapse') : t('ui', 'ai_overview_expand')}
           </Button>
         </div>
@@ -105,8 +106,8 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
                 {t('ui', 'ai_overview_error_prefix')} {error}
               </Text>
               <Button
-                view="outlined"
-                size="s"
+                variant="secondary"
+                size="m"
                 onClick={fetchOverview}
                 className={styles.retryButton}
               >
@@ -118,7 +119,7 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
               <Text variant="body-2">
                 {t('ui', 'ai_overview_prompt')}
               </Text>
-              <Button view="action" size="m" onClick={fetchOverview} className={styles.fetchButton}>
+              <Button variant="primary" size="m" onClick={fetchOverview} className={styles.fetchButton}>
                 {t('ui', 'ai_overview_fetch')}
               </Button>
             </div>

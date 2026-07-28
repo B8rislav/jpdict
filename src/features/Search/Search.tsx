@@ -1,40 +1,41 @@
 'use client';
 
+import { useUnit } from 'effector-react';
 import { type FC, useEffect, useMemo, useState } from 'react';
 
-import { SearchView } from './ui/SearchView';
-import { fetchWordsFx } from '../WordCard';
-import { fetchKanjiFx } from '../KanjiCard/model';
-import { fetchSentenceFx } from '../Sentence';
-import { useUnit } from 'effector-react';
-import { $userProfile } from '@/stores/userProfile';
-import { $isAuthenticated } from '@/stores/auth';
-import { resetSearchResults } from './model';
 import {
   $searchHistory,
   addHistoryFx,
-  removeHistoryFx,
   clearHistoryFx,
   loadHistoryFx,
 } from '@/features/SearchHistory';
-import { classifySearchQuery, type SearchQueryType } from './utils';
 import { t } from '@/shared/i18n';
+import { $isAuthenticated } from '@/stores/auth';
+import { $userProfile } from '@/stores/userProfile';
+
+import { fetchKanjiFx } from '../KanjiCard/model';
+import { fetchSentenceFx } from '../Sentence';
+import { fetchWordsFx } from '../WordCard';
 import { QUERY_TYPE_DEBOUNCE_MS, SUBMIT_RESET_DELAY_MS } from './constants';
+import { resetSearchResults } from './model';
+import { $suggestions, clearSuggestions, fetchSuggestFx } from './model/suggest';
+import { historyToItem, suggestionToItem } from './optionMapping';
+import { SearchView } from './ui/SearchView';
+import { classifySearchQuery, type SearchQueryType } from './utils';
 
 export const Search: FC = () => {
   const [value, setValue] = useState('');
-  const [manualQueryType, setManualQueryType] = useState<SearchQueryType | null>(null);
-  const [autoQueryType, setAutoQueryType] = useState<SearchQueryType>('word');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const selectedLanguage = useUnit($userProfile).selectedLanguage;
-  const historyEntries = useUnit($searchHistory);
   const isAuthenticated = useUnit($isAuthenticated);
+  const historyEntries = useUnit($searchHistory);
+  const suggestions = useUnit($suggestions);
 
   useEffect(() => {
     if (selectedLanguage && isAuthenticated) loadHistoryFx(selectedLanguage);
   }, [selectedLanguage, isAuthenticated]);
 
-  const queryType = manualQueryType ?? autoQueryType;
   const placeholder =
     selectedLanguage === 'jp'
       ? t('ui', 'search_placeholder_jp')
@@ -42,56 +43,39 @@ export const Search: FC = () => {
         ? t('ui', 'search_placeholder_cn')
         : t('ui', 'search_no_language');
 
-  const typedHint = useMemo(() => {
-    if (!value.trim()) {
-      return t('ui', 'search_hint_empty');
-    }
-    if (queryType === 'kanji') return t('ui', 'search_hint_kanji');
-    if (queryType === 'sentence') return t('ui', 'search_hint_sentence');
-    return t('ui', 'search_hint_word');
-  }, [queryType, value]);
-
-  const queryTypeLabel = useMemo(() => {
-    switch (queryType) {
-      case 'kanji':
-        return t('ui', 'query_type_kanji');
-      case 'sentence':
-        return t('ui', 'query_type_sentence');
-      default:
-        return t('ui', 'query_type_word');
-    }
-  }, [queryType]);
-
+  // Debounced parse-option lookup while typing; empty input clears them.
   useEffect(() => {
+    const query = value.trim();
+    if (!query || !selectedLanguage) {
+      clearSuggestions();
+      return;
+    }
     const handler = window.setTimeout(() => {
-      setAutoQueryType(classifySearchQuery(value, selectedLanguage));
+      fetchSuggestFx({ query, language: selectedLanguage });
     }, QUERY_TYPE_DEBOUNCE_MS);
     return () => window.clearTimeout(handler);
   }, [value, selectedLanguage]);
 
-  useEffect(() => {
-    setManualQueryType(null);
-  }, [selectedLanguage]);
-
-  const handleInputChange = (text: string) => {
-    setValue(text);
-    setManualQueryType(null);
-  };
+  const showHistory = value.trim() === '';
+  const historyItems = useMemo(() => historyEntries.map(historyToItem), [historyEntries]);
+  const suggestionItems = useMemo(() => suggestions.map(suggestionToItem), [suggestions]);
+  const options = showHistory ? historyItems : suggestionItems;
+  const mode = showHistory ? 'history' : 'suggest';
 
   const executeSearch = async (query: string, type: SearchQueryType) => {
-    if (!query.trim() || !selectedLanguage || isSubmitting) return;
+    const trimmed = query.trim();
+    if (!trimmed || !selectedLanguage || isSubmitting) return;
 
-    addHistoryFx({ language: selectedLanguage, query: query.trim(), query_type: type });
+    addHistoryFx({ language: selectedLanguage, query: trimmed, query_type: type });
     setIsSubmitting(true);
-
     try {
       resetSearchResults();
       if (type === 'kanji') {
-        await fetchKanjiFx({ value: query, language: selectedLanguage });
+        await fetchKanjiFx({ value: trimmed, language: selectedLanguage });
       } else if (type === 'sentence') {
-        await fetchSentenceFx({ value: query, language: selectedLanguage });
+        await fetchSentenceFx({ value: trimmed, language: selectedLanguage });
       } else {
-        await fetchWordsFx({ value: query, language: selectedLanguage });
+        await fetchWordsFx({ value: trimmed, language: selectedLanguage });
       }
     } catch (error) {
       console.error(error);
@@ -100,34 +84,42 @@ export const Search: FC = () => {
     }
   };
 
-  const onButtonClick = async () => {
-    const trimmed = value.trim();
-    if (!trimmed || !selectedLanguage || isSubmitting) return;
-    await executeSearch(trimmed, queryType);
+  // Button / Enter with no highlighted option — classify the raw query.
+  const handleSubmitRaw = (raw: string) => {
+    const trimmed = raw.trim();
+    if (!trimmed || !selectedLanguage) return;
+    executeSearch(trimmed, classifySearchQuery(trimmed, selectedLanguage));
   };
 
-  const handleSelectHistoryEntry = async (entry: string) => {
-    setValue(entry);
-    const type = classifySearchQuery(entry, selectedLanguage);
-    setManualQueryType(type);
-    await executeSearch(entry, type);
+  // A chosen parse variant or history entry — run exactly what it points at.
+  const handleSelectOption = (id: string) => {
+    const suggestion = suggestions.find((option) => option.id === id);
+    if (suggestion) {
+      setValue(suggestion.text);
+      executeSearch(suggestion.text, suggestion.query_type);
+      return;
+    }
+    const entry = historyEntries.find((item) => item.id === id);
+    if (entry && selectedLanguage) {
+      setValue(entry.query);
+      executeSearch(
+        entry.query,
+        entry.query_type ?? classifySearchQuery(entry.query, selectedLanguage),
+      );
+    }
   };
 
   return (
     <SearchView
       inputValue={value}
-      setInputValue={handleInputChange}
-      onButtonClick={onButtonClick}
-      placeholder={placeholder}
-      hintText={typedHint}
-      isSubmitting={isSubmitting}
-      queryTypeLabel={queryTypeLabel}
-      queryType={queryType}
-      onSetQueryType={setManualQueryType}
-      historyEntries={historyEntries}
-      onSelectHistoryEntry={handleSelectHistoryEntry}
-      onDeleteHistoryEntry={(id) => removeHistoryFx(id)}
+      onValueChange={setValue}
+      onSubmit={handleSubmitRaw}
+      onSelectOption={handleSelectOption}
       onClearHistory={() => clearHistoryFx()}
+      options={options}
+      mode={mode}
+      placeholder={placeholder}
+      isSubmitting={isSubmitting}
     />
   );
 };

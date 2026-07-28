@@ -2,6 +2,13 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# git is required to install the `designoslav` git dependency. Rewrite GitHub
+# SSH URLs to HTTPS so the public repo clones without SSH keys in CI/Docker
+# (npm normalises the lockfile `resolved` to git+ssh regardless of package.json).
+RUN apk add --no-cache git \
+ && git config --global url."https://github.com/".insteadOf "ssh://git@github.com/" \
+ && git config --global url."https://github.com/".insteadOf "git@github.com:"
+
 COPY package.json package-lock.json ./
 RUN npm ci
 

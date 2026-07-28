@@ -1,6 +1,7 @@
 'use client';
 
-import { Button, Text } from '@gravity-ui/uikit';
+import { Text } from '@gravity-ui/uikit';
+import { Button } from 'designoslav';
 import { type PanInfo, type TargetAndTransition, motion } from 'motion/react';
 import { type FC, useCallback, useEffect, useState } from 'react';
 
@@ -10,7 +11,7 @@ import { DefinitionList } from '@/shared/ui/DefinitionList/DefinitionList';
 import { DURATION, EASE, TAP_SCALE, useReducedMotion } from '@/shared/motion';
 import { t } from '@/shared/i18n';
 import { type ReviewCard as ReviewCardData } from '../api/types';
-import { GRADES, GRADE_BY_KEY, GRADE_VIEW, type Grade } from '../constants';
+import { GRADES, GRADE_BY_KEY, GRADE_VARIANT, type Grade } from '../constants';
 import { formatInterval } from '../lib/srs';
 import styles from './ReviewCard.module.css';
 
@@ -122,7 +123,7 @@ export const ReviewCard: FC<Props> = ({ card, readingLabel, onGrade, initiallyRe
                 className={styles.reveal}
                 whileTap={reduced ? undefined : { scale: TAP_SCALE }}
               >
-                <Button size="xl" view="action" width="max" onClick={() => setRevealed(true)}>
+                <Button size="xl" variant="primary" fullWidth onClick={() => setRevealed(true)}>
                   {t('review', 'reveal')}
                 </Button>
               </motion.div>
@@ -163,7 +164,7 @@ export const ReviewCard: FC<Props> = ({ card, readingLabel, onGrade, initiallyRe
                     }}
                     whileTap={reduced ? undefined : { scale: TAP_SCALE }}
                   >
-                    <Button size="l" view={GRADE_VIEW[g]} width="max" onClick={() => grade(g)}>
+                    <Button size="l" variant={GRADE_VARIANT[g]} fullWidth onClick={() => grade(g)}>
                       <span className={styles.gradeLabel}>
                         {t('review', g)}
                         <span className={styles.interval}>

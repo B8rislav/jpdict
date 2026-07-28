@@ -1,6 +1,7 @@
 'use client';
 
-import { Button, Label, Text } from '@gravity-ui/uikit';
+import { Label, Text } from '@gravity-ui/uikit';
+import { Button } from 'designoslav';
 import { MarkerList } from '@/shared/ui/MarkerList/MarkerList';
 import { type FC } from 'react';
 
@@ -44,14 +45,14 @@ export const DictionaryWordCard: FC<Props> = ({
           <Label theme={MASTERY_THEME[word.status]}>{t('mastery', word.status)}</Label>
         </span>
         <Button
-          size="s"
-          view={word.suspended ? 'outlined-warning' : 'flat'}
+          size="m"
+          variant={word.suspended ? 'accent' : 'ghost'}
           onClick={onToggleSuspend}
           title={t('review', word.suspended ? 'unsuspend' : 'suspend')}
         >
           {word.suspended ? '⏵' : '⏸'}
         </Button>
-        <Button size="s" view="outlined-danger" onClick={handleDelete}>
+        <Button size="m" variant="accent" onClick={handleDelete}>
           ✕
         </Button>
       </div>

@@ -36,7 +36,12 @@ export default defineConfig({
             'effector',
             'motion/react',
             'storybook/test',
+            'designoslav',
           ],
+          // designoslav ships raw .tsx using the automatic JSX runtime (no
+          // `import React`). Pre-bundle it with the automatic transform so its
+          // components don't reference an undefined `React` in the browser tests.
+          esbuildOptions: { jsx: 'automatic' },
         },
         test: {
           name: 'storybook',

@@ -10,12 +10,12 @@ export const GRADES = ['again', 'hard', 'good', 'easy'] as const;
 
 export type Grade = (typeof GRADES)[number];
 
-/** Gravity UI button view per grade, worst → best. */
-export const GRADE_VIEW: Record<Grade, 'outlined-danger' | 'outlined-warning' | 'outlined' | 'action'> = {
-  again: 'outlined-danger',
-  hard: 'outlined-warning',
-  good: 'outlined',
-  easy: 'action',
+/** Designoslav button variant per grade, worst → best. */
+export const GRADE_VARIANT: Record<Grade, 'accent' | 'ghost' | 'secondary' | 'primary'> = {
+  again: 'accent',
+  hard: 'ghost',
+  good: 'secondary',
+  easy: 'primary',
 };
 
 /** Keyboard digit (1–4) → grade, for review-session shortcuts. */

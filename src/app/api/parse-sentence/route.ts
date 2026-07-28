@@ -9,6 +9,7 @@ type BackendToken = {
   jlpt_level: number | null;
   hsk_level: number | null;
   pinyin: string | null;
+  gloss: string | null;
 };
 
 function mapToken(token: BackendToken, language: string) {
@@ -25,6 +26,7 @@ function mapToken(token: BackendToken, language: string) {
     pronunciation: language === 'cn' ? (token.pinyin ?? '') : (token.reading ?? ''),
     jlpt_level: token.jlpt_level,
     hsk_level: token.hsk_level,
+    gloss: token.gloss ?? '',
   };
 }
 
@@ -32,6 +34,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const sentence = url.searchParams.get('sentence')?.trim() || '';
   const language = url.searchParams.get('language') || 'jp';
+  const defLang = url.searchParams.get('def_lang') === 'en' ? 'en' : 'ru';
 
   if (!sentence) {
     return NextResponse.json({ sentence: '', tokens: [] });
@@ -40,7 +43,7 @@ export async function GET(request: Request) {
   const upstream = await fetch(`${BACKEND_URL}/api/analyze`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query: sentence, language }),
+    body: JSON.stringify({ query: sentence, language, def_lang: defLang }),
     signal: AbortSignal.timeout(10000),
   });
 

@@ -1,157 +1,170 @@
 'use client';
 
-import { Button, TextInput } from '@gravity-ui/uikit';
+import { SearchField, SearchOptionList, type SearchOptionItem } from 'designoslav';
 import { AnimatePresence, motion } from 'motion/react';
-import { type FC, type MouseEventHandler, useRef, useState } from 'react';
-import { SearchHistoryDropdown, type HistoryItem } from '@/features/SearchHistory';
+import { type FC, type KeyboardEvent, useEffect, useRef, useState } from 'react';
 
-import { DURATION, EASE, useReducedMotion } from '@/shared/motion';
-import { Pressable } from '@/shared/ui/Pressable';
-import styles from './SearchView.module.css';
 import { t } from '@/shared/i18n';
+import { DURATION, EASE, useReducedMotion } from '@/shared/motion';
 
-type QueryType = 'kanji' | 'word' | 'sentence';
+import styles from './SearchView.module.css';
 
 type SearchViewProps = {
   inputValue: string;
-  setInputValue: (value: string) => void;
-  onButtonClick: MouseEventHandler;
-  placeholder?: string;
-  hintText?: string;
-  isSubmitting?: boolean;
-  queryType?: QueryType;
-  queryTypeLabel?: string;
-  onSetQueryType?: (type: QueryType) => void;
-  historyEntries?: HistoryItem[];
-  onSelectHistoryEntry?: (entry: string) => void;
-  onDeleteHistoryEntry?: (id: string) => void;
+  onValueChange: (value: string) => void;
+  /** Run the raw typed query (button / Enter when no option is highlighted). */
+  onSubmit: (value: string) => void;
+  /** Run a specific option (a parse variant or a history entry) by id. */
+  onSelectOption: (id: string) => void;
   onClearHistory?: () => void;
+  /** History entries (empty input) or parse options (typing), pre-mapped for the list. */
+  options: SearchOptionItem[];
+  mode: 'history' | 'suggest';
+  placeholder?: string;
+  isSubmitting?: boolean;
 };
 
-export const SearchView: FC<SearchViewProps> = (props) => {
-  const {
-    inputValue,
-    setInputValue,
-    onButtonClick,
-    placeholder,
-    hintText,
-    isSubmitting,
-    queryType,
-    queryTypeLabel,
-    onSetQueryType,
-    historyEntries = [],
-    onSelectHistoryEntry,
-    onDeleteHistoryEntry,
-    onClearHistory,
-  } = props;
-
+export const SearchView: FC<SearchViewProps> = ({
+  inputValue,
+  onValueChange,
+  onSubmit,
+  onSelectOption,
+  onClearHistory,
+  options,
+  mode,
+  placeholder,
+  isSubmitting,
+}) => {
   const reduced = useReducedMotion();
-  const button = useRef<HTMLButtonElement>(null);
-  const [showHistory, setShowHistory] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [open, setOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const handleSelectEntry = (entry: string) => {
-    setShowHistory(false);
-    onSelectHistoryEntry?.(entry);
+  // Highlight the first option whenever the option set changes (new query,
+  // history ↔ suggestions). Arrow-key moves happen between these resets.
+  useEffect(() => {
+    setSelectedId(options[0]?.id ?? null);
+  }, [options]);
+
+  const moveSelection = (delta: number) => {
+    if (options.length === 0) return;
+    const current = options.findIndex((option) => option.id === selectedId);
+    const next = (current + delta + options.length) % options.length;
+    setSelectedId(options[next].id);
   };
 
-  const handleDeleteEntry = (entry: string) => {
-    onDeleteHistoryEntry?.(entry);
+  const commit = () => {
+    setOpen(false);
+    if (options.length > 0 && selectedId) {
+      onSelectOption(selectedId);
+    } else {
+      onSubmit(inputValue);
+    }
   };
 
-  const handleClear = () => {
-    setShowHistory(false);
-    onClearHistory?.();
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        setOpen(true);
+        moveSelection(1);
+        break;
+      case 'ArrowUp':
+        event.preventDefault();
+        setOpen(true);
+        moveSelection(-1);
+        break;
+      case 'Enter':
+        // Own Enter fully so the form doesn't also submit (avoids a double run).
+        event.preventDefault();
+        commit();
+        break;
+      case 'Escape':
+        setOpen(false);
+        break;
+    }
   };
+
+  const handleSelect = (id: string) => {
+    setOpen(false);
+    onSelectOption(id);
+  };
+
+  const heading =
+    mode === 'history' ? (
+      <span className={styles.historyHeading}>
+        {t('ui', 'history_heading')}
+        {onClearHistory && (
+          <button
+            type="button"
+            className={styles.clearHistoryBtn}
+            onClick={() => {
+              setOpen(false);
+              onClearHistory();
+            }}
+          >
+            {t('ui', 'history_clear')}
+          </button>
+        )}
+      </span>
+    ) : (
+      t('ui', 'suggest_heading')
+    );
 
   return (
     <div className={styles.searchRoot}>
-      <div className={styles.searchPanel}>
-        <div
-          className={styles.inputWrapper}
-          onBlur={(e) => {
-            if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-              setShowHistory(false);
-            }
-          }}
-        >
-          <TextInput
-            type="search"
-            value={inputValue}
-            placeholder={placeholder}
-            onChange={(e) => {
-              setInputValue(e.target.value);
-            }}
-            onFocus={() => setShowHistory(true)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                setShowHistory(false);
-                button.current?.click();
-              }
-              if (e.key === 'Escape') {
-                setShowHistory(false);
-              }
-            }}
-          />
-          {/* AnimatePresence gives the dropdown a real exit on close — CSS
-              can't animate an unmount. */}
-          <AnimatePresence>
-            {showHistory && historyEntries.length > 0 && (
-              <motion.div
-                onMouseDown={(e) => e.preventDefault()}
-                initial={reduced ? false : { opacity: 0, y: -6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={reduced ? { opacity: 0 } : { opacity: 0, y: -6 }}
-                transition={reduced ? { duration: 0 } : { duration: DURATION.fast, ease: EASE }}
-              >
-                <SearchHistoryDropdown
-                  entries={historyEntries}
-                  onSelect={handleSelectEntry}
-                  onDelete={handleDeleteEntry}
-                  onClear={handleClear}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-        <Pressable>
-          <Button
-            view="action"
-            ref={button}
-            onClick={onButtonClick}
-            disabled={isSubmitting || inputValue.trim().length === 0}
-          >
-            {isSubmitting ? t('ui', 'search_button_loading') : t('ui', 'search_button')}
-          </Button>
-        </Pressable>
-      </div>
+      <div
+        className={styles.fieldWrapper}
+        onFocus={() => setOpen(true)}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+            setOpen(false);
+          }
+        }}
+      >
+        <SearchField
+          ref={inputRef}
+          aria-label={t('ui', 'search_aria_label')}
+          value={inputValue}
+          onValueChange={onValueChange}
+          onSubmit={commit}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          actionLabel={isSubmitting ? t('ui', 'search_button_loading') : t('ui', 'search_button')}
+          clearLabel={t('ui', 'search_clear')}
+          size="l"
+          fullWidth
+        />
 
-      <div className={styles.statusRow}>
-        <span className={styles.hintText}>
-          {hintText || t('ui', 'search_hint_empty')}
-        </span>
-        {queryTypeLabel && <span className={styles.queryType}>{queryTypeLabel}</span>}
-      </div>
-
-      <div className={styles.tips}>
-        {(['kanji', 'word', 'sentence'] as QueryType[]).map((type) => {
-          const label =
-            type === 'kanji'
-              ? t('ui', 'query_type_kanji')
-              : type === 'sentence'
-                ? t('ui', 'query_type_sentence')
-                : t('ui', 'query_type_word');
-
-          return (
-            <button
-              key={type}
-              type="button"
-              className={`${styles.tipItem} ${queryType === type ? styles.activeTip : ''}`}
-              onClick={() => onSetQueryType?.(type)}
+        {/* AnimatePresence gives the popover a real exit — CSS can't animate an unmount. */}
+        <AnimatePresence>
+          {open && options.length > 0 && (
+            <motion.div
+              className={styles.popover}
+              // Keep focus on the input so a click doesn't blur-close before it registers.
+              onMouseDown={(event) => event.preventDefault()}
+              initial={reduced ? false : { opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduced ? { opacity: 0 } : { opacity: 0, y: -6 }}
+              transition={reduced ? { duration: 0 } : { duration: DURATION.fast, ease: EASE }}
             >
-              {label}
-            </button>
-          );
-        })}
+              <SearchOptionList
+                heading={heading}
+                options={options}
+                selectedId={selectedId ?? undefined}
+                onSelect={handleSelect}
+              />
+              <p className={styles.kbdHints}>
+                <span>
+                  <kbd>↑↓</kbd> {t('ui', 'search_kbd_select')}
+                </span>
+                <span>
+                  <kbd>↵</kbd> {t('ui', 'search_kbd_parse')}
+                </span>
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

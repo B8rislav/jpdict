@@ -1,6 +1,7 @@
 'use client';
 
-import { Button, Modal, Radio, RadioGroup, Text, TextInput } from '@gravity-ui/uikit';
+import { Modal, Radio, RadioGroup, Text, TextInput } from '@gravity-ui/uikit';
+import { Button } from 'designoslav';
 import { useUnit } from 'effector-react';
 import { type FormEvent, useState } from 'react';
 
@@ -101,7 +102,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
             </Text>
           )}
 
-          <Button type="submit" view="action" loading={pending} width="max">
+          <Button type="submit" variant="primary" disabled={pending} fullWidth>
             {mode === 'login' ? t('ui', 'auth_submit_login') : t('ui', 'auth_submit_register')}
           </Button>
         </form>

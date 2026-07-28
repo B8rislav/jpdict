@@ -20,6 +20,7 @@ const mockBackendToken = {
   jlpt_level: 5,
   hsk_level: null,
   pinyin: null,
+  gloss: 'есть, кушать',
 };
 
 describe('GET /api/parse-sentence', () => {
@@ -70,6 +71,7 @@ describe('GET /api/parse-sentence', () => {
     expect(body.tokens[0]).toHaveProperty('basic_form', '食べる');
     expect(body.tokens[0]).toHaveProperty('reading', 'タベル');
     expect(body.tokens[0]).toHaveProperty('jlpt_level', 5);
+    expect(body.tokens[0]).toHaveProperty('gloss', 'есть, кушать');
   });
 
   it('returns empty tokens when backend returns 400', async () => {

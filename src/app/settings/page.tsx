@@ -9,7 +9,8 @@ import {
   setShowPinyin,
 } from '@/stores/userProfile';
 import { $searchHistory, clearHistoryFx } from '@/features/SearchHistory/model';
-import { Button, Switch, Text } from '@gravity-ui/uikit';
+import { Switch, Text } from '@gravity-ui/uikit';
+import { Button } from 'designoslav';
 import Link from 'next/link';
 import { t } from '@/shared/i18n';
 import styles from './page.module.css';
@@ -33,7 +34,7 @@ export default function Settings() {
           {(['jp', 'cn'] as Language[]).map((lang) => (
             <Button
               key={lang}
-              view={selectedLanguage === lang ? 'normal' : 'outlined'}
+              variant={selectedLanguage === lang ? 'primary' : 'secondary'}
               onClick={() => setSelectedLanguage(lang)}
             >
               {t('ui', lang === 'jp' ? 'lang_jp' : 'lang_cn')}
@@ -59,7 +60,7 @@ export default function Settings() {
       <div className={styles.section}>
         <Text variant="subheader-2">{t('ui', 'settings_history_section')}</Text>
         <Text variant="body-2">{searchHistory.length} {t('ui', 'settings_history_count')}</Text>
-        <Button view="outlined-danger" onClick={() => clearHistoryFx()}>
+        <Button variant="accent" onClick={() => clearHistoryFx()}>
           {t('ui', 'settings_clear_history')}
         </Button>
       </div>

@@ -1,6 +1,7 @@
 'use client';
 
-import { Button, Text } from '@gravity-ui/uikit';
+import { Text } from '@gravity-ui/uikit';
+import { Button } from 'designoslav';
 import { AnimatePresence } from 'motion/react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -75,7 +76,7 @@ export default function StudyPage() {
         ) : (
           <div className={styles.done}>
             <Text variant="subheader-2">{t('review', 'session_done')}</Text>
-            <Button size="l" view="action" onClick={endSession}>
+            <Button size="l" variant="primary" onClick={endSession}>
               {t('review', 'dashboard_back')}
             </Button>
           </div>

@@ -18,6 +18,7 @@
     "build:storybook": "storybook build"
   },
   "dependencies": {
+    "designoslav": "git+https://github.com/B8rislav/designoslav.git",
     "effector": "^23.3.0",
     "effector-react": "^23.3.0",
     "jose": "^6.2.3",

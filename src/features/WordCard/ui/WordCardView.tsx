@@ -1,6 +1,7 @@
 'use client';
 
-import { Button, Text } from '@gravity-ui/uikit';
+import { Text } from '@gravity-ui/uikit';
+import { Button } from 'designoslav';
 import { motion } from 'motion/react';
 import { type FC } from 'react';
 import { type Word } from '@/shared/api/types';
@@ -47,8 +48,8 @@ export const WordCardView: FC<WordCardViewProps> = ({
           whileTap={reduced || isSaved ? undefined : { scale: TAP_SCALE }}
         >
           <Button
-            size="s"
-            view={isSaved ? 'outlined-success' : 'outlined'}
+            size="m"
+            variant="secondary"
             onClick={onSave}
             disabled={isSaved}
           >

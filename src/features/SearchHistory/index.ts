@@ -1,5 +1,4 @@
-export { SearchHistoryDropdown } from './SearchHistoryDropdown';
-export type { HistoryItem } from './model';
+export type { HistoryItem, HistoryQueryType } from './model';
 export {
   $searchHistory,
   loadHistoryFx,

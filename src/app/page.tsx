@@ -1,6 +1,7 @@
 'use client';
 
-import { Button, Switch, Text } from '@gravity-ui/uikit';
+import { Switch, Text } from '@gravity-ui/uikit';
+import { Button } from 'designoslav';
 import { useUnit } from 'effector-react';
 import { motion } from 'motion/react';
 import Link from 'next/link';
@@ -84,8 +85,8 @@ export default function Home() {
         {LANGUAGES.map((value) => (
           <span key={value} className={styles.navBtnWrap}>
             <Button
-              size="s"
-              view={selectedLanguage === value ? 'normal' : 'outlined'}
+              size="m"
+              variant={selectedLanguage === value ? 'primary' : 'secondary'}
               onClick={() => setSelectedLanguage(value)}
             >
               {t('ui', value === 'jp' ? 'lang_jp' : 'lang_cn')}
@@ -105,8 +106,8 @@ export default function Home() {
         {(['ru', 'en'] as const).map((locale) => (
           <span key={locale} className={styles.navBtnWrap}>
             <Button
-              size="s"
-              view={uiLocale === locale ? 'normal' : 'outlined'}
+              size="m"
+              variant={uiLocale === locale ? 'primary' : 'secondary'}
               onClick={() => setUiLocale(locale)}
             >
               {locale.toUpperCase()}
@@ -169,12 +170,12 @@ export default function Home() {
                 {user.email}
               </Text>
             )}
-            <Button size="s" view="outlined" onClick={() => logoutFx()}>
+            <Button size="m" variant="secondary" onClick={() => logoutFx()}>
               {t('ui', 'nav_logout')}
             </Button>
           </>
         ) : (
-          <Button size="s" view="action" onClick={() => setAuthOpen(true)}>
+          <Button size="m" variant="primary" onClick={() => setAuthOpen(true)}>
             {t('ui', 'nav_login')}
           </Button>
         )}

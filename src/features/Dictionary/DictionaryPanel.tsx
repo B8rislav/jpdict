@@ -1,6 +1,7 @@
 'use client';
 
-import { Button, Text } from '@gravity-ui/uikit';
+import { Text } from '@gravity-ui/uikit';
+import { Button } from 'designoslav';
 import { useUnit } from 'effector-react';
 import { type FC } from 'react';
 
@@ -28,8 +29,8 @@ export const DictionaryPanel: FC = () => {
               JLPT_LEVELS.map((lvl) => (
                 <Button
                   key={lvl}
-                  size="s"
-                  view={levelFilter === lvl ? 'normal' : 'outlined'}
+                  size="m"
+                  variant={levelFilter === lvl ? 'primary' : 'secondary'}
                   onClick={() => toggleLevel(lvl)}
                 >
                   {lvl}
@@ -39,8 +40,8 @@ export const DictionaryPanel: FC = () => {
               HSK_LEVELS.map((lvl) => (
                 <Button
                   key={lvl}
-                  size="s"
-                  view={levelFilter === lvl ? 'normal' : 'outlined'}
+                  size="m"
+                  variant={levelFilter === lvl ? 'primary' : 'secondary'}
                   onClick={() => toggleLevel(lvl)}
                 >
                   {lvl}
@@ -56,8 +57,8 @@ export const DictionaryPanel: FC = () => {
           {MASTERY_CYCLE.map((s) => (
             <Button
               key={s}
-              size="s"
-              view={statusFilter === s ? 'normal' : 'outlined'}
+              size="m"
+              variant={statusFilter === s ? 'primary' : 'secondary'}
               onClick={() => toggleStatus(s)}
             >
               {t('mastery', s)}

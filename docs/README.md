@@ -16,7 +16,7 @@ links — they rot as files move. Grep for the path if needed.
 - [ROUTES.md](./ROUTES.md) — page routes under `src/app/`: RSC vs client, auth requirement, BFF calls
 - [BFF.md](./BFF.md) — Next.js API route handlers: method, path, auth, upstream target, streaming
 - [I18N.md](./I18N.md) — UI locale system (ru/en), `t()` usage, current status
-- [STYLING.md](./STYLING.md) — CSS Modules, Gravity UI, CSS variable contract, font loading, theme switching
+- [STYLING.md](./STYLING.md) — CSS Modules, Designoslav migration (off Gravity UI), CSS variable contract, font loading, theme switching
 - [AUTH.md](./AUTH.md) — JWT flow, httpOnly cookie, access token in memory, middleware, threat model
 - [TESTING.md](./TESTING.md) — Vitest unit tests, Storybook test runner, how to run locally and in CI
 - [RUNBOOK.md](./RUNBOOK.md) — operational recipes: dev setup, env vars, type generation, debugging

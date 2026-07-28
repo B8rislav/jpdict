@@ -146,3 +146,32 @@ the frontend's camelCase shape. The BFF does the translation.
   remain in `src/features/*` (verified 2026-06-30). Effectively done; kept here for the record.
 - [ ] **R9 (optional)** — pre-commit hook via `husky` + `lint-staged` running `lint:fix` +
   `format`. Left out in Phase 1; pick up only if wanted.
+
+---
+
+## 🔎 SEARCH-SUGGEST — Search «варианты разбора» + unified history
+
+> Rebuild search onto the Designoslav `SearchField` + `SearchOptionList`. A typed query
+> shows backend parse options («Варианты разбора»); an empty focused field shows recent
+> searches («История поиска») in the same list. Backend counterpart: `backend` Phase 18.
+
+- [x] **SS.1** `SuggestOption`/`SuggestKind` type in `src/shared/api/types.ts`; suggestions
+  Effector model `src/features/Search/model/suggest.ts` (`$suggestions`, `fetchSuggestFx`,
+  `clearSuggestions`) hitting the BFF `/api/search/suggest`.
+- [x] **SS.2** BFF proxy `src/app/api/search/suggest/route.ts` (public — mirrors
+  `parse-sentence`), forwarding `q`/`lang`/`def_lang` to FastAPI.
+- [x] **SS.3** `optionMapping.ts` (+ test): `suggestionToItem` / `historyToItem` →
+  `SearchOptionItem`, composing the hint from `kind`/`gloss`/`level` + i18n (`HINT_BY_KIND`
+  map). Extend `HistoryItem` with a narrowed `query_type` (`HistoryQueryType`).
+- [x] **SS.4** `SearchView` rewrite onto `SearchField` + `SearchOptionList`: absolutely
+  positioned popover, ↑↓ selection / Enter parses / Esc closes, «↑↓ выбрать · ↵ разобрать»
+  caption, «Очистить всё» in the history heading. `Search` container: debounced
+  `fetchSuggestFx`, empty→history / typing→suggestions, run option by `query_type`.
+- [x] **SS.5** i18n keys (`suggest_*`, `history_*`, `unit_label_*`, `search_kbd_*`,
+  `search_aria_label`, `search_clear`) in `ru.json` + `en.json`; reuse existing `pos_verb`.
+- [x] **SS.6** Retire `SearchHistoryDropdown` (+ css); keep the history model. Rewrite
+  `SearchView.stories.tsx` (Empty / ParseOptions / WithHistory / Submitting).
+- [ ] **SS.7** (follow-up) Regenerate `src/shared/api/generatedTypes.d.ts` against the live
+  backend once it's running; optional Designoslav `SearchOptionList` `footer` prop so the
+  keyboard caption sits inside the card; per-row history delete needs a `SearchOption`
+  affordance (dropped for now — `removeHistoryFx` retained in the model).

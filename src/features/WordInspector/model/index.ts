@@ -1,6 +1,7 @@
 import { createEffect, createEvent, createStore, sample } from 'effector';
-import { type Word } from '@/shared/api/types';
+import { type Kanji, type Word } from '@/shared/api/types';
 import { fetchWordsFx } from '../../WordCard/model';
+import { fetchKanji } from '@/features/KanjiCard/api/fetchKanji';
 import { fetchExampleSentences, type ReibunEntry } from '../api/fetchExampleSentences';
 
 export const clearInspectedWord = createEvent();
@@ -11,6 +12,22 @@ sample({
   clock: fetchWordsFx.doneData,
   fn: (data) => data?.words?.[0] ?? null,
   target: $inspectedWord,
+});
+
+export const fetchInspectorKanjiFx = createEffect(
+  async ({ value, language }: { value: string; language: 'jp' | 'cn' | null }) =>
+    fetchKanji(value, language),
+);
+
+export const $inspectorKanji = createStore<Kanji[]>([])
+  .on(fetchInspectorKanjiFx.doneData, (_, data) => data ?? [])
+  .reset(clearInspectedWord);
+
+// A fresh word invalidates the previous word's kanji until the new fetch lands.
+sample({
+  clock: fetchWordsFx.doneData,
+  fn: () => [] as Kanji[],
+  target: $inspectorKanji,
 });
 
 export const fetchExampleSentencesFx = createEffect(async (wordId: string) => {

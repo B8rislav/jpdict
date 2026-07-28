@@ -39,6 +39,7 @@ export type SentenceToken = {
   pronunciation?: string;
   jlpt_level?: number | null;
   hsk_level?: number | null;
+  gloss?: string;
 };
 
 export type SavedWord = Word & { savedAt: string; status: MasteryStatus; suspended: boolean };
@@ -56,6 +57,20 @@ export type DictEntry = {
   jlpt_level?: number | null;
   hsk_level?: number | null;
   is_common: boolean;
+};
+
+/** Semantic kind of a search parse option — drives the frontend hint composition. */
+export type SuggestKind = 'word' | 'verb' | 'kanji' | 'phrase' | 'reverse_word' | 'reverse_kanji';
+
+/** One «варианты разбора» parse option, as returned by `/api/search/suggest`. */
+export type SuggestOption = {
+  id: string;
+  kind: SuggestKind;
+  unit: 'word' | 'kanji' | 'phrase';
+  query_type: 'word' | 'kanji' | 'sentence';
+  text: string;
+  gloss?: string | null;
+  level?: string | null;
 };
 
 export type BackendKanjiCard = {

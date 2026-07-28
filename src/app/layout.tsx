@@ -5,6 +5,7 @@ import { Noto_Sans_JP, Noto_Sans_SC } from 'next/font/google';
 import './styles/globals.css';
 import '@gravity-ui/uikit/styles/fonts.css';
 import '@gravity-ui/uikit/styles/styles.css';
+import 'designoslav/tokens.css';
 import { Providers } from './providers';
 import { HtmlLangSync } from './HtmlLangSync';
 import { JsonLd } from './ui/JsonLd';

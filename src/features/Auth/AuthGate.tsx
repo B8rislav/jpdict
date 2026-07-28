@@ -1,6 +1,7 @@
 'use client';
 
-import { Button, Text } from '@gravity-ui/uikit';
+import { Text } from '@gravity-ui/uikit';
+import { Button } from 'designoslav';
 import { useUnit } from 'effector-react';
 import { type ReactNode, useEffect, useState } from 'react';
 
@@ -31,7 +32,7 @@ export function AuthGate({ children, title }: AuthGateProps) {
       <>
         <div className={styles.gate}>
           <Text variant="subheader-2">{t('ui', 'auth_gate_prompt')} {title}</Text>
-          <Button view="action" size="l" onClick={() => setAuthOpen(true)}>
+          <Button variant="primary" size="l" onClick={() => setAuthOpen(true)}>
             {t('ui', 'nav_login')}
           </Button>
         </div>

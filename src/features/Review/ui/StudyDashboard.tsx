@@ -1,6 +1,7 @@
 'use client';
 
-import { Button, Text } from '@gravity-ui/uikit';
+import { Text } from '@gravity-ui/uikit';
+import { Button } from 'designoslav';
 import { motion } from 'motion/react';
 import { type FC } from 'react';
 
@@ -61,7 +62,7 @@ export const StudyDashboard: FC<Props> = ({ stats, onStart }) => {
           whileHover={reduced ? undefined : { scale: 1.02 }}
           whileTap={reduced ? undefined : { scale: TAP_SCALE }}
         >
-          <Button size="xl" view="action" onClick={onStart}>
+          <Button size="xl" variant="primary" onClick={onStart}>
             {t('review', 'start')}
           </Button>
         </motion.div>
