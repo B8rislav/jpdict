@@ -1,112 +1,68 @@
 'use client';
 
-import { Modal, Radio, RadioGroup, Text, TextInput } from '@gravity-ui/uikit';
-import { Button } from 'designoslav';
 import { useUnit } from 'effector-react';
 import { type FormEvent, useState } from 'react';
 
+import { type Language } from '@/shared/api/types';
+import { useLocale, useT } from '@/shared/i18n';
 import { loginFx, registerFx } from '@/stores/auth';
-import { t } from '@/shared/i18n';
-
-import styles from './AuthModal.module.css';
+import { AuthModalView, type AuthMode } from './ui/AuthModalView';
 
 interface AuthModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-type Mode = 'login' | 'register';
-
 export function AuthModal({ open, onOpenChange }: AuthModalProps) {
-  const [mode, setMode] = useState<Mode>('login');
+  const t = useT();
+  const uiLocale = useLocale();
+  const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [language, setLanguage] = useState<'jp' | 'cn'>('jp');
+  const [language, setLanguage] = useState<Language>('jp');
   const [error, setError] = useState('');
 
+  // Both must be subscribed unconditionally — `||` would short-circuit the
+  // second hook and break hook ordering between renders.
   const loginPending = useUnit(loginFx.pending);
   const registerPending = useUnit(registerFx.pending);
   const pending = loginPending || registerPending;
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
     setError('');
 
     try {
-      if (mode === 'login') {
-        await loginFx({ email, password });
-        onOpenChange(false);
-      } else {
-        await registerFx({ email, password, language });
-        await loginFx({ email, password });
-        onOpenChange(false);
+      if (mode === 'register') {
+        // Seed the new account from the locale they signed up in, so a choice
+        // made before registering survives into the stored profile.
+        await registerFx({ email, password, language, uiLocale });
       }
+      await loginFx({ email, password });
+      onOpenChange(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : t('ui', 'auth_error_default'));
     }
   }
 
   return (
-    <Modal
+    <AuthModalView
       open={open}
-      onOpenChange={(isOpen) => !isOpen && onOpenChange(false)}
-      className={styles.modal}
-    >
-      <div className={styles.content}>
-        <Text variant="header-1">{mode === 'login' ? t('ui', 'auth_title_login') : t('ui', 'auth_title_register')}</Text>
-
-        <RadioGroup
-          value={mode}
-          onUpdate={(v) => {
-            setMode(v as Mode);
-            setError('');
-          }}
-          direction="horizontal"
-        >
-          <Radio value="login">{t('ui', 'auth_tab_login')}</Radio>
-          <Radio value="register">{t('ui', 'auth_tab_register')}</Radio>
-        </RadioGroup>
-
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <TextInput
-            type="email"
-            placeholder="Email"
-            value={email}
-            onUpdate={setEmail}
-            disabled={pending}
-            autoComplete="email"
-          />
-          <TextInput
-            type="password"
-            placeholder={t('ui', 'auth_password')}
-            value={password}
-            onUpdate={setPassword}
-            disabled={pending}
-            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-          />
-
-          {mode === 'register' && (
-            <RadioGroup
-              value={language}
-              onUpdate={(v) => setLanguage(v as 'jp' | 'cn')}
-              direction="horizontal"
-            >
-              <Radio value="jp">{t('ui', 'lang_jp')}</Radio>
-              <Radio value="cn">{t('ui', 'lang_cn')}</Radio>
-            </RadioGroup>
-          )}
-
-          {error && (
-            <Text variant="body-2" color="danger">
-              {error}
-            </Text>
-          )}
-
-          <Button type="submit" variant="primary" disabled={pending} fullWidth>
-            {mode === 'login' ? t('ui', 'auth_submit_login') : t('ui', 'auth_submit_register')}
-          </Button>
-        </form>
-      </div>
-    </Modal>
+      onOpenChange={onOpenChange}
+      mode={mode}
+      onModeChange={(next) => {
+        setMode(next);
+        setError('');
+      }}
+      email={email}
+      onEmailChange={setEmail}
+      password={password}
+      onPasswordChange={setPassword}
+      language={language}
+      onLanguageChange={setLanguage}
+      error={error}
+      pending={pending}
+      onSubmit={handleSubmit}
+    />
   );
 }

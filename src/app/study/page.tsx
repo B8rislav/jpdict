@@ -7,11 +7,6 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useUnit } from 'effector-react';
 
-import { ReviewCard, StudyDashboard } from '@/features/Review';
-import { AuthGate } from '@/features/Auth/AuthGate';
-import { t } from '@/shared/i18n';
-import { $isAuthenticated } from '@/stores/auth';
-import { $userProfile } from '@/stores/userProfile';
 import {
   $current,
   $queue,
@@ -19,12 +14,20 @@ import {
   fetchQueueFx,
   fetchStatsFx,
   gradeCurrent,
-} from '@/stores/review';
+  ReviewCard,
+  StudyDashboard,
+} from '@/features/Review';
+import { AuthGate } from '@/features/Auth/AuthGate';
+import { useT } from '@/shared/i18n';
+import { $isAuthenticated } from '@/stores/auth';
+
 import styles from './page.module.css';
+import { useProfile } from '@/shared/profile/context';
 
 export default function StudyPage() {
+  const t = useT();
   const isAuthenticated = useUnit($isAuthenticated);
-  const { selectedLanguage } = useUnit($userProfile);
+  const { selectedLanguage } = useProfile();
   const stats = useUnit($stats);
   const current = useUnit($current);
   const queue = useUnit($queue);

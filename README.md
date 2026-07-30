@@ -126,7 +126,6 @@ export ALLOWED_ORIGINS=https://your-frontend-domain.com
 # Frontend
 export NEXT_PUBLIC_BACKEND_URL=https://api.your-domain.com
 export OPENROUTER_KEY=<same-openrouter-key>
-export JWT_SECRET=<same-as-SECRET_KEY-or-separate>
 ```
 
 > Tip: write these into a `.env.prod` file and source it: `set -a && source .env.prod && set +a`
@@ -161,7 +160,6 @@ docker compose -f docker-compose.prod.yml restart frontend
 | `FASTAPI_URL` | No | Server-side backend URL (not exposed to browser). Used inside Docker where backend is `http://backend:8000`. |
 | `OPENROUTER_KEY` | No | API key for OpenRouter AI explanations. If absent, the BFF returns a static mock. |
 | `OPENROUTER_MODEL` | No | Override the AI model. Defaults to `deepseek/deepseek-v4-flash`. |
-| `JWT_SECRET` | **Yes (prod)** | Must match the backend `SECRET_KEY`. Used by Next.js middleware to verify refresh tokens. |
 
 ### Backend variables (summarised — full list in `../backend/README.md`)
 
@@ -187,6 +185,8 @@ docker compose -f docker-compose.prod.yml restart frontend
 | `npm run storybook` | Storybook dev server — http://localhost:6006 |
 | `npm run generate-types` | Regenerate OpenAPI types from a running backend at localhost:8000 |
 | `npm run lint` | ESLint |
+| `npm run check:stories` | Story-per-view check |
+| `npm run verify` | lint + stories + typecheck + tests |
 | `npm run lint:fix` | ESLint with auto-fix |
 | `npm run format` | Prettier |
 

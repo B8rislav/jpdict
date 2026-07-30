@@ -2,7 +2,7 @@
 
 import { type Language } from '@/shared/api/types';
 import styles from '../LanguageSelect.module.css';
-import { t } from '@/shared/i18n';
+import { useT } from '@/shared/i18n';
 
 interface LanguageCardProps {
   language: Language;
@@ -12,6 +12,7 @@ interface LanguageCardProps {
 }
 
 const LanguageCard = ({ language, title, description, onSelect }: LanguageCardProps) => {
+  const t = useT();
   return (
     <div className={styles.card}>
       <h2 className={styles.cardTitle}>{title}</h2>

@@ -1,4 +1,5 @@
 import { SSE_HEADERS } from './constants';
+import { DEFAULT_LOCALE, isLocale, type Locale } from '@/shared/i18n/locale';
 
 export const runtime = 'nodejs';
 
@@ -26,20 +27,30 @@ function detectLanguage(tokens: AiToken[]): 'cn' | 'jp' {
   return tokens.some((t) => /[一-鿿]/.test(t.surface_form) && !t.pos.includes('助')) ? 'cn' : 'jp';
 }
 
-function buildMessages(sentence: string, tokens: AiToken[], lang: 'cn' | 'jp') {
-  const langLabel = lang === 'cn' ? 'китайскому' : 'японскому';
-  const system = `Ты — эксперт по ${langLabel} языку. Отвечай на русском языке и избегай ненужной технической терминологии.`;
-  const user = `Ты — эксперт по ${langLabel} языку. Проанализируй следующее предложение и напиши подробный обзор на русском языке.
+/**
+ * Prompt copy per interface locale. The explanation is UI text like any other,
+ * so it follows `uiLocale`; it used to be hardcoded Russian, which meant an
+ * English user got a fully localized interface and Russian grammar notes.
+ */
+const PROMPTS: Record<
+  Locale,
+  {
+    studyLanguage: Record<'cn' | 'jp', string>;
+    system: (studyLanguage: string) => string;
+    user: (studyLanguage: string, sentence: string, tokenList: string) => string;
+  }
+> = {
+  ru: {
+    studyLanguage: { cn: 'китайскому', jp: 'японскому' },
+    system: (studyLanguage) =>
+      `Ты — эксперт по ${studyLanguage} языку. Отвечай на русском языке и избегай ненужной технической терминологии.`,
+    user: (studyLanguage, sentence, tokenList) =>
+      `Ты — эксперт по ${studyLanguage} языку. Проанализируй следующее предложение и напиши подробный обзор на русском языке.
 
 Предложение: "${sentence}"
 
 Токены (разбор):
-${tokens
-  .map(
-    (t, i) =>
-      `${i + 1}. ${t.surface_form} (${t.basic_form || t.surface_form}) — ${t.pos}${t.pos_detail_1 ? ` (${t.pos_detail_1})` : ''}`,
-  )
-  .join('\n')}
+${tokenList}
 
 Пожалуйста, выведи результат в формате:
 1. Общий смысл.
@@ -48,8 +59,45 @@ ${tokens
 4. Культурные / контекстные заметки.
 5. Пример использования.
 
-Пиши только на русском языке.`;
-  return { system, user };
+Пиши только на русском языке.`,
+  },
+  en: {
+    studyLanguage: { cn: 'Chinese', jp: 'Japanese' },
+    system: (studyLanguage) =>
+      `You are an expert in ${studyLanguage}. Answer in English and avoid unnecessary technical jargon.`,
+    user: (studyLanguage, sentence, tokenList) =>
+      `You are an expert in ${studyLanguage}. Analyse the following sentence and write a detailed overview in English.
+
+Sentence: "${sentence}"
+
+Tokens (parsed):
+${tokenList}
+
+Please structure the result as:
+1. Overall meaning.
+2. Grammatical structure.
+3. Vocabulary.
+4. Cultural / contextual notes.
+5. Usage example.
+
+Write in English only.`,
+  },
+};
+
+function buildMessages(sentence: string, tokens: AiToken[], lang: 'cn' | 'jp', locale: Locale) {
+  const prompt = PROMPTS[locale];
+  const studyLanguage = prompt.studyLanguage[lang];
+  const tokenList = tokens
+    .map(
+      (t, i) =>
+        `${i + 1}. ${t.surface_form} (${t.basic_form || t.surface_form}) — ${t.pos}${t.pos_detail_1 ? ` (${t.pos_detail_1})` : ''}`,
+    )
+    .join('\n');
+
+  return {
+    system: prompt.system(studyLanguage),
+    user: prompt.user(studyLanguage, sentence, tokenList),
+  };
 }
 
 function pipeOpenRouterStream(upstream: ReadableStream): ReadableStream {
@@ -136,9 +184,14 @@ export async function POST(request: Request) {
   let tokens: AiToken[] | undefined;
 
   try {
-    const body = (await request.json()) as { sentence?: string; tokens?: AiToken[] };
+    const body = (await request.json()) as {
+      sentence?: string;
+      tokens?: AiToken[];
+      locale?: string;
+    };
     sentence = body.sentence;
     tokens = body.tokens;
+    const locale: Locale = isLocale(body.locale) ? body.locale : DEFAULT_LOCALE;
 
     if (!sentence || !tokens) {
       return new Response(
@@ -155,7 +208,7 @@ export async function POST(request: Request) {
     }
 
     const lang = detectLanguage(tokens);
-    const { system, user } = buildMessages(sentence, tokens, lang);
+    const { system, user } = buildMessages(sentence, tokens, lang, locale);
 
     const upstreamResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',

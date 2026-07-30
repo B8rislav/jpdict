@@ -26,6 +26,8 @@ side also runs a thin BFF layer under `src/app/api` (see [docs/BFF.md](docs/BFF.
 | `npm test` | Vitest unit tests (`--project unit`) |
 | `npm run test:storybook` | Storybook component tests, headless (`--project storybook`) |
 | `npm run lint` | ESLint via `next lint` |
+| `npm run check:stories` | Fails if a `ui/` component has no sibling `*.stories.tsx` |
+| `npm run verify` | lint + check:stories + `tsc --noEmit` + unit tests |
 | `npm run format` | Prettier write over `src/**` |
 | `npm run storybook` | Storybook dev server — http://localhost:6006 |
 | `npm run generate-types` | Regenerate `src/shared/api/generatedTypes.d.ts` from the backend's live OpenAPI at `:8000/docs` (**backend must be running**) |
@@ -44,9 +46,17 @@ FSD-ish layout under `src/` (full walkthrough: [docs/STRUCTURE.md](docs/STRUCTUR
   `i18n/`, `utils/`
 - `src/stores` — top-level Effector stores (`auth`, `userProfile`)
 
-**view = dumb / model = logic.** This is ESLint-enforced: files under any `ui/` folder
-may not import `effector-react` or `@/stores/*` — pass data in via props. See
-[docs/STATE.md](docs/STATE.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+**view = dumb / model = logic.** Enforced three ways, because no single rule suffices:
+
+1. `effector`, `effector-react`, and `@/stores/*` are banned in every `.tsx` under
+   `src/features` / `src/shared` **except** a whitelist of container files
+   (`STATEFUL_FILES` in `eslint.config.mjs`). It's a whitelist deliberately — the old rule
+   denied those imports inside `**/ui/**`, which any component could escape by not living
+   in a `ui/` folder, and five did.
+2. `max-lines: 100` on containers, pages, and layouts.
+3. `npm run check:stories` — every `ui/` component needs a story.
+
+See [docs/STATE.md](docs/STATE.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Conventions
 

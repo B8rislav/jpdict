@@ -1,25 +1,20 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { fork, allSettled } from 'effector';
+import { DEFAULT_PROFILE, type UserProfile } from '@/shared/api/profile';
+import { fetchCurrentUserFx } from './auth';
 import {
   $userProfile,
+  profileHydrated,
   setSelectedLanguage,
   setShowFurigana,
   setShowPinyin,
-  loadUserProfile,
-  type UserProfile,
+  setUiLocale,
 } from './userProfile';
-
-const DEFAULT: UserProfile = {
-  selectedLanguage: null,
-  showFurigana: true,
-  showPinyin: true,
-  uiLocale: 'ru',
-};
 
 describe('$userProfile', () => {
   it('initial state matches defaults', () => {
     const scope = fork();
-    expect(scope.getState($userProfile)).toEqual(DEFAULT);
+    expect(scope.getState($userProfile)).toEqual(DEFAULT_PROFILE);
   });
 
   it('setSelectedLanguage sets jp', async () => {
@@ -56,44 +51,72 @@ describe('$userProfile', () => {
     expect(scope.getState($userProfile).showPinyin).toBe(false);
   });
 
-  it('loadUserProfile in node env (window undefined) returns defaults', async () => {
+  it('setUiLocale switches the interface language', async () => {
     const scope = fork();
-    await allSettled(loadUserProfile, { scope, params: undefined });
-    expect(scope.getState($userProfile)).toEqual(DEFAULT);
+    await allSettled(setUiLocale, { scope, params: 'en' });
+    expect(scope.getState($userProfile).uiLocale).toBe('en');
   });
 
-  it('loadUserProfile reads from localStorage when window is defined', async () => {
-    const stored: UserProfile = {
-      selectedLanguage: 'jp',
-      showFurigana: false,
-      showPinyin: true,
-      uiLocale: 'ru',
-    };
-    // window must be truthy to pass the typeof window === 'undefined' guard
-    vi.stubGlobal('window', {});
-    vi.stubGlobal('localStorage', { getItem: () => JSON.stringify(stored) });
-
-    const scope = fork();
-    await allSettled(loadUserProfile, { scope, params: undefined });
-    expect(scope.getState($userProfile).selectedLanguage).toBe('jp');
-    expect(scope.getState($userProfile).showFurigana).toBe(false);
-
-    vi.unstubAllGlobals();
+  describe('hydration', () => {
+    it('profileHydrated replaces the whole profile with the server-resolved one', async () => {
+      const fromServer: UserProfile = {
+        selectedLanguage: 'jp',
+        showFurigana: false,
+        showPinyin: true,
+        uiLocale: 'en',
+      };
+      const scope = fork();
+      await allSettled(profileHydrated, { scope, params: fromServer });
+      expect(scope.getState($userProfile)).toEqual(fromServer);
+    });
   });
 
-  it('loadUserProfile merges stored data with defaults (missing fields get defaults)', async () => {
-    vi.stubGlobal('window', {});
-    vi.stubGlobal('localStorage', {
-      getItem: () => JSON.stringify({ selectedLanguage: 'cn' }),
+  describe('DB precedence', () => {
+    it("a signed-in user's stored profile overrides what the cookie hydrated", async () => {
+      const scope = fork({
+        handlers: [
+          [
+            fetchCurrentUserFx,
+            async () => ({
+              id: 'u1',
+              email: 'a@b.com',
+              name: null,
+              selectedLanguage: 'cn' as const,
+              showFurigana: false,
+              showPinyin: false,
+              uiLocale: 'en' as const,
+            }),
+          ],
+        ],
+      });
+
+      // This device's cookie said Japanese/Russian…
+      await allSettled(profileHydrated, {
+        scope,
+        params: { selectedLanguage: 'jp', showFurigana: true, showPinyin: true, uiLocale: 'ru' },
+      });
+      // …but the account says Chinese/English, and the account wins.
+      await allSettled(fetchCurrentUserFx, { scope });
+
+      const state = scope.getState($userProfile);
+      expect(state.selectedLanguage).toBe('cn');
+      expect(state.uiLocale).toBe('en');
+      expect(state.showFurigana).toBe(false);
     });
 
-    const scope = fork();
-    await allSettled(loadUserProfile, { scope, params: undefined });
-    const state = scope.getState($userProfile);
-    expect(state.selectedLanguage).toBe('cn');
-    expect(state.showFurigana).toBe(true);
-    expect(state.showPinyin).toBe(true);
+    it('a signed-out lookup leaves the hydrated profile alone', async () => {
+      const scope = fork({ handlers: [[fetchCurrentUserFx, async () => null]] });
 
-    vi.unstubAllGlobals();
+      await allSettled(profileHydrated, {
+        scope,
+        params: { selectedLanguage: 'jp', showFurigana: false, showPinyin: true, uiLocale: 'en' },
+      });
+      await allSettled(fetchCurrentUserFx, { scope });
+
+      const state = scope.getState($userProfile);
+      expect(state.selectedLanguage).toBe('jp');
+      expect(state.uiLocale).toBe('en');
+      expect(state.showFurigana).toBe(false);
+    });
   });
 });

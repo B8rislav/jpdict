@@ -10,10 +10,12 @@ type CardListProps = {
   listHeight?: number;
   listWidth?: number;
   style?: CSSProperties;
+  /** Column theming (background, radius) — prefer this over inline `style`. */
+  className?: string;
 };
 
 export const CardList: FC<PropsWithChildren<CardListProps>> = (props) => {
-  const { loading, listHeight, listWidth, style } = props;
+  const { loading, listHeight, listWidth, style, className } = props;
   const reduced = useReducedMotion();
   const skeletonParts = useMemo<number[]>(() => {
     const count = listHeight ? Math.max(1, Math.floor(listHeight / 250)) : 3;
@@ -28,14 +30,20 @@ export const CardList: FC<PropsWithChildren<CardListProps>> = (props) => {
   // render at rest because no parent variant drives them.
   if (reduced) {
     return (
-      <div className={styles.container} style={{ width: listWidth, ...style }}>
+      <div
+        className={[styles.container, className].filter(Boolean).join(' ')}
+        style={{ width: listWidth, ...style }}
+      >
         <ul className={styles.list}>{loading ? skeletons : props.children}</ul>
       </div>
     );
   }
 
   return (
-    <div className={styles.container} style={{ width: listWidth, ...style }}>
+    <div
+      className={[styles.container, className].filter(Boolean).join(' ')}
+      style={{ width: listWidth, ...style }}
+    >
       {/* Skeleton ↔ content crossfade: distinct keys so one fades out as the
           other fades in. */}
       <AnimatePresence mode="wait" initial={false}>

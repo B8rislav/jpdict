@@ -92,13 +92,19 @@ Reusable UI primitives. All have Storybook stories except `AuthGate`.
 Global Effector stores shared across multiple features.
 
 - `auth.ts` — `$auth` store holding `{ accessToken, user }`; four effects (login, register, refresh, logout)
-- `userProfile.ts` — `$userProfile` holding language, toggles, UI locale; persists to `localStorage`
+- `userProfile.ts` — `$userProfile` holding study language, display toggles, UI locale;
+  persists to Postgres (`PATCH /api/users/me`) plus a `profile` cookie for SSR. Not localStorage
 
 ## `src/types/`
 
 - `css.d.ts` — TypeScript declaration for CSS Module imports
 
-## `src/middleware.ts`
+## `scripts/`
 
-Next.js middleware that guards `/api/dictionary/*` and `/api/history/*`. Verifies the
-`refresh_token` cookie with JOSE before allowing the request through.
+- `check-view-stories.mjs` — fails if a component under a `ui/` folder has no sibling
+  `*.stories.tsx`. Run via `npm run check:stories`, or `npm run verify` for everything.
+
+> There is no `src/middleware.ts`. It previously JOSE-verified the `refresh_token` cookie
+> ahead of the protected BFF routes, duplicating the check those handlers already made and
+> requiring `JWT_SECRET` to be duplicated across two repos. See
+> [AUTH.md](AUTH.md#no-middleware).

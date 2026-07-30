@@ -1,5 +1,5 @@
 import { fetchData } from '@/shared/api/fetchData';
-import { getLocale } from '@/shared/i18n';
+import { type Locale } from '@/shared/i18n';
 
 export interface ReibunEntry {
   id: number;
@@ -16,6 +16,9 @@ export interface ExampleSentencesResponse {
   reibuns: ReibunEntry[];
 }
 
-export async function fetchExampleSentences(wordId: string): Promise<ExampleSentencesResponse> {
-  return fetchData(`reibun/search/${wordId}?lang=${getLocale()}`);
+export async function fetchExampleSentences(
+  wordId: string,
+  lang: Locale,
+): Promise<ExampleSentencesResponse> {
+  return fetchData(`reibun/search/${wordId}?lang=${lang}`);
 }

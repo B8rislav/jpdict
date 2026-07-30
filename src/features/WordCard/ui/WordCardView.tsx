@@ -9,7 +9,7 @@ import { Card } from '@/shared/ui/Card';
 import { MarkerList } from '@/shared/ui/MarkerList/MarkerList';
 import { DefinitionList } from '@/shared/ui/DefinitionList/DefinitionList';
 import { DURATION, EASE, TAP_SCALE, useReducedMotion } from '@/shared/motion';
-import { t } from '@/shared/i18n';
+import { useT } from '@/shared/i18n';
 import styles from './WordCardView.module.css';
 
 type WordCardViewProps = Word & {
@@ -28,6 +28,7 @@ export const WordCardView: FC<WordCardViewProps> = ({
   isSaved,
   onSave,
 }) => {
+  const t = useT();
   const reduced = useReducedMotion();
   const def = def_ru?.length ? def_ru : def_en;
   return (
@@ -47,12 +48,7 @@ export const WordCardView: FC<WordCardViewProps> = ({
           transition={reduced ? { duration: 0 } : { duration: DURATION.base, ease: EASE }}
           whileTap={reduced || isSaved ? undefined : { scale: TAP_SCALE }}
         >
-          <Button
-            size="m"
-            variant="secondary"
-            onClick={onSave}
-            disabled={isSaved}
-          >
+          <Button size="m" variant="secondary" onClick={onSave} disabled={isSaved}>
             {isSaved ? `✓ ${t('ui', 'wordcard_saved')}` : t('ui', 'wordcard_save')}
           </Button>
         </motion.span>

@@ -90,7 +90,14 @@ export const NoKanji: Story = {
 
 export const Suspended: Story = {
   args: {
-    word: { ...baseWord, id: '7', kanji_full: '休む', hiragana_full: 'やすむ', status: 'learning', suspended: true },
+    word: {
+      ...baseWord,
+      id: '7',
+      kanji_full: '休む',
+      hiragana_full: 'やすむ',
+      status: 'learning',
+      suspended: true,
+    },
     onDelete: noop,
     onAdvanceStatus: noop,
     onToggleSuspend: noop,

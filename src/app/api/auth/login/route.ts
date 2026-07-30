@@ -7,8 +7,7 @@ export async function POST(req: NextRequest) {
   const upstream = await fetch(`${BACKEND_URL}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    // FastAPI's UserCreate requires language even though login doesn't use it
-    body: JSON.stringify({ email, password, language: 'jp' }),
+    body: JSON.stringify({ email, password }),
   });
 
   if (!upstream.ok) {

@@ -47,8 +47,10 @@ work, demos, and onboarding without a Postgres/FastAPI stack. The BFF route hand
   does the camelCase translation.
 - **State:** in-memory, seeded from fixtures. Adds/deletes/grades persist across navigation
   but **reset on every server restart** — there's no database.
-- Auth works against the mock: `register` then `log in`, and the minted `refresh_token`
-  verifies against `JWT_SECRET` so protected routes (dictionary/history/review) work.
+- Auth works against the mock: `register` then `log in`. Nothing on the frontend verifies
+  the token's signature any more (the middleware that did is gone, along with
+  `JWT_SECRET`), so the mock just has to mint something JWT-shaped. `GET /api/users/me`
+  returns the mock user and profile.
 
 ## Enable AI explanations
 
@@ -79,8 +81,13 @@ furigana on, UI locale ru).
 
 ## Simulate a logged-out session
 
-Open DevTools → Application → Cookies → delete `refresh_token`. Reload. `refreshFx`
-will fail silently, `$isAuthenticated` stays false.
+Open DevTools → Application → Cookies → delete `refresh_token` **and** `access_token`
+(the latter is a 15-minute cache and will keep working on its own otherwise). Reload:
+`GET /api/users/me` returns 401, `$currentUser` resolves to `null`, `$isAuthenticated`
+stays false, and `$sessionResolved` still flips to true so gated pages render their
+sign-in prompt rather than hanging.
+
+To reset preferences too, delete the `profile` cookie.
 
 ## Debug a stuck Effector chain
 

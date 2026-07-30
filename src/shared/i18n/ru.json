@@ -307,7 +307,8 @@
     "meta_description": "Платформа для изучения иероглифического письма с морфологическим анализом и AI-объяснениями",
     "meta_title_dict": "Мой словарь",
     "meta_title_study": "Учить",
-    "meta_title_settings": "Настройки"
+    "meta_title_settings": "Настройки",
+    "inspector_pitch": "Тон"
   },
   "dict_count": {
     "one": "слово",

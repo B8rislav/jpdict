@@ -4,6 +4,9 @@
   --text-secondary: #888888;
   --accent-red: #e63946;
   --border-gray: #e0e0e0;
+  /* Result-column tints, previously inline hex literals in page.tsx. */
+  --column-bg-sentence: #e4f1f9;
+  --column-bg-word: #fcf2fb;
   --bg-dark: #1a1a1a;
   --text-white: #ffffff;
   --font-primary: 'Inter', 'Noto Sans JP', 'Zen Kaku Gothic', sans-serif;

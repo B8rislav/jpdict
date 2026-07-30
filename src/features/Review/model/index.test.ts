@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { fork, allSettled } from 'effector';
 
 // Stub the network layer so effects resolve without real fetches.
-vi.mock('@/features/Review/api', () => ({
+vi.mock('../api', () => ({
   fetchQueue: vi.fn(async () => []),
   fetchStats: vi.fn(async () => null),
   gradeCard: vi.fn(async () => ({ dueAt: '', intervalDays: 1, repetitions: 1, easeFactor: 2.5 })),
@@ -10,15 +10,8 @@ vi.mock('@/features/Review/api', () => ({
   unsuspendCard: vi.fn(async () => ({})),
 }));
 
-import { type ReviewCard } from '@/features/Review/api/types';
-import {
-  $queue,
-  $current,
-  $stats,
-  nextCard,
-  gradeCurrent,
-  suspendFx,
-} from './review';
+import { type ReviewCard } from '../api/types';
+import { $queue, $current, $stats, nextCard, gradeCurrent, suspendFx } from './index';
 
 function card(id: string, overrides: Partial<ReviewCard> = {}): ReviewCard {
   return {

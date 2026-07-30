@@ -1,6 +1,7 @@
 import { createEffect, createEvent, createStore } from 'effector';
 import { logEffectFailures } from '@/shared/utils/logEffectFailures';
 import { fetchSentence, type SentenceResponse } from '../api/fetchSentence';
+import { $userProfile } from '@/stores/userProfile';
 
 export type SentenceResult = SentenceResponse;
 
@@ -12,7 +13,7 @@ type FetchSentenceFX = (params: {
   language: 'jp' | 'cn';
 }) => Promise<SentenceResponse | undefined>;
 export const fetchSentenceFx = createEffect<FetchSentenceFX>(async ({ value, language }) => {
-  return await fetchSentence(value, language);
+  return await fetchSentence(value, language, $userProfile.getState().uiLocale);
 });
 
 logEffectFailures(fetchSentenceFx, 'sentence');

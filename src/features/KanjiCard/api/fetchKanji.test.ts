@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/shared/api/fetchData', () => ({ fetchData: vi.fn() }));
-vi.mock('@/shared/i18n', () => ({ getLocale: () => 'ru', t: (c: string, k: string) => k }));
 
 import { fetchData } from '@/shared/api/fetchData';
 import { fetchKanji } from './fetchKanji';
@@ -12,12 +11,12 @@ describe('fetchKanji', () => {
   beforeEach(() => mockFetch.mockReset());
 
   it('returns [] when language is null', async () => {
-    expect(await fetchKanji('中国', null)).toEqual([]);
+    expect(await fetchKanji('中国', null, 'ru')).toEqual([]);
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it('returns [] when no CJK chars in value', async () => {
-    expect(await fetchKanji('hello', 'jp')).toEqual([]);
+    expect(await fetchKanji('hello', 'jp', 'ru')).toEqual([]);
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
@@ -30,7 +29,7 @@ describe('fetchKanji', () => {
       traditional: null,
     });
 
-    const result = await fetchKanji('中', 'cn');
+    const result = await fetchKanji('中', 'cn', 'ru');
 
     expect(mockFetch).toHaveBeenCalledWith('hanzi/%E4%B8%AD?def_lang=ru');
     expect(result).toHaveLength(1);
@@ -49,7 +48,7 @@ describe('fetchKanji', () => {
       traditional: '國',
     });
 
-    await fetchKanji('中国', 'cn');
+    await fetchKanji('中国', 'cn', 'ru');
 
     expect(mockFetch).toHaveBeenCalledTimes(2);
     expect(mockFetch).toHaveBeenCalledWith('hanzi/%E4%B8%AD?def_lang=ru');
@@ -65,16 +64,22 @@ describe('fetchKanji', () => {
       traditional: null,
     });
 
-    const result = await fetchKanji('嗯', 'cn');
+    const result = await fetchKanji('嗯', 'cn', 'ru');
     expect(result[0].markers).toEqual([]);
   });
 
   it('cn branch skips characters whose fetch failed', async () => {
     mockFetch
-      .mockResolvedValueOnce({ character: '中', pinyin: 'zhōng', meanings: ['middle'], hsk_level: 1, traditional: null })
+      .mockResolvedValueOnce({
+        character: '中',
+        pinyin: 'zhōng',
+        meanings: ['middle'],
+        hsk_level: 1,
+        traditional: null,
+      })
       .mockRejectedValueOnce(new Error('404'));
 
-    const result = await fetchKanji('中国', 'cn');
+    const result = await fetchKanji('中国', 'cn', 'ru');
     expect(result).toHaveLength(1);
     expect(result[0].kanji).toBe('中');
   });
@@ -95,7 +100,7 @@ describe('fetchKanji', () => {
       jlpt_level: 'N5',
     });
 
-    const result = await fetchKanji('語', 'jp');
+    const result = await fetchKanji('語', 'jp', 'ru');
 
     expect(mockFetch).toHaveBeenCalledWith('kanji/%E8%AA%9E?def_lang=ru');
     expect(result).toHaveLength(1);

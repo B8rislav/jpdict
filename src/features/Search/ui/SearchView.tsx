@@ -4,7 +4,7 @@ import { SearchField, SearchOptionList, type SearchOptionItem } from 'designosla
 import { AnimatePresence, motion } from 'motion/react';
 import { type FC, type KeyboardEvent, useEffect, useRef, useState } from 'react';
 
-import { t } from '@/shared/i18n';
+import { useT } from '@/shared/i18n';
 import { DURATION, EASE, useReducedMotion } from '@/shared/motion';
 
 import styles from './SearchView.module.css';
@@ -35,6 +35,7 @@ export const SearchView: FC<SearchViewProps> = ({
   placeholder,
   isSubmitting,
 }) => {
+  const t = useT();
   const reduced = useReducedMotion();
   const inputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);

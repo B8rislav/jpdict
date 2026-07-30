@@ -6,17 +6,19 @@ import { useEffect } from 'react';
 import { useUnit } from 'effector-react';
 
 import { $savedWords, DictionaryPanel, loadDictionaryFx } from '@/features/Dictionary';
+import { $stats, fetchStatsFx } from '@/features/Review';
 import { AuthGate } from '@/features/Auth/AuthGate';
 import { $isAuthenticated } from '@/stores/auth';
-import { $userProfile } from '@/stores/userProfile';
-import { $stats, fetchStatsFx } from '@/stores/review';
-import { t } from '@/shared/i18n';
+
+import { useT } from '@/shared/i18n';
 import styles from './page.module.css';
+import { useProfile } from '@/shared/profile/context';
 
 export default function DictionaryPage() {
+  const t = useT();
   const savedWords = useUnit($savedWords);
   const isAuthenticated = useUnit($isAuthenticated);
-  const { uiLocale, selectedLanguage } = useUnit($userProfile);
+  const { uiLocale, selectedLanguage } = useProfile();
   const stats = useUnit($stats);
 
   useEffect(() => {

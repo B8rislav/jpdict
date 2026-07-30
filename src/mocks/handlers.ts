@@ -14,16 +14,34 @@ import { cnLexicon, jpLexicon, type LexiconEntry } from './fixtures';
  */
 
 const u = (path: string) => `${BACKEND_URL}${path}`;
-const jwtSecret = () => new TextEncoder().encode(process.env.JWT_SECRET);
 
-/** Mint a refresh token that actually verifies against JWT_SECRET in middleware.ts. */
+/**
+ * Mint a refresh token. Nothing on the frontend verifies its signature any more
+ * — the Next middleware that did was deleted along with `JWT_SECRET`, since it
+ * duplicated the backend's own check and forced the signing secret into a
+ * second repo. The value only has to look like a JWT and round-trip.
+ */
+const MOCK_SECRET = new TextEncoder().encode('mock-refresh-secret-not-verified-anywhere');
+
 async function mintRefreshToken(email: string): Promise<string> {
   return new SignJWT({ sub: email, email })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('30d')
-    .sign(jwtSecret());
+    .sign(MOCK_SECRET);
 }
+
+/** The signed-in user the mock backend serves from `/api/users/me`. */
+const mockUser = {
+  id: '00000000-0000-4000-8000-000000000001',
+  email: 'mock@user.dev',
+  name: 'Mock User',
+  language: 'jp',
+  ui_locale: 'ru',
+  show_furigana: true,
+  show_pinyin: true,
+  created_at: new Date('2026-01-01T00:00:00Z').toISOString(),
+};
 
 // ── Analyzer: longest-match segmentation over the demo lexicons ─────────────────
 
@@ -105,7 +123,9 @@ export const handlers: RequestHandler[] = [
     const refreshToken = await mintRefreshToken(email ?? 'mock@user.dev');
     return HttpResponse.json(
       { access_token: 'mock-access-token', token_type: 'bearer' },
-      { headers: { 'Set-Cookie': `refresh_token=${refreshToken}; Path=/; HttpOnly; SameSite=Lax` } },
+      {
+        headers: { 'Set-Cookie': `refresh_token=${refreshToken}; Path=/; HttpOnly; SameSite=Lax` },
+      },
     );
   }),
 
@@ -115,9 +135,24 @@ export const handlers: RequestHandler[] = [
   }),
 
   http.post(u('/api/auth/refresh'), () =>
-    // The cookie was already JOSE-verified by middleware; just hand back an access token.
     HttpResponse.json({ access_token: 'mock-access-token', token_type: 'bearer' }),
   ),
+
+  // ── Current user (identity + profile) ─────────────────────────────────────
+  http.get(u('/api/users/me'), ({ request }) =>
+    request.headers.get('Authorization')
+      ? HttpResponse.json(mockUser)
+      : HttpResponse.json({ detail: 'Unauthorized' }, { status: 401 }),
+  ),
+
+  http.patch(u('/api/users/me'), async ({ request }) => {
+    if (!request.headers.get('Authorization')) {
+      return HttpResponse.json({ detail: 'Unauthorized' }, { status: 401 });
+    }
+    // Mirrors the backend's exclude_unset semantics: only supplied keys change.
+    Object.assign(mockUser, (await request.json()) as Partial<typeof mockUser>);
+    return HttpResponse.json(mockUser);
+  }),
 
   // ── Analyze ───────────────────────────────────────────────────────────────
   http.post(u('/api/analyze'), async ({ request }) => {
@@ -209,9 +244,11 @@ export const handlers: RequestHandler[] = [
   }),
 
   // ── OpenRouter (optional; keeps AI overview offline) ─────────────────────────
-  http.post('https://openrouter.ai/api/v1/chat/completions', () =>
-    new HttpResponse(openRouterStream(), {
-      headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' },
-    }),
+  http.post(
+    'https://openrouter.ai/api/v1/chat/completions',
+    () =>
+      new HttpResponse(openRouterStream(), {
+        headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' },
+      }),
   ),
 ];

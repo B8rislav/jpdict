@@ -2,6 +2,7 @@ import { createEffect, createEvent, createStore } from 'effector';
 import { logEffectFailures } from '@/shared/utils/logEffectFailures';
 import { fetchWords, type WordsResponse } from '../api/fetchWords';
 import { type Word } from '@/shared/api/types';
+import { $userProfile } from '@/stores/userProfile';
 
 export const clearWords = createEvent();
 export const $words = createStore<Word[]>([]);
@@ -11,7 +12,7 @@ type FetchWordsFX = (params: {
   language: 'jp' | 'cn' | null;
 }) => Promise<WordsResponse | undefined>;
 export const fetchWordsFx = createEffect<FetchWordsFX>(async ({ value, language }) => {
-  return await fetchWords(value, language);
+  return await fetchWords(value, language, $userProfile.getState().uiLocale);
 });
 
 logEffectFailures(fetchWordsFx, 'words');

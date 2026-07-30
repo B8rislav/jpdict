@@ -307,7 +307,8 @@
     "meta_description": "Platform for studying Japanese and Chinese with morphological analysis and AI explanations",
     "meta_title_dict": "My Dictionary",
     "meta_title_study": "Study",
-    "meta_title_settings": "Settings"
+    "meta_title_settings": "Settings",
+    "inspector_pitch": "Pitch"
   },
   "dict_count": {
     "one": "word",

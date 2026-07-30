@@ -1,21 +1,39 @@
-import { createEffect, createEvent, createStore } from 'effector';
+import { createEffect, createEvent, createStore, sample } from 'effector';
 
-export interface AuthUser {
-  email: string;
-}
+import { type CurrentUser } from '@/shared/api/profile';
+import { type Language } from '@/shared/api/types';
+import { type Locale } from '@/shared/i18n';
 
-interface AuthState {
-  accessToken: string | null;
-  user: AuthUser | null;
-}
+/**
+ * Identity. The browser holds no token of its own: every backend call goes
+ * through the BFF, which authenticates with the httpOnly `refresh_token`
+ * cookie. "Am I signed in?" is answered by whether `/api/users/me` returns a
+ * user — which also supplies the email for the nav and the stored profile.
+ *
+ * This replaces a `$accessToken` that was fetched on every load, held in
+ * memory, never sent anywhere, and read only to compute a boolean.
+ */
+const $currentUser = createStore<CurrentUser | null>(null);
 
-const $auth = createStore<AuthState>({ accessToken: null, user: null });
+export const $isAuthenticated = $currentUser.map((user) => user !== null);
+export const $user = $currentUser;
 
-export const $isAuthenticated = $auth.map((s) => s.accessToken !== null);
-export const $user = $auth.map((s) => s.user);
-export const $accessToken = $auth.map((s) => s.accessToken);
+/**
+ * Whether the session lookup has come back yet. Gates auth-dependent UI so it
+ * doesn't flash a signed-out state during the first request — distinct from
+ * `$isAuthenticated`, which is false both before and after a negative answer.
+ */
+export const $sessionResolved = createStore(false);
 
 export const loggedOut = createEvent();
+
+/** Resolve the session. Returns null when signed out — that's not an error. */
+export const fetchCurrentUserFx = createEffect(async (): Promise<CurrentUser | null> => {
+  const res = await fetch('/api/users/me');
+  if (res.status === 401) return null;
+  if (!res.ok) throw new Error(`Session lookup failed: ${res.status}`);
+  return (await res.json()) as CurrentUser;
+});
 
 export const loginFx = createEffect(
   async ({ email, password }: { email: string; password: string }) => {
@@ -28,8 +46,7 @@ export const loginFx = createEffect(
       const err = await res.json().catch(() => ({}));
       throw new Error((err as { detail?: string }).detail ?? 'Login failed');
     }
-    const data = (await res.json()) as { access_token: string };
-    return { accessToken: data.access_token, user: { email } };
+    return res.json();
   },
 );
 
@@ -38,15 +55,19 @@ export const registerFx = createEffect(
     email,
     password,
     language,
+    uiLocale,
+    name,
   }: {
     email: string;
     password: string;
-    language: 'jp' | 'cn';
+    language: Language;
+    uiLocale: Locale;
+    name?: string;
   }) => {
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, language }),
+      body: JSON.stringify({ email, password, language, ui_locale: uiLocale, name }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -56,19 +77,16 @@ export const registerFx = createEffect(
   },
 );
 
-export const refreshFx = createEffect(async () => {
-  const res = await fetch('/api/auth/refresh', { method: 'POST' });
-  if (!res.ok) throw new Error('No session');
-  const data = (await res.json()) as { access_token: string };
-  return data.access_token;
-});
-
 export const logoutFx = createEffect(async () => {
   await fetch('/api/auth/logout', { method: 'POST' });
 });
 
-$auth
-  .on(loginFx.doneData, (_, payload) => payload)
-  .on(refreshFx.doneData, (state, accessToken) => ({ ...state, accessToken }))
-  .on(logoutFx.done, () => ({ accessToken: null, user: null }))
-  .on(loggedOut, () => ({ accessToken: null, user: null }));
+$currentUser.on(fetchCurrentUserFx.doneData, (_, user) => user).reset(logoutFx.done, loggedOut);
+
+// Resolved on any settled outcome — a failed lookup still answers the question
+// well enough to stop blocking the UI.
+$sessionResolved.on(fetchCurrentUserFx.finally, () => true);
+
+// Logging in proves a session exists but says nothing about who owns it — the
+// profile lives in Postgres. Pull the authoritative record straight after.
+sample({ clock: loginFx.done, target: fetchCurrentUserFx });

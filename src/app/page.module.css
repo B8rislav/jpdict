@@ -2,46 +2,20 @@
   padding: 40px 60px;
 }
 
-.nav {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.navDivider {
-  width: 1px;
-  height: 20px;
-  background: var(--g-color-line-generic);
-}
-
-.navSpacer {
-  flex: 1;
-}
-
-.navBtnWrap {
-  position: relative;
-  display: inline-flex;
-}
-
-.navPill {
-  position: absolute;
-  left: 6px;
-  right: 6px;
-  bottom: -5px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--accent-red);
-}
-
-.toggleRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .lists {
   display: flex;
   gap: 40px;
   align-items: flex-start;
+}
+
+/* Column tinting. Was inline `style={{ background: '#e4f1f9' }}` in page.tsx —
+   raw hex in JSX, bypassing the token system. */
+.sentenceColumn {
+  background: var(--column-bg-sentence);
+  border-radius: 16px;
+}
+
+.wordColumn {
+  background: var(--column-bg-word);
+  border-radius: 16px;
 }

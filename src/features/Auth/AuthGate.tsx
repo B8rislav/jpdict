@@ -1,15 +1,11 @@
 'use client';
 
-import { Text } from '@gravity-ui/uikit';
-import { Button } from 'designoslav';
 import { useUnit } from 'effector-react';
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useState } from 'react';
 
-import { $isAuthenticated, refreshFx } from '@/stores/auth';
+import { $isAuthenticated, $sessionResolved } from '@/stores/auth';
 import { AuthModal } from './AuthModal';
-import { t } from '@/shared/i18n';
-
-import styles from './AuthGate.module.css';
+import { AuthGateView } from './ui/AuthGateView';
 
 interface AuthGateProps {
   children: ReactNode;
@@ -18,24 +14,17 @@ interface AuthGateProps {
 
 export function AuthGate({ children, title }: AuthGateProps) {
   const isAuthenticated = useUnit($isAuthenticated);
-  const refreshPending = useUnit(refreshFx.pending);
+  const sessionResolved = useUnit($sessionResolved);
   const [authOpen, setAuthOpen] = useState(false);
 
-  useEffect(() => {
-    refreshFx();
-  }, []);
-
-  if (refreshPending) return null;
+  // The session is resolved once, by Providers. This used to fire its own
+  // `refreshFx()` on mount, racing the identical call in `page.tsx`.
+  if (!sessionResolved) return null;
 
   if (!isAuthenticated) {
     return (
       <>
-        <div className={styles.gate}>
-          <Text variant="subheader-2">{t('ui', 'auth_gate_prompt')} {title}</Text>
-          <Button variant="primary" size="l" onClick={() => setAuthOpen(true)}>
-            {t('ui', 'nav_login')}
-          </Button>
-        </div>
+        <AuthGateView title={title} onSignIn={() => setAuthOpen(true)} />
         <AuthModal open={authOpen} onOpenChange={setAuthOpen} />
       </>
     );

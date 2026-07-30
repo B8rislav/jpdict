@@ -1,29 +1,54 @@
 # State
 
-Effector is used throughout. Stores are split into global (`src/stores/`) and
-feature-local (`src/features/*/model/`).
+Effector is used throughout. Stores are split into genuinely cross-feature
+(`src/stores/`) and feature-local (`src/features/*/model/`).
+
+Two things are deliberately **not** effector state:
+
+- **The active locale** — React context (`src/shared/i18n/context.tsx`), read via
+  `useT()` / `useLocale()`.
+- **The active profile** — React context (`src/shared/profile/context.tsx`), read via
+  `useProfile()`.
+
+Both need to be correct during SSR, and effector stores can't carry per-request state
+through SSR safely (module-level singletons are shared across concurrent requests). They
+are seeded from a prop in `src/app/providers.tsx` and mirror the store after mount. See
+[ARCHITECTURE.md](ARCHITECTURE.md#why-effector-stores-are-never-written-on-the-server).
+
+Views may not import `effector`, `effector-react`, or `@/stores/*` — enforced by a
+whitelist in `eslint.config.mjs`, not by folder name.
 
 ## Global stores (`src/stores/`)
 
-### `$auth` → `$isAuthenticated`, `$user`, `$accessToken`
+### `$currentUser` → `$isAuthenticated`, `$user`, `$sessionResolved`
 
 File: `src/stores/auth.ts`
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `accessToken` | `string \| null` | Short-lived JWT; held in memory only |
-| `user` | `{ email } \| null` | Currently logged-in user |
+Holds a `CurrentUser | null` — identity plus profile, as returned by
+`GET /api/users/me`. The browser stores **no token**: the BFF authenticates with the
+httpOnly `refresh_token` cookie, so "signed in" means "that endpoint returned a user".
 
-**Derived:** `$isAuthenticated` (`accessToken !== null`), `$user`, `$accessToken`.
+**Derived:**
+- `$isAuthenticated` — `user !== null`
+- `$user` — the record itself (`id`, `email`, `name`, plus profile fields)
+- `$sessionResolved` — whether the lookup has come back yet. Distinct from
+  `$isAuthenticated`, which is false both *before* and *after* a negative answer;
+  `AuthGate` uses it so gated pages don't flash a signed-out state on load.
 
 **Writers:**
-- `loginFx.doneData` — sets both `accessToken` and `user`
-- `refreshFx.doneData` — updates `accessToken` (user unchanged)
-- `logoutFx.done` / `loggedOut` event — resets to null
+- `fetchCurrentUserFx.doneData` — replaces the user (a 401 resolves to `null`, which is
+  an ordinary answer, not an error)
+- `loginFx.done` — samples into `fetchCurrentUserFx`, since a token proves a session
+  exists but says nothing about who owns it
+- `logoutFx.done` / `loggedOut` — resets
 
-**Readers:** `src/app/page.tsx`, `src/shared/ui/AuthGate/AuthGate.tsx`, `src/features/Auth/AuthModal.tsx`
+**Readers:** `src/features/AppNav/AppNav.tsx`, `src/features/Auth/AuthGate.tsx`,
+`src/features/Search/Search.tsx`, `src/app/page.tsx`
 
-**Persistence:** none — lost on page reload; `refreshFx` re-hydrates from the httpOnly cookie on every mount
+**Persistence:** none in the client — re-resolved once per load by `Providers`. This
+replaced a `$accessToken` that was fetched on every load, never sent anywhere, and read
+only as a boolean; `refreshFx` also fired from two places and raced itself. Reloading
+while signed in used to blank the user's email, because `refreshFx` set only the token.
 
 ---
 
@@ -38,17 +63,43 @@ File: `src/stores/userProfile.ts`
 | `showPinyin` | `boolean` | `true` |
 | `uiLocale` | `'ru' \| 'en'` | `'ru'` |
 
-**Writers:** `setSelectedLanguage`, `setShowFurigana`, `setShowPinyin`, `setUiLocale` events; `loadUserProfile` event (reads localStorage on mount)
+**Writers:** `setSelectedLanguage`, `setShowFurigana`, `setShowPinyin`, `setUiLocale`
+events; `profileHydrated` (seeds from the server-resolved profile, once, before first
+paint); `fetchCurrentUserFx.doneData` (a signed-in user's DB profile overrides whatever
+the cookie carried into this device's render).
 
-**Readers:** `src/app/page.tsx`, every feature container via `useUnit($userProfile)`
+**Readers:** components read the profile from **context** (`useProfile()`), not from this
+store — the store is the mutation surface. `Providers` is the one subscriber, bridging
+store → context after hydration.
 
-**Persistence:** `localStorage` key `userProfile`. Every update is saved synchronously via `$userProfile.updates.watch(saveToLocalStorage)`. Also watches `uiLocale` to call `setLocale()` on the i18n module.
+**Persistence:** two tiers.
+
+- **Postgres** (`users` table) — durable, authoritative, syncs across devices. Written by
+  `persistProfileFx` → `PATCH /api/users/me`, only when authenticated, and only the
+  fields that changed.
+- **`profile` cookie** — a cache of the above, written on every change so the *next*
+  request can render the right language server-side. Not httpOnly: it holds no secret,
+  and signed-out visitors have no row to PATCH.
+
+Resolution order, implemented in `resolveProfile` (`src/shared/api/profile.ts`):
+
+```
+DB (authenticated)  →  cookie  →  Accept-Language  →  defaults
+   authoritative       fast/SSR   first visit only    ru / null
+```
+
+`Accept-Language` is consulted **only** for a visitor with no stored preference — a
+Russian speaker on an English OS must not be forced into an English UI.
+
+**Not localStorage.** It used to be, which meant the server couldn't read it: SSR always
+rendered Russian defaults, then localStorage flipped the UI after hydration — a visible
+flash plus a React hydration mismatch.
 
 ---
 
 ### `$queue` → `$current`, `$stats` (review / SRS)
 
-File: `src/stores/review.ts`
+File: `src/features/Review/model/index.ts` (re-exported from `src/features/Review`)
 
 | Store | Type | Description |
 |-------|------|-------------|
@@ -68,6 +119,10 @@ File: `src/stores/review.ts`
 
 **Readers:** `src/app/study/page.tsx`, `src/app/dictionary/page.tsx` (the "due" badge)
 
+Moved out of `src/stores/` because only the Review feature uses it, and while it lived
+there it imported from `src/features/Review/api` — a top-level module depending on a
+feature slice.
+
 **Persistence:** none — server is the source of truth; SM-2 + learning-step scheduling and per-grade interval projection (`projectedIntervals`, in seconds) all come from the backend
 
 ---
@@ -82,7 +137,7 @@ Holds the array of `Word` objects returned by the last word search.
 
 **Writers:** `fetchWordsFx.doneData`, `clearWords` event
 
-**Readers:** `src/app/page.tsx` via `useList($words, …)`
+**Readers:** `src/app/page.tsx` via `useUnit($words)`
 
 **Persistence:** none
 
@@ -96,7 +151,7 @@ Holds the `Kanji` object returned by the last kanji lookup (single character).
 
 **Writers:** `fetchKanjiFx.doneData`, `clearKanji` event
 
-**Readers:** `src/app/page.tsx` via `useList($kanji, …)`
+**Readers:** `src/app/page.tsx` via `useUnit($kanji)`
 
 **Persistence:** none
 
@@ -110,7 +165,7 @@ Holds the array of parsed `SentenceToken[]` groups from the last sentence search
 
 **Writers:** `fetchSentenceFx.doneData`, `clearSentences` event
 
-**Readers:** `src/app/page.tsx` via `useList($sentences, …)`
+**Readers:** `src/app/page.tsx` via `useUnit($sentences)`
 
 **Persistence:** none
 

@@ -1,16 +1,13 @@
 'use client';
 
-import { Text } from '@gravity-ui/uikit';
-import { Button } from 'designoslav';
 import { useUnit } from 'effector-react';
 import { type FC } from 'react';
 
+import { type SavedWord } from '@/shared/api/types';
+import { nextStatus } from './constants';
 import { $savedWords, removeWordFx, toggleSuspendFx, updateStatusFx } from './model';
 import { useDictionaryFilters } from './model/useDictionaryFilters';
-import { HSK_LEVELS, JLPT_LEVELS, MASTERY_CYCLE, nextStatus } from './constants';
-import { t } from '@/shared/i18n';
-import { DictionaryWordCard } from './DictionaryWordCard';
-import styles from './DictionaryPanel.module.css';
+import { DictionaryPanelView } from './ui/DictionaryPanelView';
 
 export const DictionaryPanel: FC = () => {
   const savedWords = useUnit($savedWords);
@@ -18,79 +15,22 @@ export const DictionaryPanel: FC = () => {
     useDictionaryFilters(savedWords);
 
   return (
-    <div className={styles.panel}>
-      <div className={styles.filters}>
-        {(hasJlpt || hasHsk) && (
-          <div className={styles.filterRow}>
-            <Text className={styles.filterLabel} variant="caption-2">
-              {t('ui', 'dict_filter_level')}
-            </Text>
-            {hasJlpt &&
-              JLPT_LEVELS.map((lvl) => (
-                <Button
-                  key={lvl}
-                  size="m"
-                  variant={levelFilter === lvl ? 'primary' : 'secondary'}
-                  onClick={() => toggleLevel(lvl)}
-                >
-                  {lvl}
-                </Button>
-              ))}
-            {hasHsk &&
-              HSK_LEVELS.map((lvl) => (
-                <Button
-                  key={lvl}
-                  size="m"
-                  variant={levelFilter === lvl ? 'primary' : 'secondary'}
-                  onClick={() => toggleLevel(lvl)}
-                >
-                  {lvl}
-                </Button>
-              ))}
-          </div>
-        )}
-
-        <div className={styles.filterRow}>
-          <Text className={styles.filterLabel} variant="caption-2">
-            {t('ui', 'dict_filter_status')}
-          </Text>
-          {MASTERY_CYCLE.map((s) => (
-            <Button
-              key={s}
-              size="m"
-              variant={statusFilter === s ? 'primary' : 'secondary'}
-              onClick={() => toggleStatus(s)}
-            >
-              {t('mastery', s)}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {filtered.length === 0 ? (
-        <div className={styles.empty}>
-          <Text variant="body-2">
-            {t('ui', savedWords.length === 0 ? 'dict_empty' : 'dict_no_filter')}
-          </Text>
-        </div>
-      ) : (
-        <ul className={styles.list}>
-          {filtered.map((word) => (
-            <li key={word.id}>
-              <DictionaryWordCard
-                word={word}
-                onDelete={() => word.id && removeWordFx(word.id)}
-                onAdvanceStatus={() =>
-                  word.id && updateStatusFx({ id: word.id, status: nextStatus(word.status) })
-                }
-                onToggleSuspend={() =>
-                  word.id && toggleSuspendFx({ id: word.id, suspend: !word.suspended })
-                }
-              />
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <DictionaryPanelView
+      words={filtered}
+      totalCount={savedWords.length}
+      levelFilter={levelFilter}
+      statusFilter={statusFilter}
+      hasJlpt={hasJlpt}
+      hasHsk={hasHsk}
+      onToggleLevel={toggleLevel}
+      onToggleStatus={toggleStatus}
+      onDelete={(word: SavedWord) => word.id && removeWordFx(word.id)}
+      onAdvanceStatus={(word: SavedWord) =>
+        word.id && updateStatusFx({ id: word.id, status: nextStatus(word.status) })
+      }
+      onToggleSuspend={(word: SavedWord) =>
+        word.id && toggleSuspendFx({ id: word.id, suspend: !word.suspended })
+      }
+    />
   );
 };

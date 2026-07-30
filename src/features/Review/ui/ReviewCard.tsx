@@ -9,7 +9,7 @@ import { Card } from '@/shared/ui/Card';
 import { MarkerList } from '@/shared/ui/MarkerList/MarkerList';
 import { DefinitionList } from '@/shared/ui/DefinitionList/DefinitionList';
 import { DURATION, EASE, TAP_SCALE, useReducedMotion } from '@/shared/motion';
-import { t } from '@/shared/i18n';
+import { useT } from '@/shared/i18n';
 import { type ReviewCard as ReviewCardData } from '../api/types';
 import { GRADES, GRADE_BY_KEY, GRADE_VARIANT, type Grade } from '../constants';
 import { formatInterval } from '../lib/srs';
@@ -39,7 +39,13 @@ const DRAG_THRESHOLD = 120;
  * no stale `revealed`/animation state to desync from the data, even when the
  * keyboard spams Space + 1–4.
  */
-export const ReviewCard: FC<Props> = ({ card, readingLabel, onGrade, initiallyRevealed = false }) => {
+export const ReviewCard: FC<Props> = ({
+  card,
+  readingLabel,
+  onGrade,
+  initiallyRevealed = false,
+}) => {
+  const t = useT();
   const reduced = useReducedMotion();
   const [revealed, setRevealed] = useState(initiallyRevealed);
   const [exitGrade, setExitGrade] = useState<Grade | null>(null);
@@ -168,7 +174,7 @@ export const ReviewCard: FC<Props> = ({ card, readingLabel, onGrade, initiallyRe
                       <span className={styles.gradeLabel}>
                         {t('review', g)}
                         <span className={styles.interval}>
-                          {formatInterval(card.projectedIntervals[g])}
+                          {formatInterval(card.projectedIntervals[g], t)}
                         </span>
                       </span>
                     </Button>

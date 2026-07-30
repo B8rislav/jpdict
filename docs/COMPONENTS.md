@@ -48,6 +48,6 @@ Storybook stories without mocking.
 | `WordInspector` | `WordInspector/WordInspector.tsx` | `$inspectedWord`, example sentence effect |
 | `DictionaryPanel` | `Dictionary/DictionaryPanel.tsx` | `$savedWords`, dictionary effects (incl. `toggleSuspendFx`) |
 | `AuthModal` | `Auth/AuthModal.tsx` | `loginFx`, `registerFx` |
-| `AuthGate` (shared) | `shared/ui/AuthGate/AuthGate.tsx` | `$isAuthenticated` |
+| `AuthGate` | `features/Auth/AuthGate.tsx` | `$isAuthenticated`, `$sessionResolved` |
 | Home page | `app/page.tsx` | all global stores |
 | Study page | `app/study/page.tsx` | `$current`, `$queue`, `$stats`, review effects; `$userProfile`, `$isAuthenticated` |

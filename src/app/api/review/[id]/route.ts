@@ -1,27 +1,25 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { BACKEND_URL } from '@/shared/api/backend';
-import { requireAccessToken } from '@/shared/api/serverAuth';
-import { toReviewResult } from '@/features/Review/api/mappers';
+import { toReviewResult } from '@/shared/api/mappers';
 import { type BackendReviewResult } from '@/features/Review/api/types';
+import { backendFetch, cacheAccessToken } from '@/shared/api/serverAuth';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireAccessToken(req);
-  if (auth.error) return auth.error;
-
   const { id } = await params;
   const body = await req.json();
 
-  const upstream = await fetch(`${BACKEND_URL}/api/review/${id}`, {
+  const call = await backendFetch(req, `/api/review/${id}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${auth.token}`,
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ grade: body.grade }),
   });
-  if (!upstream.ok) {
-    return NextResponse.json(await upstream.json(), { status: upstream.status });
+  if (call.error) return call.error;
+
+  if (!call.upstream.ok) {
+    return NextResponse.json(await call.upstream.json().catch(() => ({})), {
+      status: call.upstream.status,
+    });
   }
-  const result = (await upstream.json()) as BackendReviewResult;
-  return NextResponse.json(toReviewResult(result));
+
+  const result = (await call.upstream.json()) as BackendReviewResult;
+  return cacheAccessToken(NextResponse.json(toReviewResult(result)), call);
 }

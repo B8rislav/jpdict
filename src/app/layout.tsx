@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { headers } from 'next/headers';
 import { Noto_Sans_JP, Noto_Sans_SC } from 'next/font/google';
 
 import './styles/globals.css';
@@ -7,9 +6,9 @@ import '@gravity-ui/uikit/styles/fonts.css';
 import '@gravity-ui/uikit/styles/styles.css';
 import 'designoslav/tokens.css';
 import { Providers } from './providers';
-import { HtmlLangSync } from './HtmlLangSync';
 import { JsonLd } from './ui/JsonLd';
-import { detectLocale, tServer } from '@/shared/i18n/server';
+import { readProfile } from '@/shared/api/serverProfile';
+import { tServer } from '@/shared/i18n/server';
 
 const notoSansJP = Noto_Sans_JP({
   subsets: ['latin'],
@@ -28,8 +27,7 @@ const notoSansSC = Noto_Sans_SC({
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const h = await headers();
-  const locale = detectLocale(h.get('accept-language'));
+  const { uiLocale: locale } = await readProfile();
   const title = tServer(locale, 'ui', 'meta_site_title');
   const description = tServer(locale, 'ui', 'meta_description');
 
@@ -40,9 +38,11 @@ export async function generateMetadata(): Promise<Metadata> {
       template: '%s · JapChin Dict',
     },
     description,
+    // No `languages` map: both locales are served from `/`, so declaring them
+    // as alternates claimed a per-locale URL that doesn't exist. Reinstate it
+    // if locale ever moves into the path.
     alternates: {
       canonical: '/',
-      languages: { ru: '/', en: '/', 'x-default': '/' },
     },
     openGraph: {
       title,
@@ -74,20 +74,28 @@ const websiteJsonLd = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const profile = await readProfile();
+
   return (
-    <Providers>
-      <html className={`${notoSansJP.variable} ${notoSansSC.variable}`}>
-        <body>
-          <HtmlLangSync />
+    // `lang` and `data-lang` are set here, server-side. They used to be applied
+    // by an effect after hydration, so the first paint always claimed the
+    // wrong language — and `<html>` sat *inside* the client Providers tree.
+    <html
+      lang={profile.uiLocale}
+      data-lang={profile.selectedLanguage ?? undefined}
+      className={`${notoSansJP.variable} ${notoSansSC.variable}`}
+    >
+      <body>
+        <Providers initialProfile={profile}>
           <JsonLd data={websiteJsonLd} />
           {children}
-        </body>
-      </html>
-    </Providers>
+        </Providers>
+      </body>
+    </html>
   );
 }

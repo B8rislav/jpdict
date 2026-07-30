@@ -1,21 +1,22 @@
 'use client';
 
 import { type FC, useState } from 'react';
-import { useUnit } from 'effector-react';
 import { type EntryListItem } from 'designoslav';
 import { type SentenceResult } from './model';
 import { fetchAIOverview } from './api/fetchAIOverview';
 import { posToEntry } from './lib/posToEntry';
 import { fetchWordsFx, clearWords } from '../WordCard';
 import { clearKanji } from '../KanjiCard/model';
-import { $userProfile } from '@/stores/userProfile';
-import { t } from '@/shared/i18n';
+import { useLocale, useT } from '@/shared/i18n';
 import { SentenceCardView, type StripToken } from './ui/SentenceCardView';
+import { useProfile } from '@/shared/profile/context';
 
 const tokenId = (index: number) => `t${index}`;
 
 export const SentenceCard: FC<SentenceResult> = ({ sentence, tokens }) => {
-  const { selectedLanguage, showFurigana, showPinyin } = useUnit($userProfile);
+  const t = useT();
+  const locale = useLocale();
+  const { selectedLanguage, showFurigana, showPinyin } = useProfile();
   const [selectedId, setSelectedId] = useState<string>();
 
   const showReading = selectedLanguage === 'cn' ? showPinyin : showFurigana;
@@ -65,7 +66,7 @@ export const SentenceCard: FC<SentenceResult> = ({ sentence, tokens }) => {
       onSelect={handleSelect}
       sentence={sentence}
       tokens={tokens}
-      onFetchOverview={(onChunk) => fetchAIOverview(sentence, tokens, onChunk)}
+      onFetchOverview={(onChunk) => fetchAIOverview(sentence, tokens, onChunk, locale)}
     />
   );
 };

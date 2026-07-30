@@ -7,7 +7,7 @@ import { type FC } from 'react';
 
 import { type SavedWord } from '@/shared/api/types';
 import { MASTERY_THEME } from '../constants';
-import { t } from '@/shared/i18n';
+import { useT } from '@/shared/i18n';
 import styles from './DictionaryWordCard.module.css';
 
 type Props = {
@@ -23,6 +23,7 @@ export const DictionaryWordCard: FC<Props> = ({
   onAdvanceStatus,
   onToggleSuspend,
 }) => {
+  const t = useT();
   const handleStatusClick = () => onAdvanceStatus();
   const handleDelete = () => onDelete();
 

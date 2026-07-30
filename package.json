@@ -9,6 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
+    "check:stories": "node scripts/check-view-stories.mjs",
+    "verify": "npm run lint && npm run check:stories && npx tsc --noEmit && npm test",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json,md}\"",
     "test": "vitest run --project unit",
@@ -18,6 +20,7 @@
     "build:storybook": "storybook build"
   },
   "dependencies": {
+    "@gravity-ui/uikit": "^7.5.1",
     "designoslav": "git+https://github.com/B8rislav/designoslav.git",
     "effector": "^23.3.0",
     "effector-react": "^23.3.0",
@@ -32,7 +35,6 @@
   "devDependencies": {
     "@chromatic-com/storybook": "^4.0.0",
     "@eslint/eslintrc": "^3",
-    "@gravity-ui/uikit": "^7.5.1",
     "@storybook/addon-a11y": "^9.0.12",
     "@storybook/addon-docs": "^9.0.12",
     "@storybook/addon-onboarding": "^9.0.12",

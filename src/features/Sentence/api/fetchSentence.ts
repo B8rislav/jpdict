@@ -1,5 +1,5 @@
 import type { SentenceToken } from '@/shared/api/types';
-import { getLocale } from '@/shared/i18n';
+import { type Locale } from '@/shared/i18n';
 
 export type { SentenceToken };
 
@@ -11,9 +11,10 @@ export type SentenceResponse = {
 export async function fetchSentence(
   value: string,
   language: 'jp' | 'cn',
+  defLang: Locale,
 ): Promise<SentenceResponse> {
   const response = await fetch(
-    `/api/parse-sentence?sentence=${encodeURIComponent(value)}&language=${language}&def_lang=${getLocale()}`,
+    `/api/parse-sentence?sentence=${encodeURIComponent(value)}&language=${language}&def_lang=${defLang}`,
     { cache: 'no-store' },
   );
 

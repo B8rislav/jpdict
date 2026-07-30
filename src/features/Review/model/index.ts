@@ -1,16 +1,10 @@
 import { createEffect, createEvent, createStore, sample } from 'effector';
 
-import {
-  fetchQueue,
-  fetchStats,
-  gradeCard,
-  suspendCard,
-  unsuspendCard,
-} from '@/features/Review/api';
-import { type ReviewCard, type ReviewResult, type ReviewStats } from '@/features/Review/api/types';
-import { type Grade } from '@/features/Review/constants';
-import { $isAuthenticated } from './auth';
-import { $userProfile } from './userProfile';
+import { fetchQueue, fetchStats, gradeCard, suspendCard, unsuspendCard } from '../api';
+import { type ReviewCard, type ReviewResult, type ReviewStats } from '../api/types';
+import { type Grade } from '../constants';
+import { $isAuthenticated } from '@/stores/auth';
+import { $userProfile } from '@/stores/userProfile';
 
 export const $queue = createStore<ReviewCard[]>([]);
 /** The card at the head of the queue, or null when the session is drained. */

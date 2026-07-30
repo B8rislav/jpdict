@@ -2,10 +2,14 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { expect, userEvent } from 'storybook/test';
 import type { EntryListItem } from 'designoslav';
-import { SentenceCardView, type StripToken } from './ui/SentenceCardView';
-import { posToEntry } from './lib/posToEntry';
+import { SentenceCardView, type StripToken } from './SentenceCardView';
+import { posToEntry } from '../lib/posToEntry';
 import type { SentenceToken } from '@/shared/api/types';
-import { t } from '@/shared/i18n';
+import { createTranslate } from '@/shared/i18n';
+
+// Stories render views directly, outside the LocaleProvider, so they bind a
+// translator explicitly instead of reading one from context.
+const t = createTranslate('ru');
 
 const jpTokens: SentenceToken[] = [
   {
@@ -158,7 +162,7 @@ function Controlled({
 }
 
 const meta: Meta<typeof SentenceCardView> = {
-  title: 'features/SentenceCard',
+  title: 'features/SentenceCardView',
   component: SentenceCardView,
   decorators: [
     (Story) => (

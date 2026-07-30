@@ -2,21 +2,18 @@
 
 import { useUnit } from 'effector-react';
 import { type Language } from '@/shared/api/types';
-import {
-  $userProfile,
-  setSelectedLanguage,
-  setShowFurigana,
-  setShowPinyin,
-} from '@/stores/userProfile';
+import { setSelectedLanguage, setShowFurigana, setShowPinyin } from '@/stores/userProfile';
 import { $searchHistory, clearHistoryFx } from '@/features/SearchHistory/model';
 import { Switch, Text } from '@gravity-ui/uikit';
 import { Button } from 'designoslav';
 import Link from 'next/link';
-import { t } from '@/shared/i18n';
+import { useT } from '@/shared/i18n';
 import styles from './page.module.css';
+import { useProfile } from '@/shared/profile/context';
 
 export default function Settings() {
-  const { selectedLanguage, showFurigana, showPinyin } = useUnit($userProfile);
+  const t = useT();
+  const { selectedLanguage, showFurigana, showPinyin } = useProfile();
   const searchHistory = useUnit($searchHistory);
 
   return (
@@ -59,7 +56,9 @@ export default function Settings() {
 
       <div className={styles.section}>
         <Text variant="subheader-2">{t('ui', 'settings_history_section')}</Text>
-        <Text variant="body-2">{searchHistory.length} {t('ui', 'settings_history_count')}</Text>
+        <Text variant="body-2">
+          {searchHistory.length} {t('ui', 'settings_history_count')}
+        </Text>
         <Button variant="accent" onClick={() => clearHistoryFx()}>
           {t('ui', 'settings_clear_history')}
         </Button>

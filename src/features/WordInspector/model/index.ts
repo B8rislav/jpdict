@@ -3,6 +3,7 @@ import { type Kanji, type Word } from '@/shared/api/types';
 import { fetchWordsFx } from '../../WordCard/model';
 import { fetchKanji } from '@/features/KanjiCard/api/fetchKanji';
 import { fetchExampleSentences, type ReibunEntry } from '../api/fetchExampleSentences';
+import { $userProfile } from '@/stores/userProfile';
 
 export const clearInspectedWord = createEvent();
 
@@ -16,7 +17,7 @@ sample({
 
 export const fetchInspectorKanjiFx = createEffect(
   async ({ value, language }: { value: string; language: 'jp' | 'cn' | null }) =>
-    fetchKanji(value, language),
+    fetchKanji(value, language, $userProfile.getState().uiLocale),
 );
 
 export const $inspectorKanji = createStore<Kanji[]>([])
@@ -31,7 +32,7 @@ sample({
 });
 
 export const fetchExampleSentencesFx = createEffect(async (wordId: string) => {
-  return await fetchExampleSentences(wordId);
+  return await fetchExampleSentences(wordId, $userProfile.getState().uiLocale);
 });
 
 export const $exampleSentences = createStore<ReibunEntry[]>([])

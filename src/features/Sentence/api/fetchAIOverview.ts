@@ -1,14 +1,17 @@
 import { type SentenceToken } from '@/shared/api/types';
+import { type Locale } from '@/shared/i18n';
 
 export async function fetchAIOverview(
   sentence: string,
   tokens: SentenceToken[],
   onChunk: (chunk: string) => void,
+  // The explanation is UI copy, so it follows the interface language.
+  locale: Locale,
 ): Promise<void> {
   const response = await fetch('/api/ai-overview', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sentence, tokens }),
+    body: JSON.stringify({ sentence, tokens, locale }),
   });
 
   if (!response.ok || !response.body) {

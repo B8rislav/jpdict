@@ -1,46 +1,33 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { BACKEND_URL } from '@/shared/api/backend';
-import { requireAccessToken } from '@/shared/api/serverAuth';
+import { backendFetch, cacheAccessToken } from '@/shared/api/serverAuth';
 
 export async function GET(req: NextRequest) {
-  const auth = await requireAccessToken(req);
-  if (auth.error) return auth.error;
-
   const { searchParams } = new URL(req.url);
-  const upstream = await fetch(`${BACKEND_URL}/api/history?${searchParams.toString()}`, {
-    headers: { Authorization: `Bearer ${auth.token}` },
-  });
 
-  const data = await upstream.json();
-  return NextResponse.json(data, { status: upstream.status });
+  const call = await backendFetch(req, `/api/history?${searchParams.toString()}`);
+  if (call.error) return call.error;
+
+  const data = await call.upstream.json();
+  return cacheAccessToken(NextResponse.json(data, { status: call.upstream.status }), call);
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await requireAccessToken(req);
-  if (auth.error) return auth.error;
-
   const body = await req.json();
-  const upstream = await fetch(`${BACKEND_URL}/api/history`, {
+
+  const call = await backendFetch(req, '/api/history', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${auth.token}`,
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
+  if (call.error) return call.error;
 
-  const data = await upstream.json();
-  return NextResponse.json(data, { status: upstream.status });
+  const data = await call.upstream.json();
+  return cacheAccessToken(NextResponse.json(data, { status: call.upstream.status }), call);
 }
 
 export async function DELETE(req: NextRequest) {
-  const auth = await requireAccessToken(req);
-  if (auth.error) return auth.error;
+  const call = await backendFetch(req, '/api/history', { method: 'DELETE' });
+  if (call.error) return call.error;
 
-  await fetch(`${BACKEND_URL}/api/history`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${auth.token}` },
-  });
-
-  return new NextResponse(null, { status: 204 });
+  return cacheAccessToken(new NextResponse(null, { status: 204 }), call);
 }

@@ -2,6 +2,7 @@ import { createEffect, createEvent, createStore } from 'effector';
 import { logEffectFailures } from '@/shared/utils/logEffectFailures';
 import { fetchKanji, type KanjiResponse } from '../api/fetchKanji';
 import { type Kanji } from '@/shared/api/types';
+import { $userProfile } from '@/stores/userProfile';
 
 export const clearKanji = createEvent();
 export const $kanji = createStore<Kanji[]>([]);
@@ -11,7 +12,7 @@ type FetchKanjiFX = (params: {
   language: 'jp' | 'cn' | null;
 }) => Promise<KanjiResponse | undefined>;
 export const fetchKanjiFx = createEffect<FetchKanjiFX>(async ({ value, language }) => {
-  return await fetchKanji(value, language);
+  return await fetchKanji(value, language, $userProfile.getState().uiLocale);
 });
 
 logEffectFailures(fetchKanjiFx, 'kanji');

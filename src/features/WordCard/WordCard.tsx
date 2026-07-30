@@ -3,14 +3,15 @@
 import { type FC } from 'react';
 import { useUnit } from 'effector-react';
 import { type Word } from '@/shared/api/types';
-import { $userProfile } from '@/stores/userProfile';
 import { $savedWords, addWordFx } from '@/features/Dictionary';
 import { WordCardView } from './ui/WordCardView';
-import { t } from '@/shared/i18n';
+import { useT } from '@/shared/i18n';
+import { useProfile } from '@/shared/profile/context';
 
 export const WordCard: FC<Word> = (props) => {
+  const t = useT();
   const { kanji_full, hiragana_full } = props;
-  const selectedLanguage = useUnit($userProfile).selectedLanguage;
+  const selectedLanguage = useProfile().selectedLanguage;
   const savedWords = useUnit($savedWords);
   const expression = kanji_full ?? hiragana_full;
   const isSaved = Boolean(

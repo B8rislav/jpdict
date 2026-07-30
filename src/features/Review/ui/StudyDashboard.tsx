@@ -7,7 +7,7 @@ import { type FC } from 'react';
 
 import { DURATION, EASE, TAP_SCALE, useReducedMotion } from '@/shared/motion';
 import { CountUp } from '@/shared/ui/CountUp';
-import { t } from '@/shared/i18n';
+import { useT } from '@/shared/i18n';
 import { type ReviewStats } from '../api/types';
 import styles from './StudyDashboard.module.css';
 
@@ -17,6 +17,7 @@ type Props = {
 };
 
 export const StudyDashboard: FC<Props> = ({ stats, onStart }) => {
+  const t = useT();
   const reduced = useReducedMotion();
   const due = stats?.due ?? 0;
   const newCount = stats?.new ?? 0;
@@ -58,7 +59,9 @@ export const StudyDashboard: FC<Props> = ({ stats, onStart }) => {
           // One-shot "breathe" after the counters settle, inviting the click.
           initial={reduced ? false : { scale: 1 }}
           animate={reduced ? undefined : { scale: [1, 1.05, 1] }}
-          transition={reduced ? { duration: 0 } : { duration: 0.7, ease: EASE, delay: DURATION.slow }}
+          transition={
+            reduced ? { duration: 0 } : { duration: 0.7, ease: EASE, delay: DURATION.slow }
+          }
           whileHover={reduced ? undefined : { scale: 1.02 }}
           whileTap={reduced ? undefined : { scale: TAP_SCALE }}
         >

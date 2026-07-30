@@ -7,7 +7,7 @@ import Markdown from 'react-markdown';
 import { type SentenceToken } from '@/shared/api/types';
 import { DURATION, EASE, useReducedMotion } from '@/shared/motion';
 import { SENTENCE_PREVIEW_LENGTH } from '../constants';
-import { t } from '@/shared/i18n';
+import { useT } from '@/shared/i18n';
 
 interface AIOverviewAccordionProps {
   sentence: string;
@@ -20,6 +20,7 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
   tokens,
   onFetchOverview,
 }) => {
+  const t = useT();
   const reduced = useReducedMotion();
   const [isExpanded, setIsExpanded] = useState(false);
   const [overview, setOverview] = useState<string | null>(null);
@@ -94,35 +95,38 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
                   <Markdown>{overview}</Markdown>
                 </div>
               ) : isLoading ? (
-            <div className={styles.loadingContainer}>
-              <div className={styles.spinner} />
-              <Text variant="body-2" className={styles.loadingText}>
-                {t('ui', 'ai_overview_loading')}
-              </Text>
-            </div>
-          ) : error ? (
-            <div className={styles.errorContainer}>
-              <Text variant="body-2" color="danger">
-                {t('ui', 'ai_overview_error_prefix')} {error}
-              </Text>
-              <Button
-                variant="secondary"
-                size="m"
-                onClick={fetchOverview}
-                className={styles.retryButton}
-              >
-                {t('ui', 'ai_overview_retry')}
-              </Button>
-            </div>
-          ) : (
-            <div className={styles.emptyState}>
-              <Text variant="body-2">
-                {t('ui', 'ai_overview_prompt')}
-              </Text>
-              <Button variant="primary" size="m" onClick={fetchOverview} className={styles.fetchButton}>
-                {t('ui', 'ai_overview_fetch')}
-              </Button>
-            </div>
+                <div className={styles.loadingContainer}>
+                  <div className={styles.spinner} />
+                  <Text variant="body-2" className={styles.loadingText}>
+                    {t('ui', 'ai_overview_loading')}
+                  </Text>
+                </div>
+              ) : error ? (
+                <div className={styles.errorContainer}>
+                  <Text variant="body-2" color="danger">
+                    {t('ui', 'ai_overview_error_prefix')} {error}
+                  </Text>
+                  <Button
+                    variant="secondary"
+                    size="m"
+                    onClick={fetchOverview}
+                    className={styles.retryButton}
+                  >
+                    {t('ui', 'ai_overview_retry')}
+                  </Button>
+                </div>
+              ) : (
+                <div className={styles.emptyState}>
+                  <Text variant="body-2">{t('ui', 'ai_overview_prompt')}</Text>
+                  <Button
+                    variant="primary"
+                    size="m"
+                    onClick={fetchOverview}
+                    className={styles.fetchButton}
+                  >
+                    {t('ui', 'ai_overview_fetch')}
+                  </Button>
+                </div>
               )}
             </motion.div>
           </motion.div>

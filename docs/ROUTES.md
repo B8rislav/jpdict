@@ -20,7 +20,9 @@ Page routes under `src/app/`. All pages are Client Components (`'use client'`).
 
 ## Notes
 
-- There is no per-route auth guard at the page level. The middleware only guards
-  `/api/dictionary/*`, `/api/history/*`, and `/api/review/*` (the BFF routes). Page-level
-  auth awareness is handled by `$isAuthenticated` store state and the `AuthGate` component.
+- There is no per-route auth guard at the page level, and no Next.js middleware. The
+  protected BFF routes (`/api/dictionary/*`, `/api/history/*`, `/api/review/*`,
+  `/api/users/me`) each resolve auth themselves and return their own 401 — see
+  [AUTH.md](AUTH.md#no-middleware). Page-level auth awareness comes from
+  `$isAuthenticated` / `$sessionResolved` and the `AuthGate` component.
 - The `/settings` page exists but is minimal; no BFF calls at time of writing.
