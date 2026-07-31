@@ -19,6 +19,7 @@ const EXEMPT = new Set([
   'src/app/ui/JsonLd.tsx', // renders a <script> tag, no visual output
   'src/app/ui/ThemeProvider.tsx', // pure provider
   'src/shared/ui/Pressable/Pressable.tsx', // behaviour-only wrapper
+  'src/features/AppNav/ui/GearIcon.tsx', // a bare <svg> glyph, covered by AppNavView
 ]);
 
 function* walk(dir) {

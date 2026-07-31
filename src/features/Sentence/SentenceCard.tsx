@@ -1,9 +1,10 @@
 'use client';
 
-import { type FC, useState } from 'react';
+import { type FC, useCallback, useEffect, useState } from 'react';
 import { type EntryListItem } from 'designoslav';
 import { type SentenceResult } from './model';
 import { fetchAIOverview } from './api/fetchAIOverview';
+import { firstContentTokenIndex } from './lib/firstContentToken';
 import { posToEntry } from './lib/posToEntry';
 import { fetchWordsFx, clearWords } from '../WordCard';
 import { clearKanji } from '../KanjiCard/model';
@@ -41,18 +42,30 @@ export const SentenceCard: FC<SentenceResult> = ({ sentence, tokens }) => {
     pos: posToEntry(token, selectedLanguage),
   }));
 
-  const handleSelect = (id: string) => {
-    setSelectedId(id);
-    const token = tokens[Number(id.slice(1))];
-    const query = token?.basic_form || token?.surface_form;
-    if (query) {
-      clearWords();
-      clearKanji();
-      fetchWordsFx({ value: query, language: selectedLanguage }).catch((error) => {
-        console.error(`Failed to fetch word info for ${query}:`, error);
-      });
-    }
-  };
+  const handleSelect = useCallback(
+    (id: string) => {
+      setSelectedId(id);
+      const token = tokens[Number(id.slice(1))];
+      const query = token?.basic_form || token?.surface_form;
+      if (query) {
+        clearWords();
+        clearKanji();
+        fetchWordsFx({ value: query, language: selectedLanguage }).catch((error) => {
+          console.error(`Failed to fetch word info for ${query}:`, error);
+        });
+      }
+    },
+    [tokens, selectedLanguage],
+  );
+
+  // A freshly parsed sentence selects nothing, which would leave the detail column blank
+  // until the user clicks — so open on the first content word.
+  useEffect(() => {
+    if (tokens.length === 0) return;
+    handleSelect(tokenId(firstContentTokenIndex(tokens, selectedLanguage)));
+    // Re-runs only on a genuinely new parse, not on every render of the same one.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sentence, selectedLanguage]);
 
   const title = t('ui', 'sentence_title');
 

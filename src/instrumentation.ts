@@ -7,8 +7,8 @@
 // (Next looks there instead of the project root). instrumentation is stable on Next 15 —
 // no `experimental.instrumentationHook` needed in next.config.ts.
 export async function register() {
-  if (process.env.MOCK_BACKEND === "1" && process.env.NEXT_RUNTIME === "nodejs") {
-    const { server } = await import("./mocks/server");
-    server.listen({ onUnhandledRequest: "warn" });
+  if (process.env.MOCK_BACKEND === '1' && process.env.NEXT_RUNTIME === 'nodejs') {
+    const { server } = await import('./mocks/server');
+    server.listen({ onUnhandledRequest: 'warn' });
   }
 }

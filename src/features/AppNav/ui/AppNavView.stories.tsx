@@ -5,24 +5,12 @@ import { AppNavView } from './AppNavView';
 const meta: Meta<typeof AppNavView> = {
   title: 'features/AppNavView',
   component: AppNavView,
-  decorators: [
-    (Story) => (
-      <div style={{ width: 1100, margin: 25 }}>
-        <Story />
-      </div>
-    ),
-  ],
+  parameters: { layout: 'fullscreen' },
   args: {
     selectedLanguage: 'jp',
-    uiLocale: 'ru',
-    showFurigana: true,
-    showPinyin: true,
     isAuthenticated: false,
-    userLabel: null,
+    pathname: '/',
     onSelectLanguage: fn(),
-    onSelectLocale: fn(),
-    onToggleFurigana: fn(),
-    onTogglePinyin: fn(),
     onSignIn: fn(),
     onSignOut: fn(),
   },
@@ -31,34 +19,28 @@ const meta: Meta<typeof AppNavView> = {
 export default meta;
 type Story = StoryObj<typeof AppNavView>;
 
-/** Signed out: only the login button, no dictionary/study links. */
+/** Signed out: only Разбор and the login button — the gated destinations are absent. */
 export const SignedOut: Story = {};
 
 export const SignedIn: Story = {
-  args: { isAuthenticated: true, userLabel: 'Mock User' },
+  args: { isAuthenticated: true },
 };
 
-/** Falls back to the email when the account has no display name. */
-export const SignedInWithoutName: Story = {
-  args: { isAuthenticated: true, userLabel: 'mock@user.dev' },
+/** On /dictionary the active underline moves off Разбор. */
+export const OnDictionary: Story = {
+  args: { isAuthenticated: true, pathname: '/dictionary' },
 };
 
-/** Japanese exposes the furigana toggle. */
-export const JapaneseSelected: Story = {
-  args: { selectedLanguage: 'jp', isAuthenticated: true, userLabel: 'Mock User' },
+export const OnStudy: Story = {
+  args: { isAuthenticated: true, pathname: '/study' },
 };
 
-/** Chinese swaps it for pinyin. */
+/** Chinese selected — the segmented control flips to 中文. */
 export const ChineseSelected: Story = {
-  args: { selectedLanguage: 'cn', isAuthenticated: true, userLabel: 'Mock User' },
+  args: { selectedLanguage: 'cn', isAuthenticated: true },
 };
 
-/** English UI — the locale pill moves and every label switches. */
-export const EnglishLocale: Story = {
-  args: { uiLocale: 'en', isAuthenticated: true, userLabel: 'Mock User' },
-};
-
-/** No language chosen yet: neither pill is active. */
+/** No language chosen yet: neither segment reads as active. */
 export const NoLanguageSelected: Story = {
   args: { selectedLanguage: null },
 };

@@ -1,8 +1,14 @@
 'use client';
 
-import { SearchField, SearchOptionList, type SearchOptionItem } from 'designoslav';
+import {
+  SearchBand,
+  SearchField,
+  SearchOptionList,
+  Switch,
+  type SearchOptionItem,
+} from 'designoslav';
 import { AnimatePresence, motion } from 'motion/react';
-import { type FC, type KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { type FC, useEffect, useId, useState } from 'react';
 
 import { useT } from '@/shared/i18n';
 import { DURATION, EASE, useReducedMotion } from '@/shared/motion';
@@ -22,6 +28,10 @@ type SearchViewProps = {
   mode: 'history' | 'suggest';
   placeholder?: string;
   isSubmitting?: boolean;
+  /** Kicker above the field — reflects the study language. */
+  eyebrow: string;
+  /** Furigana (jp) or pinyin (cn); omitted when no language is chosen. */
+  reading?: { label: string; checked: boolean; onChange: (value: boolean) => void };
 };
 
 export const SearchView: FC<SearchViewProps> = ({
@@ -34,57 +44,22 @@ export const SearchView: FC<SearchViewProps> = ({
   mode,
   placeholder,
   isSubmitting,
+  eyebrow,
+  reading,
 }) => {
   const t = useT();
   const reduced = useReducedMotion();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const listboxId = useId();
   const [open, setOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | undefined>();
 
   // Highlight the first option whenever the option set changes (new query,
   // history ↔ suggestions). Arrow-key moves happen between these resets.
   useEffect(() => {
-    setSelectedId(options[0]?.id ?? null);
+    setActiveId(options[0]?.id);
   }, [options]);
 
-  const moveSelection = (delta: number) => {
-    if (options.length === 0) return;
-    const current = options.findIndex((option) => option.id === selectedId);
-    const next = (current + delta + options.length) % options.length;
-    setSelectedId(options[next].id);
-  };
-
-  const commit = () => {
-    setOpen(false);
-    if (options.length > 0 && selectedId) {
-      onSelectOption(selectedId);
-    } else {
-      onSubmit(inputValue);
-    }
-  };
-
-  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    switch (event.key) {
-      case 'ArrowDown':
-        event.preventDefault();
-        setOpen(true);
-        moveSelection(1);
-        break;
-      case 'ArrowUp':
-        event.preventDefault();
-        setOpen(true);
-        moveSelection(-1);
-        break;
-      case 'Enter':
-        // Own Enter fully so the form doesn't also submit (avoids a double run).
-        event.preventDefault();
-        commit();
-        break;
-      case 'Escape':
-        setOpen(false);
-        break;
-    }
-  };
+  const expanded = open && options.length > 0;
 
   const handleSelect = (id: string) => {
     setOpen(false);
@@ -113,7 +88,15 @@ export const SearchView: FC<SearchViewProps> = ({
     );
 
   return (
-    <div className={styles.searchRoot}>
+    <SearchBand
+      eyebrow={eyebrow}
+      hint={t('ui', 'band_hint')}
+      aside={
+        reading && (
+          <Switch checked={reading.checked} onChange={reading.onChange} label={reading.label} />
+        )
+      }
+    >
       <div
         className={styles.fieldWrapper}
         onFocus={() => setOpen(true)}
@@ -123,23 +106,31 @@ export const SearchView: FC<SearchViewProps> = ({
           }
         }}
       >
+        {/* The field owns ↑↓ / Home / End / Enter / Escape through the combobox props, so
+            focus never leaves the input — the highlight travels by aria-activedescendant.
+            This replaced a hand-rolled keydown switch that duplicated the same contract. */}
         <SearchField
-          ref={inputRef}
           aria-label={t('ui', 'search_aria_label')}
           value={inputValue}
           onValueChange={onValueChange}
-          onSubmit={commit}
-          onKeyDown={handleKeyDown}
+          onSubmit={onSubmit}
           placeholder={placeholder}
           actionLabel={isSubmitting ? t('ui', 'search_button_loading') : t('ui', 'search_button')}
           clearLabel={t('ui', 'search_clear')}
           size="l"
           fullWidth
+          listboxId={listboxId}
+          expanded={expanded}
+          optionIds={options.map((option) => option.id)}
+          activeOptionId={activeId}
+          onActiveOptionChange={setActiveId}
+          onOptionCommit={handleSelect}
+          onDismiss={() => setOpen(false)}
         />
 
         {/* AnimatePresence gives the popover a real exit — CSS can't animate an unmount. */}
         <AnimatePresence>
-          {open && options.length > 0 && (
+          {expanded && (
             <motion.div
               className={styles.popover}
               // Keep focus on the input so a click doesn't blur-close before it registers.
@@ -150,23 +141,20 @@ export const SearchView: FC<SearchViewProps> = ({
               transition={reduced ? { duration: 0 } : { duration: DURATION.fast, ease: EASE }}
             >
               <SearchOptionList
+                id={listboxId}
                 heading={heading}
                 options={options}
-                selectedId={selectedId ?? undefined}
+                activeId={activeId}
                 onSelect={handleSelect}
+                hints={[
+                  { keys: '↑↓', label: t('ui', 'search_kbd_select') },
+                  { keys: '↵', label: t('ui', 'search_kbd_parse') },
+                ]}
               />
-              <p className={styles.kbdHints}>
-                <span>
-                  <kbd>↑↓</kbd> {t('ui', 'search_kbd_select')}
-                </span>
-                <span>
-                  <kbd>↵</kbd> {t('ui', 'search_kbd_parse')}
-                </span>
-              </p>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </SearchBand>
   );
 };

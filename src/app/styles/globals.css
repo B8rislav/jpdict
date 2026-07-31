@@ -4,25 +4,49 @@
   --text-secondary: #888888;
   --accent-red: #e63946;
   --border-gray: #e0e0e0;
-  /* Result-column tints, previously inline hex literals in page.tsx. */
-  --column-bg-sentence: #e4f1f9;
-  --column-bg-word: #fcf2fb;
   --bg-dark: #1a1a1a;
   --text-white: #ffffff;
-  --font-primary: 'Inter', 'Noto Sans JP', 'Zen Kaku Gothic', sans-serif;
   --font-cjk: var(--font-noto-jp), sans-serif;
+
+  /**
+   * Bind Designoslav's font tokens to the faces `src/app/fonts.ts` actually loads.
+   * The library names these faces but never fetches them, so without this block every
+   * `var(--do-font-*)` falls through to a system fallback — which is what used to happen
+   * app-wide, since the old token led with 'Inter' and nothing ever loaded Inter.
+   */
+  --do-font-sans: var(--font-sans), system-ui, sans-serif;
+  --do-font-serif: var(--font-serif), Georgia, serif;
+  --do-font-cjk: var(--font-cjk);
 }
 
 [data-lang='cn'] {
   --font-cjk: var(--font-noto-sc), sans-serif;
+  /* Noto Serif JP has no Simplified Chinese glyph forms — swap to the SC cut so CN
+     headwords aren't drawn in Japanese shapes. */
+  --do-font-serif: var(--font-serif-sc), Georgia, serif;
+}
+
+/**
+ * The app had no border-box reset, and neither Gravity nor Designoslav ships one. Nothing
+ * hit it while the results area sized its columns with explicit pixel widths and no
+ * padding — but a full-bleed band that is `width: 100%` *and* padded overflows the
+ * viewport under `content-box`, taking the horizontal scrollbar with it.
+ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 body {
   min-height: 100vh;
   margin: 0;
-  font-family: var(--font-cjk);
-  background-color: var(--bg-light);
-  color: var(--text-dark);
+  /* The UI reads in the sans; CJK content opts into `--do-font-cjk` per component. */
+  font-family: var(--do-font-sans);
+  background-color: var(--do-color-bg);
+  color: var(--do-color-text);
+  /* Belt and braces: the window is the only scroll surface, and it scrolls vertically. */
+  overflow-x: hidden;
 }
 
 /* Hide external injected NEXTa overlays if they appear in the app shell */

@@ -2,18 +2,23 @@
 
 import { useUnit } from 'effector-react';
 import { type Language } from '@/shared/api/types';
-import { setSelectedLanguage, setShowFurigana, setShowPinyin } from '@/stores/userProfile';
+import {
+  setSelectedLanguage,
+  setShowFurigana,
+  setShowPinyin,
+  setUiLocale,
+} from '@/stores/userProfile';
 import { $searchHistory, clearHistoryFx } from '@/features/SearchHistory/model';
 import { Switch, Text } from '@gravity-ui/uikit';
-import { Button } from 'designoslav';
+import { Button, SegmentedControl } from 'designoslav';
 import Link from 'next/link';
-import { useT } from '@/shared/i18n';
+import { LOCALES, useT } from '@/shared/i18n';
 import styles from './page.module.css';
 import { useProfile } from '@/shared/profile/context';
 
 export default function Settings() {
   const t = useT();
-  const { selectedLanguage, showFurigana, showPinyin } = useProfile();
+  const { selectedLanguage, showFurigana, showPinyin, uiLocale } = useProfile();
   const searchHistory = useUnit($searchHistory);
 
   return (
@@ -23,6 +28,18 @@ export default function Settings() {
           {t('ui', 'settings_back')}
         </Link>
         <Text variant="display-1">{t('ui', 'settings_title')}</Text>
+      </div>
+
+      {/* The interface language lives here now: the redesigned header has no room for a
+          locale switcher, and this page never had one — so it was unreachable. */}
+      <div className={styles.section}>
+        <Text variant="subheader-2">{t('ui', 'settings_ui_lang_section')}</Text>
+        <SegmentedControl
+          aria-label={t('ui', 'settings_ui_lang_section')}
+          options={LOCALES.map((locale) => ({ value: locale, label: locale.toUpperCase() }))}
+          value={uiLocale}
+          onChange={setUiLocale}
+        />
       </div>
 
       <div className={styles.section}>

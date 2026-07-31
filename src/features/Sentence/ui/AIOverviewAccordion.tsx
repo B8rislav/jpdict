@@ -1,6 +1,5 @@
 import { type FC, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Text } from '@gravity-ui/uikit';
 import { Button } from 'designoslav';
 import styles from './AIOverviewAccordion.module.css';
 import Markdown from 'react-markdown';
@@ -60,17 +59,13 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
     <div className={styles.aiOverviewContainer}>
       <div className={styles.overviewHeader}>
         <div className={styles.overviewTitleBlock}>
-          <Text variant="subheader-2">{t('ui', 'ai_overview_title')}</Text>
-          {sentenceSummary && (
-            <Text variant="caption-1" className={styles.sentencePreview}>
-              {sentenceSummary}
-            </Text>
-          )}
+          <h3 className={styles.overviewTitle}>{t('ui', 'ai_overview_title')}</h3>
+          {sentenceSummary && <p className={styles.sentencePreview}>{sentenceSummary}</p>}
         </div>
         <div className={styles.overviewActions}>
-          <Text variant="caption-1" className={styles.tokenCount}>
+          <span className={styles.tokenCount}>
             {t('ui', 'ai_overview_tokens')} {tokenCount}
-          </Text>
+          </span>
           <Button variant={isExpanded ? 'secondary' : 'primary'} size="l" onClick={handleToggle}>
             {isExpanded ? t('ui', 'ai_overview_collapse') : t('ui', 'ai_overview_expand')}
           </Button>
@@ -97,15 +92,13 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
               ) : isLoading ? (
                 <div className={styles.loadingContainer}>
                   <div className={styles.spinner} />
-                  <Text variant="body-2" className={styles.loadingText}>
-                    {t('ui', 'ai_overview_loading')}
-                  </Text>
+                  <p className={styles.loadingText}>{t('ui', 'ai_overview_loading')}</p>
                 </div>
               ) : error ? (
                 <div className={styles.errorContainer}>
-                  <Text variant="body-2" color="danger">
+                  <p className={styles.errorText}>
                     {t('ui', 'ai_overview_error_prefix')} {error}
-                  </Text>
+                  </p>
                   <Button
                     variant="secondary"
                     size="m"
@@ -117,7 +110,7 @@ export const AIOverviewAccordion: FC<AIOverviewAccordionProps> = ({
                 </div>
               ) : (
                 <div className={styles.emptyState}>
-                  <Text variant="body-2">{t('ui', 'ai_overview_prompt')}</Text>
+                  <p className={styles.promptText}>{t('ui', 'ai_overview_prompt')}</p>
                   <Button
                     variant="primary"
                     size="m"

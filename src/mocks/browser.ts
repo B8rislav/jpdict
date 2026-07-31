@@ -1,6 +1,6 @@
-import { setupWorker } from "msw/browser";
+import { setupWorker } from 'msw/browser';
 
-import { handlers } from "./handlers";
+import { handlers } from './handlers';
 
 // Browser-side MSW worker, reusing the same `handlers` as the server (db.ts-backed).
 // Used by Storybook (.storybook/preview) so network-touching stories can run against
@@ -16,10 +16,10 @@ let started = false;
  * a failure there must not break the story/test, so we swallow it.
  */
 export async function startMockWorker(): Promise<void> {
-  if (started || typeof window === "undefined") return;
+  if (started || typeof window === 'undefined') return;
   started = true;
   try {
-    await worker.start({ onUnhandledRequest: "bypass", quiet: true });
+    await worker.start({ onUnhandledRequest: 'bypass', quiet: true });
   } catch {
     // No service worker available here — stories that don't touch the backend are unaffected.
   }

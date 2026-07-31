@@ -7,7 +7,16 @@ import { $userProfile } from '@/stores/userProfile';
 
 export const clearInspectedWord = createEvent();
 
-export const $inspectedWord = createStore<Word | null>(null).on(clearInspectedWord, () => null);
+/**
+ * Inspect a word the user picked from an already-loaded result list, without refetching.
+ * A word search returns a page of matches; the first is inspected automatically, and this
+ * is how the rest become reachable.
+ */
+export const inspectWord = createEvent<Word>();
+
+export const $inspectedWord = createStore<Word | null>(null)
+  .on(clearInspectedWord, () => null)
+  .on(inspectWord, (_, word) => word);
 
 sample({
   clock: fetchWordsFx.doneData,
@@ -22,7 +31,9 @@ export const fetchInspectorKanjiFx = createEffect(
 
 export const $inspectorKanji = createStore<Kanji[]>([])
   .on(fetchInspectorKanjiFx.doneData, (_, data) => data ?? [])
-  .reset(clearInspectedWord);
+  // Switching words must drop the old characters too, or the new headword briefly
+  // shows the previous word's kanji.
+  .reset(clearInspectedWord, inspectWord);
 
 // A fresh word invalidates the previous word's kanji until the new fetch lands.
 sample({
@@ -37,7 +48,7 @@ export const fetchExampleSentencesFx = createEffect(async (wordId: string) => {
 
 export const $exampleSentences = createStore<ReibunEntry[]>([])
   .on(fetchExampleSentencesFx.doneData, (_, data) => data?.reibuns ?? [])
-  .on(clearInspectedWord, () => []);
+  .reset(clearInspectedWord, inspectWord);
 
 sample({
   clock: fetchWordsFx.doneData,

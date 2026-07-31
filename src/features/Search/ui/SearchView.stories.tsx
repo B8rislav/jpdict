@@ -7,13 +7,7 @@ import { SearchView } from './SearchView';
 const meta: Meta<typeof SearchView> = {
   title: 'features/SearchView',
   component: SearchView,
-  decorators: [
-    (Story) => (
-      <div style={{ width: 600, margin: 25 }}>
-        <Story />
-      </div>
-    ),
-  ],
+  parameters: { layout: 'fullscreen' },
   args: {
     onValueChange: fn(),
     onSubmit: fn(),
@@ -22,6 +16,8 @@ const meta: Meta<typeof SearchView> = {
     placeholder: 'Введите слово, кандзи или предложение',
     options: [],
     mode: 'suggest',
+    eyebrow: '文を分解 · Разбор предложения',
+    reading: { label: 'Фуригана', checked: true, onChange: fn() },
   },
 };
 
@@ -54,8 +50,10 @@ const historyItems: SearchOptionItem[] = [
   { id: '3', unit: 'phrase', text: '私は学生です', unitLabel: 'Фраза' },
 ];
 
+// `combobox`, not `searchbox`: passing `listboxId` puts the field into the combobox
+// contract, and the ARIA role replaces the native one.
 const open = async ({ canvasElement }: { canvasElement: HTMLElement }) => {
-  await userEvent.click(within(canvasElement).getByRole('searchbox'));
+  await userEvent.click(within(canvasElement).getByRole('combobox'));
 };
 
 /** Blank field, unfocused — no popover. */

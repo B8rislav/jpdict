@@ -1,0 +1,40 @@
+/* Matches SearchBand's inner measure, so the columns line up under the field above. */
+.grid,
+.single {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 32px 32px 64px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 30px;
+  align-items: start;
+}
+
+.single {
+  display: grid;
+  grid-template-columns: minmax(0, 560px);
+  justify-content: center;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* One column below the point where a 420px detail card stops leaving the breakdown
+   enough room to read. */
+@media (max-width: 1000px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .grid,
+  .single {
+    padding: 24px 16px 48px;
+  }
+}

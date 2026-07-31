@@ -1,9 +1,4 @@
-.searchRoot {
-  width: 100%;
-  max-width: 920px;
-  margin: 0 auto 30px;
-}
-
+/* `.searchRoot` is gone — SearchBand owns the width, centering and outer spacing now. */
 .fieldWrapper {
   position: relative;
   width: 100%;
@@ -14,10 +9,8 @@
   top: calc(100% + 8px);
   left: 0;
   right: 0;
+  /* Above the sticky header, which sits at 20. */
   z-index: 30;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 
 .historyHeading {
@@ -37,7 +30,7 @@
   font: inherit;
   letter-spacing: normal;
   text-transform: none;
-  color: var(--do-color-primary, #2f6b4f);
+  color: var(--do-color-primary);
   cursor: pointer;
 }
 
@@ -45,20 +38,4 @@
 .clearHistoryBtn:focus-visible {
   text-decoration: underline;
   outline: none;
-}
-
-.kbdHints {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  margin: 0;
-  padding: 2px 4px;
-  font-size: 0.8rem;
-  color: var(--do-color-text-subtle, #777);
-}
-
-.kbdHints kbd {
-  margin-right: 4px;
-  font-family: inherit;
-  font-weight: 600;
 }

@@ -77,9 +77,7 @@ export const flip: Variants = {
  * itself: `transition={springOrInstant(reduced)}`.
  */
 export const springOrInstant = (reduced: boolean | null): Transition =>
-  reduced
-    ? { duration: 0 }
-    : { type: 'spring', stiffness: 420, damping: 34, mass: 0.9 };
+  reduced ? { duration: 0 } : { type: 'spring', stiffness: 420, damping: 34, mass: 0.9 };
 
 export { useReducedMotion };
 export type { Transition, Variants };

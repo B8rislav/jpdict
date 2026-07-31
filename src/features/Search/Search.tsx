@@ -6,6 +6,7 @@ import { type FC, useEffect, useMemo, useState } from 'react';
 import { $searchHistory, clearHistoryFx, loadHistoryFx } from '@/features/SearchHistory';
 import { useT } from '@/shared/i18n';
 import { $isAuthenticated } from '@/stores/auth';
+import { setShowFurigana, setShowPinyin } from '@/stores/userProfile';
 
 import { SUBMIT_RESET_DELAY_MS } from './constants';
 import { runSearch } from './model/runSearch';
@@ -21,7 +22,7 @@ export const Search: FC = () => {
   const [value, setValue] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const selectedLanguage = useProfile().selectedLanguage;
+  const { selectedLanguage, showFurigana, showPinyin } = useProfile();
   const isAuthenticated = useUnit($isAuthenticated);
   const historyEntries = useUnit($searchHistory);
   const suggestions = useUnit($suggestions);
@@ -36,6 +37,15 @@ export const Search: FC = () => {
       : selectedLanguage === 'cn'
         ? t('ui', 'search_placeholder_cn')
         : t('ui', 'search_no_language');
+
+  // The reading toggle moved here from the nav — it belongs beside the query it affects.
+  // Which reading it controls follows the study language; with none chosen, there is none.
+  const reading =
+    selectedLanguage === 'jp'
+      ? { label: t('ui', 'furigana'), checked: showFurigana, onChange: setShowFurigana }
+      : selectedLanguage === 'cn'
+        ? { label: t('ui', 'pinyin_label'), checked: showPinyin, onChange: setShowPinyin }
+        : undefined;
 
   useSuggestionQuery(value, selectedLanguage);
 
@@ -101,6 +111,8 @@ export const Search: FC = () => {
       mode={mode}
       placeholder={placeholder}
       isSubmitting={isSubmitting}
+      eyebrow={t('ui', selectedLanguage === 'cn' ? 'band_eyebrow_cn' : 'band_eyebrow_jp')}
+      reading={reading}
     />
   );
 };

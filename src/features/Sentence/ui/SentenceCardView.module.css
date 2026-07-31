@@ -1,16 +1,18 @@
-.sentenceCard {
-  padding-bottom: 8px;
-  background-color: transparent;
-  border: none;
-}
-
-.header {
+.column {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin-bottom: 20px;
+  gap: 16px;
 }
 
-.aiCard {
-  margin-top: 18px;
+/* The strip sits on a raised surface so the tokens read as one object, distinct from
+   the entry rows below. */
+.strip {
+  padding: 18px 20px;
+  background-color: var(--do-color-surface-raised);
+  border: 1px solid var(--do-color-border);
+  border-radius: var(--do-radius-lg);
+}
+
+.overview {
+  padding: 4px 0;
 }

@@ -7,10 +7,12 @@ type CardProps = {
 };
 
 /**
- * Presentational card surface. Entrance/exit motion is owned by the list layer
- * (see CardList + the `cardEnter` variant in `@/shared/motion`) so the keyed
- * list item is the element `AnimatePresence` tracks; `ReviewCard` brings its own
- * entrance. Card itself stays a plain surface.
+ * Presentational card surface, with no motion of its own — `ReviewCard` brings its own
+ * entrance.
+ *
+ * Only `ReviewCard` still uses this. The home page's cards are Designoslav components
+ * now, and their entrance is CSS inside `EntryList`; the `CardList` wrapper that used to
+ * own the stagger is gone.
  */
 export const Card: FC<PropsWithChildren<CardProps>> = ({ children, className }) => {
   return <div className={`${styles.card} ${className ?? ''}`}>{children}</div>;

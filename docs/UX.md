@@ -33,7 +33,9 @@ English/romaji/pinyin input is supported in both modes via the reverse-lookup pa
 Information is revealed in a hierarchy that mirrors the structure of hieroglyphic
 languages (sentence → word → character → radical):
 
-1. **Home**: only the search bar and query type hints
+1. **Home**: the search band, plus — before the first query — a short prompt and two or
+   three runnable example queries, one per lookup the classifier can pick. An empty canvas
+   is a poor first move for a tool whose input is a language the visitor is still learning.
 2. **Analysis**: tokens with minimal annotations
 3. **Word Inspector**: detailed grammatical data
 4. **Kanji Inspector**: stroke-level and radical data
@@ -50,6 +52,22 @@ The visible screen is chosen automatically by the query classifier
 - Sentence → SentenceCard with token grid
 
 No explicit mode selection required from the user.
+
+All three fill one shell — `src/features/SearchResults` — laid out as **results | detail**:
+
+| Query | Left column | Right column |
+|-------|-------------|--------------|
+| Sentence | Token breakdown + the AI grammar accordion | The selected token's word |
+| Word | The paginated matches as `EntryCard`s | The selected match |
+| Kanji | *(none — the grid collapses)* | One centered `KanjiCard` |
+
+Two behaviours worth stating, because neither is obvious from the layout:
+
+- A freshly parsed sentence **auto-selects its first content token** (skipping particles),
+  so the detail column is never blank on arrival.
+- **Nothing is sticky except the header.** A `position: sticky` detail card taller than the
+  viewport pins its top and makes its own footer unreachable — and that card carries three
+  collapsible sections plus a kanji list, so it routinely is taller.
 
 ## Query classification heuristic
 

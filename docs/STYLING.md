@@ -46,30 +46,55 @@ Defined in `src/app/styles/globals.css` under `:root`:
 | `--text-secondary` | `#888888` | Muted labels, furigana readings |
 | `--accent-red` | `#e63946` | Accent highlights (e.g. POS colour chips) |
 | `--border-gray` | `#e0e0e0` | Card and input borders |
-| `--font-primary` | `'Inter', 'Noto Sans JP', 'Zen Kaku Gothic', sans-serif` | Fallback font stack |
 | `--font-cjk` | `var(--font-noto-jp), sans-serif` | CJK body font; overridden for CN below |
 
 Gravity UI adds its own `--g-color-*` tokens (e.g. `--g-color-text-secondary`,
 `--g-color-base-brand`) via its stylesheet import in `src/app/layout.tsx`.
 
+## Typography
+
+Three faces, three jobs. Designoslav *names* them in its `--do-font-*` tokens but never
+fetches them — loading is this app's job. `src/app/fonts.ts` declares every face via
+`next/font/google`, and `globals.css` binds the generated variables onto the tokens.
+
+| Token | Face | Used for |
+|-------|------|----------|
+| `--do-font-sans` | Golos Text (latin + cyrillic) | The UI voice: nav, buttons, labels, glosses, body |
+| `--do-font-serif` | Noto Serif JP (latin + cyrillic + CJK) | **Display only** — `SectionHeading`, WordCard/KanjiCard headwords, the brand lockup |
+| `--do-font-cjk` | Noto Sans JP / SC | Japanese and Chinese body text |
+
+Two rules worth keeping:
+
+- **Don't widen the serif's role.** Mincho at list sizes is harder to read than gothic, so
+  `SentenceView` tokens and `EntryCard` headwords stay in the CJK sans.
+- **Load what you name.** The `--do-font-sans` token used to lead with `'Inter'`, which
+  nothing in either repo ever loaded — so every Cyrillic string in the app was silently
+  drawn with Noto Sans JP's Cyrillic glyphs. A token naming an unloaded face fails quietly.
+- **Keep CJK weight lists short.** Google splits a CJK family into ~100 unicode-range files
+  *per weight*. Requesting 400/500/600/700 of Noto Serif JP + SC reliably hit `ETIMEDOUT`
+  during the build, and `next/font` handles that by falling back to Georgia and carrying on —
+  a green build with a broken serif. The serifs ask for 400 and 600 only, which is all the
+  display roles use. If you add a weight, confirm `.next/static/media` still holds the
+  family afterwards.
+
+Note `subsets` does **not** restrict CJK coverage: Google returns the full unicode-range set
+for these families regardless, so `subsets: ['latin']` on Noto Sans JP still ships kanji.
+The option only governs which *named* subsets are preloaded.
+
 ## CJK font switching
 
-Two fonts are loaded by `src/app/layout.tsx` using `next/font/google` with
-`display: 'swap'`:
-
-- `Noto_Sans_JP` — weights 400/500/700 → CSS variable `--font-noto-jp`
-- `Noto_Sans_SC` — weights 400/500/700 → CSS variable `--font-noto-sc`
-
-The active CJK font is selected by `data-lang` on `<html>`:
+The active CJK font — and the serif's glyph forms — follow `data-lang` on `<html>`, which
+`src/app/layout.tsx` sets server-side from the profile:
 
 ```css
 /* globals.css */
 :root           { --font-cjk: var(--font-noto-jp), sans-serif; }
 [data-lang='cn']{ --font-cjk: var(--font-noto-sc), sans-serif; }
-```
 
-`src/app/HtmlLangSync.tsx` sets `document.documentElement.dataset.lang` in response to
-`$userProfile.selectedLanguage` changes. The body uses `font-family: var(--font-cjk)`.
+/* Noto Serif JP has no Simplified Chinese glyph forms, so CN mode swaps the serif too,
+   or Chinese headwords render in Japanese shapes. */
+[data-lang='cn']{ --do-font-serif: var(--font-serif-sc), Georgia, serif; }
+```
 
 ## Dark / light theme switching
 

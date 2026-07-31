@@ -1,28 +1,15 @@
 import type { Metadata } from 'next';
-import { Noto_Sans_JP, Noto_Sans_SC } from 'next/font/google';
 
 import './styles/globals.css';
 import '@gravity-ui/uikit/styles/fonts.css';
 import '@gravity-ui/uikit/styles/styles.css';
 import 'designoslav/tokens.css';
+import { AppNav } from '@/features/AppNav';
+import { fontVariables } from './fonts';
 import { Providers } from './providers';
 import { JsonLd } from './ui/JsonLd';
 import { readProfile } from '@/shared/api/serverProfile';
 import { tServer } from '@/shared/i18n/server';
-
-const notoSansJP = Noto_Sans_JP({
-  subsets: ['latin'],
-  weight: ['400', '500', '700'],
-  variable: '--font-noto-jp',
-  display: 'swap',
-});
-
-const notoSansSC = Noto_Sans_SC({
-  subsets: ['latin'],
-  weight: ['400', '500', '700'],
-  variable: '--font-noto-sc',
-  display: 'swap',
-});
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 
@@ -88,11 +75,14 @@ export default async function RootLayout({
     <html
       lang={profile.uiLocale}
       data-lang={profile.selectedLanguage ?? undefined}
-      className={`${notoSansJP.variable} ${notoSansSC.variable}`}
+      className={fontVariables}
     >
       <body>
         <Providers initialProfile={profile}>
           <JsonLd data={websiteJsonLd} />
+          {/* The bar belongs to the shell, not to the home page — mounting it here is
+              what finally gives /dictionary, /study and /settings a header. */}
+          <AppNav />
           {children}
         </Providers>
       </body>

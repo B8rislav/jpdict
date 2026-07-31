@@ -1,43 +1,29 @@
-.nav {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.navDivider {
-  width: 1px;
-  height: 20px;
-  background: var(--g-color-line-generic);
-}
-
-.navSpacer {
-  flex: 1;
-}
-
-.navBtnWrap {
-  position: relative;
-  display: inline-flex;
-}
-
-.navPill {
-  position: absolute;
-  left: 6px;
-  right: 6px;
-  bottom: -5px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--accent-red);
-}
-
-.toggleRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* Was an inline style on each <Link>, which hardcoded a Gravity token in JSX. */
-.navLink {
+/* The gear is a Link, not a Button, so it needs the icon-button treatment itself. */
+.settings {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--do-radius-md);
+  color: var(--do-color-text-muted);
   text-decoration: none;
-  color: var(--g-color-text-secondary);
+  transition:
+    color var(--do-duration-fast) var(--do-ease-standard),
+    background-color var(--do-duration-fast) var(--do-ease-standard);
+}
+
+.settings:hover {
+  color: var(--do-color-text);
+  background-color: var(--do-color-bg);
+}
+
+.settings:focus-visible {
+  outline: 2px solid var(--do-color-focus-ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings {
+    transition: none;
+  }
 }

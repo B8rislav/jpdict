@@ -1,7 +1,6 @@
 'use client';
 
-import { Skeleton } from '@gravity-ui/uikit';
-import { Button, WordCard, type KanjiInWord, type WordSection } from 'designoslav';
+import { Button, Skeleton, WordCard, type KanjiInWord, type WordSection } from 'designoslav';
 import { motion } from 'motion/react';
 import { type FC, useMemo } from 'react';
 
@@ -149,9 +148,7 @@ const ExamplesContent: FC<{
   if (pending) {
     return (
       <div className={styles.examplesLoading}>
-        {Array.from({ length: 3 }, (_, i) => (
-          <Skeleton key={i} style={{ height: 20 }} />
-        ))}
+        <Skeleton lines={3} height={20} />
       </div>
     );
   }

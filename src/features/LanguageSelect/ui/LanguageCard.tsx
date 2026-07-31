@@ -1,7 +1,11 @@
 'use client';
 
 import { type Language } from '@/shared/api/types';
-import styles from '../LanguageSelect.module.css';
+// `../LanguageSelect.module.css` was deleted in an earlier refactor; its `card*` /
+// `selectButton` rules live here. The stale path type-checked because `css-modules.d.ts`
+// declares `*.module.css` as a wildcard, so it only failed at runtime — which is why both
+// LanguageSelect stories were failing to load.
+import styles from './LanguageSelectView.module.css';
 import { useT } from '@/shared/i18n';
 
 interface LanguageCardProps {
