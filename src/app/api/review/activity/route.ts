@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { toReviewStats, type BackendReviewStats } from '@/shared/api/mappers';
+import { toReviewActivity } from '@/shared/api/mappers';
+import { type BackendReviewActivity } from '@/features/Review/api/types';
 import { backendFetch, cacheAccessToken } from '@/shared/api/serverAuth';
 
 export async function GET(req: NextRequest) {
@@ -7,12 +8,14 @@ export async function GET(req: NextRequest) {
   const query = new URLSearchParams();
   const language = searchParams.get('language');
   if (language) query.set('language', language);
-  // Same day boundary as /activity, so the goal ring and the heatmap's "today"
-  // can't disagree between midnight and the caller's UTC offset.
+  // The client's IANA zone decides which day a review belongs to. Forwarded rather
+  // than defaulted here: the server has no idea what day it is where the user is.
   const tz = searchParams.get('tz');
   if (tz) query.set('tz', tz);
+  const weeks = searchParams.get('weeks');
+  if (weeks) query.set('weeks', weeks);
 
-  const call = await backendFetch(req, `/api/review/stats?${query.toString()}`);
+  const call = await backendFetch(req, `/api/review/activity?${query.toString()}`);
   if (call.error) return call.error;
 
   if (!call.upstream.ok) {
@@ -21,7 +24,6 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // The flat counts already match the frontend shape; `decks` needs camelCasing.
-  const data = (await call.upstream.json()) as BackendReviewStats;
-  return cacheAccessToken(NextResponse.json(toReviewStats(data)), call);
+  const data = (await call.upstream.json()) as BackendReviewActivity;
+  return cacheAccessToken(NextResponse.json(toReviewActivity(data)), call);
 }

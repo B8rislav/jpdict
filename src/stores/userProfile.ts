@@ -30,6 +30,7 @@ export const setSelectedLanguage = createEvent<Language>();
 export const setShowFurigana = createEvent<boolean>();
 export const setShowPinyin = createEvent<boolean>();
 export const setUiLocale = createEvent<Locale>();
+export const setDailyGoal = createEvent<number>();
 
 /** Any single-field preference change, normalised to a patch. */
 const profileChanged = createEvent<Partial<UserProfile>>();
@@ -54,6 +55,15 @@ sample({
   fn: (uiLocale): Partial<UserProfile> => ({ uiLocale }),
   target: profileChanged,
 });
+sample({
+  clock: setDailyGoal,
+  // Clamped to the range the backend validates, so the UI can't send a value the
+  // API will reject and leave the two disagreeing.
+  fn: (dailyGoal): Partial<UserProfile> => ({
+    dailyGoal: Math.min(500, Math.max(1, Math.round(dailyGoal))),
+  }),
+  target: profileChanged,
+});
 
 $userProfile
   .on(profileHydrated, (_, profile) => profile)
@@ -66,6 +76,7 @@ $userProfile
           selectedLanguage: user.selectedLanguage,
           showFurigana: user.showFurigana,
           showPinyin: user.showPinyin,
+          dailyGoal: user.dailyGoal,
           uiLocale: user.uiLocale,
         }
       : state,

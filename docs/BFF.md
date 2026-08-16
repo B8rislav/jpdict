@@ -26,11 +26,23 @@ NEXT_PUBLIC_BACKEND_URL  →  FASTAPI_URL  →  http://localhost:8000
 | POST | `/api/history` | Yes | `BACKEND_URL/api/history` | No |
 | DELETE | `/api/history` | Yes | `BACKEND_URL/api/history` (clear all) | No |
 | DELETE | `/api/history/[id]` | Yes | `BACKEND_URL/api/history/{id}` | No |
-| GET | `/api/review/queue` | Yes | `BACKEND_URL/api/review/queue` (forwards `language`, `limit`) | No |
-| GET | `/api/review/stats` | Yes | `BACKEND_URL/api/review/stats` (forwards `language`) | No |
-| POST | `/api/review/[id]` | Yes | `BACKEND_URL/api/review/{id}` (body `{ grade }`) | No |
+| GET | `/api/review/queue` | Yes | `BACKEND_URL/api/review/queue` (forwards `language`, `limit`, `card_type`, `tz`) | No |
+| GET | `/api/review/stats` | Yes | `BACKEND_URL/api/review/stats` (forwards `language`, `tz`) | No |
+| GET | `/api/review/activity` | Yes | `BACKEND_URL/api/review/activity` (forwards `language`, `tz`, `weeks`) | No |
+| POST | `/api/review/[id]` | Yes | `BACKEND_URL/api/review/{id}` (body `{ grade, elapsed_ms? }`) | No |
 | POST | `/api/review/[id]/suspend` | Yes | `BACKEND_URL/api/review/{id}/suspend` | No |
 | POST | `/api/review/[id]/unsuspend` | Yes | `BACKEND_URL/api/review/{id}/unsuspend` | No |
+
+**The `tz` parameter.** Every daily-scoped review call forwards an IANA timezone from
+the browser (`Intl.DateTimeFormat().resolvedOptions().timeZone`), because only the client
+knows what day it is where the user is. It decides the goal ring's «сегодня», the streak,
+the heatmap's buckets and the daily new-card cap; the backend falls back to UTC when the
+name is absent or unrecognised. Bucketing on UTC was wrong by the caller's offset — a
+01:00 session in UTC+3 landed on the previous day and could appear to break a streak.
+
+`POST /api/review/[id]` forwards `elapsedMs` (the client's measured time on the card) as
+`elapsed_ms`, and only when present. The backend clamps it, so the BFF neither bounds nor
+trusts the number.
 
 The `/api/review/*` handlers map the backend's snake_case payloads to the camelCase,
 `Word`-shaped card the UI consumes (`src/shared/api/mappers/review.ts`); the rest pass

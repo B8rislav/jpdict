@@ -3,6 +3,7 @@
 import { useUnit } from 'effector-react';
 import { type Language } from '@/shared/api/types';
 import {
+  setDailyGoal,
   setSelectedLanguage,
   setShowFurigana,
   setShowPinyin,
@@ -18,7 +19,7 @@ import { useProfile } from '@/shared/profile/context';
 
 export default function Settings() {
   const t = useT();
-  const { selectedLanguage, showFurigana, showPinyin, uiLocale } = useProfile();
+  const { dailyGoal, selectedLanguage, showFurigana, showPinyin, uiLocale } = useProfile();
   const searchHistory = useUnit($searchHistory);
 
   return (
@@ -70,6 +71,28 @@ export default function Settings() {
           <Switch checked={showPinyin} onUpdate={setShowPinyin} />
         </div>
       )}
+
+      <div className={styles.section}>
+        <Text variant="subheader-2">{t('review', 'settings_daily_goal')}</Text>
+        <Text variant="body-2" color="secondary">
+          {t('review', 'settings_daily_goal_hint')}
+        </Text>
+        {/* Bounds match the backend's validation (1–500), so the control can't
+            offer a value the API would reject. */}
+        <input
+          className={styles.goalInput}
+          type="number"
+          min={1}
+          max={500}
+          step={1}
+          value={dailyGoal}
+          aria-label={t('review', 'settings_daily_goal')}
+          onChange={(event) => {
+            const next = Number(event.target.value);
+            if (Number.isFinite(next) && next >= 1) setDailyGoal(next);
+          }}
+        />
+      </div>
 
       <div className={styles.section}>
         <Text variant="subheader-2">{t('ui', 'settings_history_section')}</Text>

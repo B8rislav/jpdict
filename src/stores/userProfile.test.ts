@@ -64,6 +64,7 @@ describe('$userProfile', () => {
         showFurigana: false,
         showPinyin: true,
         uiLocale: 'en',
+        dailyGoal: 10,
       };
       const scope = fork();
       await allSettled(profileHydrated, { scope, params: fromServer });
@@ -93,7 +94,7 @@ describe('$userProfile', () => {
       // This device's cookie said Japanese/Russian…
       await allSettled(profileHydrated, {
         scope,
-        params: { selectedLanguage: 'jp', showFurigana: true, showPinyin: true, uiLocale: 'ru' },
+        params: { selectedLanguage: 'jp', showFurigana: true, showPinyin: true, uiLocale: 'ru', dailyGoal: 10 },
       });
       // …but the account says Chinese/English, and the account wins.
       await allSettled(fetchCurrentUserFx, { scope });
@@ -109,7 +110,7 @@ describe('$userProfile', () => {
 
       await allSettled(profileHydrated, {
         scope,
-        params: { selectedLanguage: 'jp', showFurigana: false, showPinyin: true, uiLocale: 'en' },
+        params: { selectedLanguage: 'jp', showFurigana: false, showPinyin: true, uiLocale: 'en', dailyGoal: 10 },
       });
       await allSettled(fetchCurrentUserFx, { scope });
 

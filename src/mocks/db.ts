@@ -1,4 +1,8 @@
-import { type BackendReviewCard, type ReviewStats } from '@/features/Review/api/types';
+import {
+  type BackendReviewActivity,
+  type BackendReviewCard,
+} from '@/features/Review/api/types';
+import { type BackendReviewStats } from '@/shared/api/mappers';
 import { type Grade } from '@/features/Review/constants';
 import {
   type BackendHistoryItem,
@@ -16,6 +20,16 @@ import {
 const vocabulary: BackendWord[] = structuredClone(seedVocabulary);
 const history: BackendHistoryItem[] = structuredClone(seedHistory);
 const reviewCards: BackendReviewCard[] = structuredClone(seedReviewCards);
+
+const DAY_MS = 86_400_000;
+/** Mirrors the backend's `users.daily_goal` server default. */
+const DAILY_GOAL = 10;
+/**
+ * Reviews graded in this session. The real backend counts rows in `review_logs`;
+ * this stands in for that so the goal ring and today's heatmap cell actually move
+ * as you study under `npm run dev:mock`, instead of sitting frozen.
+ */
+let gradedToday = 4;
 
 // ── Vocabulary ────────────────────────────────────────────────────────────────
 
@@ -118,10 +132,20 @@ export const db = {
   },
 
   /** Non-overlapping partition mirroring the backend's dashboard counts. */
-  reviewStats: (language: string | null): ReviewStats => {
+  reviewStats: (language: string | null): BackendReviewStats => {
     const now = Date.now();
     const cards = language ? reviewCards.filter((c) => c.language === language) : reviewCards;
-    const stats: ReviewStats = { new: 0, due: 0, learned: 0, suspended: 0, decks: [] };
+    // snake_case: these handlers stand in for the *backend*, and the BFF does the
+    // camelCase translation. Returning `doneToday` here would silently map to 0.
+    const stats: BackendReviewStats = {
+      new: 0,
+      due: 0,
+      learned: 0,
+      suspended: 0,
+      decks: [],
+      done_today: gradedToday,
+      daily_goal: DAILY_GOAL,
+    };
     for (const c of cards) {
       if (c.suspended) stats.suspended += 1;
       else if (c.repetitions === 0) stats.new += 1;
@@ -129,6 +153,49 @@ export const db = {
       else stats.learned += 1;
     }
     return stats;
+  },
+
+  /**
+   * A plausible seven-week history ending today, so `npm run dev:mock` shows a
+   * populated heatmap rather than an empty grid that looks like a bug.
+   *
+   * Generated relative to *today* (not a fixed date) so the last cell is always
+   * today's, and Monday-aligned to match what the real endpoint returns.
+   */
+  reviewActivity: (weeks = 7): BackendReviewActivity => {
+    const today = new Date();
+    const midnight = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+    // Back to the Monday starting the earliest requested week.
+    const mondayOffset = (today.getDay() + 6) % 7;
+    const start = midnight - (mondayOffset + (weeks - 1) * 7) * DAY_MS;
+
+    const days: BackendReviewActivity['days'] = [];
+    for (let time = start; time <= midnight; time += DAY_MS) {
+      const index = Math.round((time - start) / DAY_MS);
+      const weekday = index % 7;
+      // Weekends lighter, one dead day a fortnight, otherwise a rising rhythm.
+      const base = weekday >= 5 ? 3 : 9 + ((index * 7) % 17);
+      const reviews = index % 13 === 4 ? 0 : base;
+      days.push({
+        date: new Date(time).toISOString().slice(0, 10),
+        reviews,
+        new: reviews === 0 ? 0 : Math.min(reviews, 2 + (index % 4)),
+        // Older rows are untimed, mirroring reviews graded before elapsed tracking.
+        seconds: reviews === 0 || index < 14 ? null : reviews * 45,
+      });
+    }
+
+    const lastDay = days[days.length - 1];
+    if (lastDay) lastDay.reviews = Math.max(lastDay.reviews, gradedToday);
+
+    // Streak: walk back from today (or yesterday, if today is still empty).
+    let streak = 0;
+    for (let i = days.length - (lastDay && lastDay.reviews > 0 ? 1 : 2); i >= 0; i -= 1) {
+      if ((days[i]?.reviews ?? 0) === 0) break;
+      streak += 1;
+    }
+
+    return { days, streak };
   },
 
   /** Apply a grade: reschedule from the card's projected intervals. Returns the new schedule. */
@@ -148,6 +215,8 @@ export const db = {
     }
     card.interval_days = seconds / 86_400;
     card.status = card.interval_days >= 21 ? 'known' : 'learning';
+    // Stands in for the backend's appended `review_logs` row.
+    gradedToday += 1;
     return {
       due_at: dueAt,
       interval_days: card.interval_days,

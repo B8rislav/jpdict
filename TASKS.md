@@ -482,3 +482,158 @@ tiles keep a stable aspect at every width.
 
 **Done when:** both decks render from real backend data, the filter bar drives server-side
 queries, the URL fully describes the view, and no page fetches the whole vocabulary.
+
+---
+
+## 🔁 REVIEW — Study page redesign (dashboard, activity, session)
+
+> **Goal:** rebuild `/study` to the approved mocks — a `復習 Повторение` heading, a daily-goal
+> ring and a streak badge, three stat tiles, a 7×7 activity heatmap whose days open a detail
+> panel, and one CTA into the session; then the session itself — header (back · deck badge ·
+> progress · n/N), the bracketed flashcard, the four-grade ramp, and a completion screen.
+> Backend counterpart: `backend` Phase 21.
+>
+> **Key architecture fact (don't fight it):** `designoslav` is installed **from GitHub**, not
+> from the local checkout at `~/Documents/designoslav`. REVIEW.0–REVIEW.6 must all land and be
+> pushed (REVIEW.7) before REVIEW.8+ can compile. The lib still has react-window as its only
+> runtime dependency — no `motion`, no `next/link`.
+>
+> **Decisions baked in** (from the design review — don't relitigate without saying so):
+> - **The streak and the heatmap have no data source today.** `saved_words.last_reviewed_at` is
+>   overwritten on every grade, so the DB retains only "today" and history cannot be
+>   reconstructed. Backend Phase 21 adds an append-only `review_logs` table; nothing on this
+>   page renders fabricated data.
+> - **A "day" is the client's IANA timezone**, sent as a query param and bucketed server-side
+>   with `AT TIME ZONE` (UTC fallback). It applies to the heatmap, the streak, the goal ring
+>   **and the daily new-card cap** — otherwise the ring and the grid's "today" disagree between
+>   midnight and the UTC offset.
+> - **Streak = ≥1 review that day**, counting back from today when today has reviews and from
+>   yesterday when it doesn't. Deliberately *not* coupled to `daily_goal`: the goal is now
+>   user-editable, and a streak that reshapes itself when you move a slider means nothing.
+> - **Heatmap shades are absolute**, not relative to the range max — a good day must look the
+>   same in a busy month and a quiet one, or the legend stops meaning anything.
+> - **The heatmap is a fixed 7 Monday-aligned weeks**; days after today render as inert
+>   placeholders so the grid stays a 7×7 rectangle instead of reflowing daily.
+> - **Sessions are mixed by default**, `?deck=` scopes them. This fixes a live dead end:
+>   `src/features/Dictionary/DictionaryPanel.tsx:59` already pushes `/study?deck=kanji`, and
+>   `/study` never reads `searchParams` — «Учить →» on a deck card silently studies everything.
+> - **The deck badge is per-card, not per-session**, so mixed and scoped sessions share one
+>   code path. Needs `card_type` on the backend's `ReviewCard`, which it doesn't send today.
+> - **Time on card is measured by the client** and capped (~60s), because nothing server-side
+>   can distinguish studying from a tab left open. Rows predating Phase 21 carry `NULL`, and
+>   «ВРЕМЯ» renders «—» for them rather than a plausible-looking zero.
+> - **No «Пройти заново»** on the completion screen — its only CTA is «К словарю». Getting back
+>   to the dashboard is the session header's «← Назад».
+> - **The session keeps its current behaviour**: 3D flip, drag-to-grade, Space to reveal,
+>   1–4 to grade. Only the visual layer is rebuilt.
+> - **The grade ramp needs new palette colours.** The mock's rose → amber → pale-green →
+>   celadon has no source: the palette holds neutrals, celadon, terracotta and four POS colours,
+>   and today's `GRADE_VARIANT` (`src/features/Review/constants.ts:14`) maps grades onto generic
+>   button variants, which renders nothing like it.
+
+### REVIEW.0 — Designoslav: tokens
+
+- [x] Rose and amber ramps in `src/tokens/colors.css`; `--do-color-grade-again/hard/good/easy`
+  roles over them. Promote the existing plum (`--do-pos-pronoun`) to a real `--do-color-info`
+  role — the day-detail «ВРЕМЯ» dot and the deck badge both want it, and a part-of-speech
+  token meaning "time spent" is a name that lies at one of its call sites.
+
+### REVIEW.1 — Designoslav: `StatTile` tone + `MetricTile`
+
+- [x] `StatTile` gains `tone` (`primary` | `accent` | `neutral` | `muted` | `info`) — the mock
+  colours the three dashboard figures differently and the component has no way to say so.
+- [x] New `MetricTile`: coloured dot + caps label above a large value, left-aligned. A different
+  shape from `StatTile` (which centres value-over-label), not a variant of it.
+
+### REVIEW.2 — Designoslav: `ActivityCalendar`
+
+- [x] `DashboardCard` + title/range line + «меньше ▫▪▪▪ больше» legend + ПН–ВС header + the
+  7×7 grid. `days: {date, count}[]`, absolute `thresholds` prop (default 1/5/10/20), controlled
+  `selectedDate` / `onSelectDate`, `detail` slot, today outlined, future cells inert.
+- [x] Zero-activity past days stay selectable — the panel showing zeros is information; a dead
+  cell is a bug report waiting to happen.
+
+### REVIEW.3 — Designoslav: `ProgressBar`
+
+- [x] Extract the progress bar `DeckCard` draws inline into a `ProgressBar` primitive and
+  refactor `DeckCard` onto it — the session header needs the same bar, and a second copy is
+  how two bars drift apart.
+
+### REVIEW.4 — Designoslav: `GradeButton`
+
+- [x] Label over an interval sub-label, toned by grade off the REVIEW.0 roles. Keeps study
+  semantics out of `Button`'s generic variant list and the label stacking out of per-call-site
+  CSS; retires `GRADE_VARIANT` app-side.
+
+### REVIEW.5 — Designoslav: `StudyCard` + `SessionComplete`
+
+- [x] `StudyCard` — the bracketed white card with front/back faces and a `revealed` prop,
+  flipping in **pure CSS** (`rotateY`); the lib can't import `motion` and doesn't need to.
+  jpdict keeps its `motion` wrapper outside for entrance/exit and drag.
+- [x] `SessionComplete` — 完 glyph slot, title, caption, single action slot.
+- [x] Not reusing `KanjiCard`: that's the full lookup card (on/kun rows, radical, parts,
+  stroke-order box); the session card is a compact badge → glyph → readings → meaning → chip
+  stack. Different density, not a variant.
+
+### REVIEW.6 — Designoslav: stories & verify
+
+- [x] Story per new component; `npm run typecheck`, `npm run lint`, `npm run format` green.
+- [x] Story suite: **34 files / 158 tests passing**, run as
+  `npx vitest run --no-file-parallelism --maxWorkers=1` (parallel workers OOM on this box,
+  per HOME.3).
+- [ ] **Pre-existing blocker, not from this phase:** `src/VocabList` hangs the runner —
+  a Chromium renderer pins one core at 100% and never returns, so a whole-suite
+  `npm run test` never terminates. Confirmed against **clean `HEAD` with this phase's work
+  stashed**, so it is not caused by the `ProgressBar` refactor or anything else here.
+  Everything else was verified by running the suite with that one directory excluded.
+  `VocabList` is the react-window virtualized list — the prime suspect is its story
+  rendering a large collection under a headless browser on a 7.4GB box. Worth its own
+  slice; until then designoslav's stated verification surface can't be run in one command.
+
+### REVIEW.7 — Publish the lib
+
+- [x] Push, then `npm update designoslav` here. REVIEW.8+ cannot compile before this.
+
+### REVIEW.8 — jpdict: types + API layer
+
+- [x] `DayActivity`, `ActivitySeries`, `daily_goal` on `ReviewStats`, `cardType` + `components`
+  on `ReviewCard` in `src/features/Review/api/types.ts`; mappers in
+  `src/shared/api/mappers/review.ts`.
+- [x] BFF: new `src/app/api/review/activity/route.ts`; `stats` route forwards `tz`;
+  `[id]` route forwards `elapsed_ms`; `queue` route forwards `card_type`.
+
+### REVIEW.9 — jpdict: model
+
+- [x] `$activity`, `$dailyGoal`, `fetchActivityFx` (sends `Intl.DateTimeFormat().resolvedOptions().timeZone`);
+  `fetchQueueFx` takes the deck from `?deck=`. Selected day stays `useState` in the view —
+  ephemeral selection with no other subscriber has no business in a store.
+
+### REVIEW.10 — jpdict: dashboard
+
+- [x] `src/features/Review/StudyPanel.tsx` + `ui/StudyDashboardView.tsx` + `ui/ActivityView.tsx`;
+  `page.tsx` shrinks to `AuthGate` + a mode switch (it is at ~95 of its 100-line budget today).
+- [x] Loading renders `Skeleton`s in each card's shape; an empty account still renders every
+  widget (streak 0, goal 0/N, empty grid) — the page's shape is what teaches the app's model.
+  The CTA renders **disabled** with «Всё повторено» rather than vanishing and reflowing.
+
+**Done when:** the dashboard matches the mock against real backend data. **Stop and confirm.**
+
+### REVIEW.11 — jpdict: session
+
+- [x] `src/features/Review/SessionPanel.tsx` + `ui/SessionView.tsx`: header (← Назад · deck
+  `Badge` · `ProgressBar` · n/N), `StudyCard` faces for word and kanji cards incl. the
+  component chip, `GradeButton` row, `SessionComplete`. Card timing feeds `elapsed_ms`.
+
+### REVIEW.12 — jpdict: settings, i18n, docs, verify
+
+- [x] Daily-goal control in `src/app/settings/page.tsx`.
+- [x] `ru.json` / `en.json`: `activity_*`, `streak_*`, `goal_*`, `session_*`, weekday and month
+  abbreviations. No Cyrillic literals in `.tsx` (ESLint enforces it).
+- [x] MSW: `/api/review/activity` handler + a fixture history in `src/mocks/db.ts`, so
+  `npm run dev:mock` shows a populated heatmap.
+- [x] Stories for every new `ui/` component (`npm run check:stories`); docs rows in
+  `docs/COMPONENTS.md`, `docs/STATE.md`, `docs/BFF.md`.
+- [x] `npm run verify` green in both repos.
+
+**Done when:** `/study` matches all four mocks on real data, «Учить →» from a deck card opens a
+deck-scoped session, and no widget on the page renders a number the backend didn't produce.

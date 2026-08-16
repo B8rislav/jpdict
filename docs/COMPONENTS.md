@@ -32,8 +32,10 @@ Pure components — no store imports. All data arrives via props from the contai
 | `DeckSwitcherView` | `Dictionary/ui/DeckSwitcherView.tsx` | The two deck cards (Кандзи / Слова) with today's workload, progress and a study CTA | `decks: DeckSummary[]`, `openDeck`, `onOpenDeck`, `onStudy` | `DeckSwitcherView.stories.tsx` |
 | `DictionaryFiltersView` | `Dictionary/ui/DictionaryFiltersView.tsx` | Search box plus level and status pills; level scale follows the study language | `deck`, `language`, `level`, `status`, `q`, `shown`, `on*Change` | `DictionaryFiltersView.stories.tsx` |
 | `DictionaryPanelView` | `Dictionary/ui/DictionaryPanelView.tsx` | The open deck's collection: a virtualized row list for words, a virtualized tile grid for kanji | `deck`, `items`, `total`, `loading`, `canSpeak`, `onSpeak`, `onDelete`, `onAdvanceStatus`, `onEndReached` | `DictionaryPanelView.stories.tsx` |
-| `ReviewCard` | `Review/ui/ReviewCard.tsx` | Flashcard: front shows the word, reveal flips to reading/meaning/markers; four grade buttons each label the backend-projected next interval; `Space` reveals, `1–4` grade | `card: ReviewCard`, `readingLabel`, `onGrade`, `initiallyRevealed?` | `ReviewCard.stories.tsx` |
-| `StudyDashboard` | `Review/ui/StudyDashboard.tsx` | Due / new / learned counts with a "Start review" button; empty state when nothing is due | `stats: ReviewStats \| null`, `onStart` | `StudyDashboard.stories.tsx` |
+| `ReviewCard` | `Review/ui/ReviewCard.tsx` | Flashcard on designoslav's `StudyCard`: reveal flips to reading/meaning/component chips, four `GradeButton`s label the projected interval. Wraps the lib card in `motion` for entrance/exit and drag-to-grade; `Space` reveals, `1–4` grade. Reports time on card to `onGrade` | `card: ReviewCard`, `readingLabel`, `onGrade(grade, elapsedMs)`, `initiallyRevealed?` | `ReviewCard.stories.tsx` |
+| `StudyDashboardView` | `Review/ui/StudyDashboardView.tsx` | The study dashboard: goal ring, streak, three stat tiles, the activity grid (as `children`) and the session CTA. Renders every widget even for an empty account, and disables rather than hides the CTA when nothing is due | `stats`, `activity`, `loading`, `onStart`, `children` | `StudyDashboardView.stories.tsx` |
+| `ActivityView` | `Review/ui/ActivityView.tsx` | The heatmap plus the open day's breakdown. Owns the selected day as local state — no store, since nothing else reacts to it and the panel reads from the same series the grid draws | `activity: ReviewActivity \| null` | `ActivityView.stories.tsx` |
+| `SessionView` | `Review/ui/SessionView.tsx` | A review session: header (back · per-card deck badge · progress · n/N), the card, or the completion screen once the queue drains | `card`, `total`, `remaining`, `deck?`, `readingLabel`, `onGrade`, `onExit`, `onFinish` | `SessionView.stories.tsx` |
 | `LanguageCard` | `LanguageSelect/ui/LanguageCard.tsx` | JP / CN selection card | `language`, `selected`, `onClick` | `LanguageCard.stories.tsx` |
 
 ## Container components (store-connected, no story)
@@ -48,8 +50,10 @@ Storybook stories without mocking.
 | `SentenceCard` | `Sentence/SentenceCard.tsx` | `$userProfile` |
 | `KanjiCard` | `KanjiCard/KanjiCard.tsx` | `$userProfile` |
 | `WordInspector` | `WordInspector/WordInspector.tsx` | `$inspectedWord`, example sentence effect |
+| `StudyPanel` | `Review/StudyPanel.tsx` | `$stats`, `$activity`, `fetchStatsFx`, `fetchActivityFx` (reloads on mount, which is what refreshes the heatmap after a session) |
+| `SessionPanel` | `Review/SessionPanel.tsx` | `$current`, `$queue`, `$sessionTotal`, `fetchQueueFx`, `gradeCurrent` |
 | `DictionaryPanel` | `Dictionary/DictionaryPanel.tsx` | `$items`, `$total`, `$deckSummaries`, dictionary effects; owns the URL-backed query via `useDictionaryFilters` |
 | `AuthModal` | `Auth/AuthModal.tsx` | `loginFx`, `registerFx` |
 | `AuthGate` | `features/Auth/AuthGate.tsx` | `$isAuthenticated`, `$sessionResolved` |
 | Home page | `app/page.tsx` | all global stores |
-| Study page | `app/study/page.tsx` | `$current`, `$queue`, `$stats`, review effects; `$userProfile`, `$isAuthenticated` |
+| Study page | `app/study/page.tsx` | none directly — an `AuthGate` plus a dashboard/session switch; `?deck=` opens straight into a deck-scoped session |

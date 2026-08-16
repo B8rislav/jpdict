@@ -1,6 +1,7 @@
 export { levelMarkers, parseLevelMarkers } from './levels';
 export {
   toDeckSummary,
+  toReviewActivity,
   toReviewCard,
   toReviewResult,
   toReviewStats,

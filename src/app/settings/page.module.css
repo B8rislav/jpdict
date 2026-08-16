@@ -36,3 +36,19 @@
   display: flex;
   gap: 8px;
 }
+
+.goalInput {
+  width: 96px;
+  padding: var(--do-space-2) var(--do-space-3);
+  border: 1px solid var(--do-color-border-strong);
+  border-radius: var(--do-radius-md);
+  background-color: var(--do-color-surface-raised);
+  color: var(--do-color-text);
+  font-family: var(--do-font-sans);
+  font-size: var(--do-font-size-md);
+}
+
+.goalInput:focus-visible {
+  outline: 2px solid var(--do-color-focus-ring);
+  outline-offset: 2px;
+}

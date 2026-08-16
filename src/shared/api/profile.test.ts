@@ -14,6 +14,7 @@ const profile: UserProfile = {
   showFurigana: false,
   showPinyin: true,
   uiLocale: 'en',
+  dailyGoal: 10,
 };
 
 describe('profile cookie', () => {
@@ -83,8 +84,10 @@ describe('backend translation', () => {
         ui_locale: 'en',
         show_furigana: false,
         show_pinyin: true,
+        daily_goal: 10,
       }),
     ).toEqual({
+      dailyGoal: 10,
       id: 'u1',
       email: 'a@b.com',
       name: 'Bo',

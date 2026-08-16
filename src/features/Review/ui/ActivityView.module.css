@@ -1,0 +1,32 @@
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--do-space-3);
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: var(--do-space-3);
+  min-width: 0;
+}
+
+.date {
+  min-width: 0;
+  color: var(--do-color-text);
+  font-size: var(--do-font-size-sm);
+  font-weight: var(--do-font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--do-space-3);
+}
+
+@media (max-width: 560px) {
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+}

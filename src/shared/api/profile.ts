@@ -14,6 +14,8 @@ export interface UserProfile {
   showFurigana: boolean;
   showPinyin: boolean;
   uiLocale: Locale;
+  /** Reviews per day the study page's goal ring targets. */
+  dailyGoal: number;
 }
 
 /** Identity + profile, as served by `GET /api/users/me`. */
@@ -33,6 +35,8 @@ export const DEFAULT_PROFILE: UserProfile = {
   showFurigana: true,
   showPinyin: true,
   uiLocale: 'ru',
+  // Mirrors the backend's `users.daily_goal` server default.
+  dailyGoal: 10,
 };
 
 /** The backend's snake_case user payload. */
@@ -44,6 +48,7 @@ export interface BackendUser {
   ui_locale: Locale;
   show_furigana: boolean;
   show_pinyin: boolean;
+  daily_goal: number;
 }
 
 export function toCurrentUser(user: BackendUser): CurrentUser {
@@ -55,6 +60,7 @@ export function toCurrentUser(user: BackendUser): CurrentUser {
     uiLocale: user.ui_locale,
     showFurigana: user.show_furigana,
     showPinyin: user.show_pinyin,
+    dailyGoal: user.daily_goal,
   };
 }
 
@@ -65,6 +71,7 @@ export function toBackendPatch(patch: Partial<UserProfile>): Record<string, unkn
   if (patch.uiLocale !== undefined) body.ui_locale = patch.uiLocale;
   if (patch.showFurigana !== undefined) body.show_furigana = patch.showFurigana;
   if (patch.showPinyin !== undefined) body.show_pinyin = patch.showPinyin;
+  if (patch.dailyGoal !== undefined) body.daily_goal = patch.dailyGoal;
   return body;
 }
 
@@ -90,6 +97,11 @@ export function parseProfileCookie(raw: string | undefined): Partial<UserProfile
     }
     if (typeof candidate.showFurigana === 'boolean') profile.showFurigana = candidate.showFurigana;
     if (typeof candidate.showPinyin === 'boolean') profile.showPinyin = candidate.showPinyin;
+    // Bounded on the way in as well as out: the cookie is user-editable, and a 0
+    // would make the goal ring divide by zero on the very first render.
+    if (typeof candidate.dailyGoal === 'number' && candidate.dailyGoal >= 1) {
+      profile.dailyGoal = Math.min(Math.round(candidate.dailyGoal), 500);
+    }
 
     return profile;
   } catch {
@@ -103,6 +115,7 @@ export function serializeProfileCookie(profile: UserProfile): string {
     uiLocale: profile.uiLocale,
     showFurigana: profile.showFurigana,
     showPinyin: profile.showPinyin,
+    dailyGoal: profile.dailyGoal,
   });
 }
 
@@ -123,6 +136,7 @@ export function resolveProfile(sources: {
     selectedLanguage: cookie?.selectedLanguage ?? DEFAULT_PROFILE.selectedLanguage,
     showFurigana: cookie?.showFurigana ?? DEFAULT_PROFILE.showFurigana,
     showPinyin: cookie?.showPinyin ?? DEFAULT_PROFILE.showPinyin,
+    dailyGoal: cookie?.dailyGoal ?? DEFAULT_PROFILE.dailyGoal,
     uiLocale: cookie?.uiLocale ?? acceptLanguageLocale ?? DEFAULT_PROFILE.uiLocale,
   };
 }

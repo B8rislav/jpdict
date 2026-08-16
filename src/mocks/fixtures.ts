@@ -194,6 +194,7 @@ export const seedReviewCards: BackendReviewCard[] = [
   {
     id: 'r-jp-1',
     language: 'jp',
+    card_type: 'word',
     expression: '食べる',
     reading: 'たべる',
     meaning: 'to eat',
@@ -212,6 +213,7 @@ export const seedReviewCards: BackendReviewCard[] = [
   {
     id: 'r-jp-2',
     language: 'jp',
+    card_type: 'word',
     expression: '難しい',
     reading: 'むずかしい',
     meaning: 'difficult',
@@ -231,6 +233,7 @@ export const seedReviewCards: BackendReviewCard[] = [
   {
     id: 'r-jp-3',
     language: 'jp',
+    card_type: 'word',
     expression: '図書館',
     reading: 'としょかん',
     meaning: 'library',
@@ -249,6 +252,7 @@ export const seedReviewCards: BackendReviewCard[] = [
   {
     id: 'r-jp-4',
     language: 'jp',
+    card_type: 'word',
     expression: '約束',
     reading: 'やくそく',
     meaning: 'promise',
@@ -268,6 +272,7 @@ export const seedReviewCards: BackendReviewCard[] = [
   {
     id: 'r-cn-1',
     language: 'cn',
+    card_type: 'word',
     expression: '你好',
     reading: 'nǐ hǎo',
     meaning: 'hello',
@@ -286,6 +291,7 @@ export const seedReviewCards: BackendReviewCard[] = [
   {
     id: 'r-cn-2',
     language: 'cn',
+    card_type: 'word',
     expression: '经济',
     reading: 'jīng jì',
     meaning: 'economy',

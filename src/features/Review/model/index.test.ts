@@ -5,6 +5,7 @@ import { fork, allSettled } from 'effector';
 vi.mock('../api', () => ({
   fetchQueue: vi.fn(async () => []),
   fetchStats: vi.fn(async () => null),
+  fetchActivity: vi.fn(async () => null),
   gradeCard: vi.fn(async () => ({ dueAt: '', intervalDays: 1, repetitions: 1, easeFactor: 2.5 })),
   suspendCard: vi.fn(async () => ({})),
   unsuspendCard: vi.fn(async () => ({})),
@@ -17,6 +18,8 @@ function card(id: string, overrides: Partial<ReviewCard> = {}): ReviewCard {
   return {
     id,
     language: 'jp',
+    cardType: 'word',
+    components: [],
     kanji_full: '食べる',
     hiragana_full: 'たべる',
     def_en: ['to eat'],
@@ -49,7 +52,7 @@ describe('review store', () => {
 
   it('grading advances the queue', async () => {
     const scope = fork({ values: [[$queue, [card('a'), card('b')]]] });
-    await allSettled(gradeCurrent, { scope, params: 'good' });
+    await allSettled(gradeCurrent, { scope, params: { grade: 'good' } });
     expect(scope.getState($queue).map((c) => c.id)).toEqual(['b']);
   });
 
@@ -57,22 +60,38 @@ describe('review store', () => {
     const scope = fork({
       values: [
         [$queue, [card('a', { lastReviewedAt: '2026-06-01T00:00:00Z', status: 'learning' })]],
-        [$stats, { new: 2, due: 3, learned: 5, suspended: 0 }],
+        [$stats, { new: 2, due: 3, learned: 5, suspended: 0, decks: [], doneToday: 4, dailyGoal: 10 }],
       ],
     });
-    await allSettled(gradeCurrent, { scope, params: 'good' });
-    expect(scope.getState($stats)).toEqual({ new: 2, due: 2, learned: 6, suspended: 0 });
+    await allSettled(gradeCurrent, { scope, params: { grade: 'good' } });
+    expect(scope.getState($stats)).toEqual({
+      new: 2,
+      due: 2,
+      learned: 6,
+      suspended: 0,
+      decks: [],
+      doneToday: 5,
+      dailyGoal: 10,
+    });
   });
 
   it('grading a new card moves it from new to learned', async () => {
     const scope = fork({
       values: [
         [$queue, [card('a', { lastReviewedAt: null })]],
-        [$stats, { new: 2, due: 3, learned: 5, suspended: 0 }],
+        [$stats, { new: 2, due: 3, learned: 5, suspended: 0, decks: [], doneToday: 4, dailyGoal: 10 }],
       ],
     });
-    await allSettled(gradeCurrent, { scope, params: 'again' });
-    expect(scope.getState($stats)).toEqual({ new: 1, due: 3, learned: 6, suspended: 0 });
+    await allSettled(gradeCurrent, { scope, params: { grade: 'again' } });
+    expect(scope.getState($stats)).toEqual({
+      new: 1,
+      due: 3,
+      learned: 6,
+      suspended: 0,
+      decks: [],
+      doneToday: 5,
+      dailyGoal: 10,
+    });
   });
 
   it('suspending drops the card from the queue', async () => {

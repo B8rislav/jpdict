@@ -1,6 +1,8 @@
 import {
+  type BackendReviewActivity,
   type BackendReviewCard,
   type BackendReviewResult,
+  type ReviewActivity,
   type ReviewCard,
   type ReviewResult,
   type ReviewStats,
@@ -19,10 +21,16 @@ export function toReviewCard(card: BackendReviewCard): ReviewCard {
   return {
     id: card.id,
     language: card.language,
+    cardType: card.card_type,
     kanji_full: card.expression,
     hiragana_full: card.reading,
     def_en: [card.meaning],
     markers: levelMarkers(card.jlpt_level, card.hsk_level),
+    components: (card.components ?? []).map((component) => ({
+      character: component.character,
+      readings: component.readings ?? [],
+      meanings: component.meanings ?? [],
+    })),
     status: card.status,
     dueAt: card.due_at,
     intervalDays: card.interval_days,
@@ -51,6 +59,8 @@ export interface BackendReviewStats {
   learned: number;
   suspended: number;
   decks?: BackendDeckSummary[];
+  done_today?: number;
+  daily_goal?: number;
 }
 
 /**
@@ -64,6 +74,26 @@ export function toReviewStats(stats: BackendReviewStats): ReviewStats {
     learned: stats.learned,
     suspended: stats.suspended,
     decks: (stats.decks ?? []).map(toDeckSummary),
+    doneToday: stats.done_today ?? 0,
+    // Falls back to the backend's own default rather than 0: a goal of 0 would make
+    // the ring divide by zero and read «0 из 0» as if the user had no target.
+    dailyGoal: stats.daily_goal ?? DEFAULT_DAILY_GOAL,
+  };
+}
+
+/** Mirrors the backend's `users.daily_goal` server default; used only as a fallback. */
+const DEFAULT_DAILY_GOAL = 10;
+
+/** Map the activity series. Only `days[].new` needs renaming away from the reserved word. */
+export function toReviewActivity(activity: BackendReviewActivity): ReviewActivity {
+  return {
+    days: activity.days.map((day) => ({
+      date: day.date,
+      reviews: day.reviews,
+      new: day.new,
+      seconds: day.seconds,
+    })),
+    streak: activity.streak,
   };
 }
 

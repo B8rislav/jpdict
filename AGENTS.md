@@ -68,7 +68,8 @@ See [docs/STATE.md](docs/STATE.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.
 - **CSS Modules** + CSS custom properties for styling. See [docs/STYLING.md](docs/STYLING.md).
 - In docs, reference code locations as `path:line` plain text (links rot); elsewhere
   markdown links are fine.
-- Everytime after writing something search for common abstractions in other components or functions to shorten code
+- Everytime after writing something search for common abstractions in other components or functions to shorten code for future
+- First after creating a plan write tasks into TASKS.md. After completing each of them mark it as done
 
 ## Gotchas
 

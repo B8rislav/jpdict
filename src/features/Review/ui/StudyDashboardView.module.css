@@ -1,0 +1,43 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--do-space-5);
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+/* The 復習 in the heading sits in the CJK face at the surrounding size. */
+.native {
+  font-family: var(--do-font-cjk);
+}
+
+.header {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--do-space-4);
+}
+
+.counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--do-space-4);
+}
+
+/* Skeletons stand in at each widget's real height, so nothing jumps on load. */
+.headerSkeleton {
+  height: 116px;
+}
+
+.countsSkeleton {
+  height: 88px;
+}
+
+.gridSkeleton {
+  height: 420px;
+}
+
+@media (max-width: 560px) {
+  .counts {
+    grid-template-columns: 1fr;
+  }
+}

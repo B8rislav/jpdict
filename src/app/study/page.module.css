@@ -2,34 +2,8 @@
   padding: 40px 60px;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 32px;
-}
-
-.back {
-  text-decoration: none;
-  color: var(--g-color-text-secondary);
-}
-
-.session {
-  max-width: 520px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.remaining {
-  align-self: flex-end;
-}
-
-.done {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  padding: 48px 0;
+@media (max-width: 720px) {
+  .page {
+    padding: 24px 16px;
+  }
 }

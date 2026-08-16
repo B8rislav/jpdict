@@ -219,6 +219,12 @@ export const handlers: RequestHandler[] = [
     );
   }),
 
+  http.get(u('/api/review/activity'), ({ request }) => {
+    const url = new URL(request.url);
+    const weeks = url.searchParams.get('weeks');
+    return HttpResponse.json(db.reviewActivity(weeks ? Number(weeks) : undefined));
+  }),
+
   http.get(u('/api/review/stats'), ({ request }) => {
     const url = new URL(request.url);
     return HttpResponse.json(db.reviewStats(url.searchParams.get('language')));

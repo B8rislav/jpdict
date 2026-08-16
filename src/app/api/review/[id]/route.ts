@@ -10,7 +10,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const call = await backendFetch(req, `/api/review/${id}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ grade: body.grade }),
+    // `elapsed_ms` is forwarded only when the client measured it; the backend
+    // clamps it, so nothing here has to trust or bound the number.
+    body: JSON.stringify({
+      grade: body.grade,
+      ...(body.elapsedMs != null ? { elapsed_ms: body.elapsedMs } : {}),
+    }),
   });
   if (call.error) return call.error;
 

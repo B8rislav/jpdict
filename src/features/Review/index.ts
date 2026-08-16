@@ -1,11 +1,19 @@
 export { ReviewCard } from './ui/ReviewCard';
-export { StudyDashboard } from './ui/StudyDashboard';
+export { StudyPanel } from './StudyPanel';
+export { SessionPanel } from './SessionPanel';
 export { GRADES, type Grade } from './constants';
-export { type ReviewCard as ReviewCardData, type ReviewStats } from './api/types';
 export {
+  type ReviewCard as ReviewCardData,
+  type ReviewActivity,
+  type ReviewStats,
+} from './api/types';
+export {
+  $activity,
   $current,
   $queue,
+  $sessionTotal,
   $stats,
+  fetchActivityFx,
   fetchQueueFx,
   fetchStatsFx,
   gradeCurrent,

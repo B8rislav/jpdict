@@ -1,99 +1,48 @@
 .root {
-  /* The fling/drag surface. transform-origin centered for a natural toss. */
-  transform-origin: center;
-  will-change: transform;
+  width: 100%;
 }
 
-.card {
+.reading {
+  color: var(--do-color-text-muted);
+  font-size: var(--do-font-size-sm);
+}
+
+.meaning {
+  color: var(--do-color-text);
+  font-size: var(--do-font-size-lg);
+  font-weight: var(--do-font-weight-semibold);
+  /* The answer is what's being judged — it wraps rather than truncating. */
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ── Constituent kanji chips ────────────────────────────────────────────────── */
+.components {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 32px 24px;
+  flex-wrap: wrap;
+  gap: var(--do-space-2);
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-/* 3D flip scene: both faces share one grid cell so the card sizes to the taller
-   (back) face and the flip never causes a height jump. */
-.flipScene {
-  perspective: 1200px;
+.component {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--do-space-2);
+  padding: var(--do-space-2) var(--do-space-3);
+  border: 1px solid var(--do-color-border);
+  border-radius: var(--do-radius-md);
 }
 
-.flipInner {
-  position: relative;
-  display: grid;
-  transform-style: preserve-3d;
+.componentChar {
+  font-family: var(--do-font-cjk);
+  font-size: var(--do-font-size-xl);
+  color: var(--do-color-text);
 }
 
-.face {
-  grid-area: 1 / 1;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  /* The down-facing side never captures clicks; .active re-enables the visible one. */
-  pointer-events: none;
-}
-
-.face.active {
-  pointer-events: auto;
-}
-
-.faceBack {
-  transform: rotateY(180deg);
-}
-
-.reveal {
-  margin-top: auto;
-}
-
-.front {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  text-align: center;
-  padding: 16px 0;
-}
-
-.back {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-top: 8px;
-  border-top: 1px solid var(--g-color-line-generic);
-}
-
-.grades {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-
-.gradeCell {
-  display: flex;
-}
-
-.grades button {
-  height: auto;
-  min-height: 60px;
-  padding-top: 12px;
-  padding-bottom: 12px;
-}
-
-.gradeLabel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  line-height: 1.2;
-}
-
-.interval {
-  font-size: 0.75em;
-  opacity: 0.7;
-}
-
-@media (max-width: 520px) {
-  .grades {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.componentGloss {
+  color: var(--do-color-text-subtle);
+  font-size: var(--do-font-size-xs);
 }

@@ -26,6 +26,8 @@ const noop = () => {};
 const reviewedCard: ReviewCardData = {
   id: '1',
   language: 'jp',
+  cardType: 'word',
+  components: [],
   kanji_full: '食べる',
   hiragana_full: 'たべる',
   def_en: ['to eat', 'to live on (e.g. a salary)'],
@@ -64,6 +66,21 @@ export const Revealed: Story = {
 
 export const NewCardRevealed: Story = {
   args: { card: newCard, readingLabel: 'Hiragana', onGrade: noop, initiallyRevealed: true },
+};
+
+/** A kanji card: the answer face adds its constituent parts as chips. */
+const kanjiCard: ReviewCardData = {
+  ...reviewedCard,
+  id: 'k1',
+  cardType: 'kanji',
+  kanji_full: '毎',
+  hiragana_full: 'マイ',
+  def_en: ['каждый, всякий'],
+  components: [{ character: '母', readings: ['なかれ'], meanings: ['мать'] }],
+};
+
+export const KanjiCardRevealed: Story = {
+  args: { card: kanjiCard, readingLabel: 'Оньёми', onGrade: noop, initiallyRevealed: true },
 };
 
 const sipCard: ReviewCardData = {

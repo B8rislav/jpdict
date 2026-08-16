@@ -1,4 +1,5 @@
 import { type Translate } from '@/shared/i18n';
+import { pluralize } from './plural';
 
 /**
  * Interval formatting for review-grade buttons. The scheduling itself (SM-2 +
@@ -18,10 +19,12 @@ const YEAR = 365 * DAY;
 
 /** A compact, localized interval label from seconds: e.g. "1m", "10m", "4d", "2w", "1y". */
 export function formatInterval(seconds: number, t: Translate): string {
-  if (seconds < HOUR) return `${Math.round(seconds / MINUTE)}${t('review', 'unit_minute')}`;
-  if (seconds < DAY) return `${Math.round(seconds / HOUR)}${t('review', 'unit_hour')}`;
-  if (seconds < WEEK) return `${Math.round(seconds / DAY)}${t('review', 'unit_day')}`;
-  if (seconds < MONTH) return `${Math.round(seconds / WEEK)}${t('review', 'unit_week')}`;
-  if (seconds < YEAR) return `${Math.round(seconds / MONTH)}${t('review', 'unit_month')}`;
-  return `${Math.round(seconds / YEAR)}${t('review', 'unit_year')}`;
+  if (seconds < HOUR) return `${Math.round(seconds / MINUTE)} ${t('review', 'unit_minute')}`;
+  if (seconds < DAY) return `${Math.round(seconds / HOUR)} ${t('review', 'unit_hour')}`;
+  // Days are the interval a user sees most, and the one the mock spells out in
+  // full («1 день» · «4 дня») rather than abbreviating.
+  if (seconds < WEEK) return pluralize(Math.round(seconds / DAY), 'days', t);
+  if (seconds < MONTH) return `${Math.round(seconds / WEEK)} ${t('review', 'unit_week')}`;
+  if (seconds < YEAR) return `${Math.round(seconds / MONTH)} ${t('review', 'unit_month')}`;
+  return `${Math.round(seconds / YEAR)} ${t('review', 'unit_year')}`;
 }

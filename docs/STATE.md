@@ -97,27 +97,32 @@ flash plus a React hydration mismatch.
 
 ---
 
-### `$queue` → `$current`, `$stats` (review / SRS)
+### `$queue` → `$current`, `$stats`, `$activity` (review / SRS)
 
 File: `src/features/Review/model/index.ts` (re-exported from `src/features/Review`)
 
 | Store | Type | Description |
 |-------|------|-------------|
 | `$queue` | `ReviewCard[]` | Cards still to study this session (due first, then new) |
-| `$stats` | `ReviewStats \| null` | Dashboard counts `{ new, due, learned, suspended }` for the active language |
+| `$stats` | `ReviewStats \| null` | Dashboard counts for the active language, plus `doneToday` (reviews today) and `dailyGoal` |
+| `$activity` | `ReviewActivity \| null` | The heatmap series and streak |
+| `$sessionTotal` | `number` | Cards the running session started with — the progress bar's denominator, fixed at load so the bar doesn't sit at 100% |
 
 **Derived:** `$current` (`$queue[0] ?? null`) — the card on screen.
 
-**Language-aware:** `fetchQueueFx` / `fetchStatsFx` read `selectedLanguage` off `$userProfile` and no-op when unauthenticated.
+**Language-aware:** `fetchQueueFx` / `fetchStatsFx` / `fetchActivityFx` read `selectedLanguage` off `$userProfile` and no-op when unauthenticated. All three send the browser's IANA timezone, which is what defines "today" for the goal ring, streak, heatmap and new-card cap.
+
+**Deck-aware:** `fetchQueueFx` takes an optional `CardType`; the deck is kept in a private `$sessionDeck` so a post-failure resync refetches the *same* deck rather than silently widening a kanji session into a mixed one.
 
 **Writers:**
 - `fetchQueueFx.doneData` → replaces `$queue`; `fetchStatsFx.doneData` → replaces `$stats`
 - `gradeCurrent` event → sampled against `$current` into `gradeRequested`, which (a) fires `gradeFx` to the backend, (b) optimistically advances `$queue` (drops the head), and (c) optimistically moves the card out of `new`/`due` into `learned` in `$stats`
 - `nextCard` event → drops the head without grading (skip)
 - `suspendFx.done` → removes the card from `$queue`; `suspendFx.done` / `unsuspendFx.done` → refetch `$stats`
-- `gradeFx.fail` → resync by refetching queue + stats (the optimistic advance was wrong)
+- `gradeFx.fail` → resync by refetching queue (with `$sessionDeck`) + stats (the optimistic advance was wrong)
+- `$activity` is **not** refetched per grade: the heatmap only exists on the dashboard, which isn't mounted mid-session, so `StudyPanel` reloads it on mount — one request per session rather than one per card
 
-**Readers:** `src/app/study/page.tsx`, `src/app/dictionary/page.tsx` (the "due" badge)
+**Readers:** `src/features/Review/StudyPanel.tsx`, `src/features/Review/SessionPanel.tsx`, `src/app/dictionary/page.tsx` (the "due" badge)
 
 Moved out of `src/stores/` because only the Review feature uses it, and while it lived
 there it imported from `src/features/Review/api` — a top-level module depending on a
