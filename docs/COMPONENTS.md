@@ -29,7 +29,9 @@ Pure components — no store imports. All data arrives via props from the contai
 | `SentenceHighlight` | `Sentence/ui/SentenceHighlight.tsx` | Renders the sentence header as POS-tinted, clickable spans; clicking a word selects its token | `sentence`, `tokens`, `selectedLanguage`, `selectedTokenIndex`, `onTokenSelect` | `SentenceHighlight.stories.tsx` |
 | `AIOverviewAccordion` | `Sentence/ui/AIOverviewAccordion.tsx` | Expandable AI explanation panel; renders SSE stream as markdown | `sentence`, `tokens`, `onFetchOverview` | `AIOverviewAccordion.stories.tsx` |
 | `TokenRow` | `Sentence/ui/TokenRow.tsx` | Single token with POS-coloured label; carries `data-token-index` for scroll targeting | `token: SentenceToken`, `onClick` | `TokenRow.stories.tsx` |
-| `DictionaryWordCard` | `Dictionary/DictionaryWordCard/DictionaryWordCard.tsx` | Saved-word row with mastery status selector, suspend toggle, and delete | `word: SavedWord`, `onAdvanceStatus`, `onDelete`, `onToggleSuspend` | `DictionaryWordCard.stories.tsx` |
+| `DeckSwitcherView` | `Dictionary/ui/DeckSwitcherView.tsx` | The two deck cards (Кандзи / Слова) with today's workload, progress and a study CTA | `decks: DeckSummary[]`, `openDeck`, `onOpenDeck`, `onStudy` | `DeckSwitcherView.stories.tsx` |
+| `DictionaryFiltersView` | `Dictionary/ui/DictionaryFiltersView.tsx` | Search box plus level and status pills; level scale follows the study language | `deck`, `language`, `level`, `status`, `q`, `shown`, `on*Change` | `DictionaryFiltersView.stories.tsx` |
+| `DictionaryPanelView` | `Dictionary/ui/DictionaryPanelView.tsx` | The open deck's collection: a virtualized row list for words, a virtualized tile grid for kanji | `deck`, `items`, `total`, `loading`, `canSpeak`, `onSpeak`, `onDelete`, `onAdvanceStatus`, `onEndReached` | `DictionaryPanelView.stories.tsx` |
 | `ReviewCard` | `Review/ui/ReviewCard.tsx` | Flashcard: front shows the word, reveal flips to reading/meaning/markers; four grade buttons each label the backend-projected next interval; `Space` reveals, `1–4` grade | `card: ReviewCard`, `readingLabel`, `onGrade`, `initiallyRevealed?` | `ReviewCard.stories.tsx` |
 | `StudyDashboard` | `Review/ui/StudyDashboard.tsx` | Due / new / learned counts with a "Start review" button; empty state when nothing is due | `stats: ReviewStats \| null`, `onStart` | `StudyDashboard.stories.tsx` |
 | `LanguageCard` | `LanguageSelect/ui/LanguageCard.tsx` | JP / CN selection card | `language`, `selected`, `onClick` | `LanguageCard.stories.tsx` |
@@ -42,11 +44,11 @@ Storybook stories without mocking.
 | Component | File | Stores used |
 |-----------|------|------------|
 | `Search` | `Search/Search.tsx` | `$userProfile`, search/history effects |
-| `WordCard` | `WordCard/WordCard.tsx` | `$userProfile`, `$savedWords`, dictionary effects |
+| `WordCard` | `WordCard/WordCard.tsx` | `$userProfile`, `useSavedExpressions` (batched saved-check), dictionary effects |
 | `SentenceCard` | `Sentence/SentenceCard.tsx` | `$userProfile` |
 | `KanjiCard` | `KanjiCard/KanjiCard.tsx` | `$userProfile` |
 | `WordInspector` | `WordInspector/WordInspector.tsx` | `$inspectedWord`, example sentence effect |
-| `DictionaryPanel` | `Dictionary/DictionaryPanel.tsx` | `$savedWords`, dictionary effects (incl. `toggleSuspendFx`) |
+| `DictionaryPanel` | `Dictionary/DictionaryPanel.tsx` | `$items`, `$total`, `$deckSummaries`, dictionary effects; owns the URL-backed query via `useDictionaryFilters` |
 | `AuthModal` | `Auth/AuthModal.tsx` | `loginFx`, `registerFx` |
 | `AuthGate` | `features/Auth/AuthGate.tsx` | `$isAuthenticated`, `$sessionResolved` |
 | Home page | `app/page.tsx` | all global stores |

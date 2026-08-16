@@ -121,7 +121,7 @@ export const db = {
   reviewStats: (language: string | null): ReviewStats => {
     const now = Date.now();
     const cards = language ? reviewCards.filter((c) => c.language === language) : reviewCards;
-    const stats: ReviewStats = { new: 0, due: 0, learned: 0, suspended: 0 };
+    const stats: ReviewStats = { new: 0, due: 0, learned: 0, suspended: 0, decks: [] };
     for (const c of cards) {
       if (c.suspended) stats.suspended += 1;
       else if (c.repetitions === 0) stats.new += 1;

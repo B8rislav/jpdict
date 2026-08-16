@@ -22,11 +22,11 @@ type Story = StoryObj<typeof StudyDashboard>;
 const noop = () => {};
 
 export const WithCards: Story = {
-  args: { stats: { due: 12, new: 5, learned: 84, suspended: 3 }, onStart: noop },
+  args: { stats: { due: 12, new: 5, learned: 84, suspended: 3, decks: [] }, onStart: noop },
 };
 
 export const Empty: Story = {
-  args: { stats: { due: 0, new: 0, learned: 84, suspended: 0 }, onStart: noop },
+  args: { stats: { due: 0, new: 0, learned: 84, suspended: 0, decks: [] }, onStart: noop },
 };
 
 export const Loading: Story = {
@@ -42,7 +42,7 @@ const Replayer = () => {
   }, []);
   return (
     <StudyDashboard
-      stats={{ due: 12 + n * 7, new: 5 + n * 2, learned: 84 + n * 11, suspended: 3 }}
+      stats={{ due: 12 + n * 7, new: 5 + n * 2, learned: 84 + n * 11, suspended: 3, decks: [] }}
       onStart={fn()}
     />
   );
@@ -56,7 +56,7 @@ export const CountUpReplay: Story = {
 export const ReducedMotion: Story = {
   render: () => (
     <MotionConfig reducedMotion="always">
-      <StudyDashboard stats={{ due: 12, new: 5, learned: 84, suspended: 3 }} onStart={fn()} />
+      <StudyDashboard stats={{ due: 12, new: 5, learned: 84, suspended: 3, decks: [] }} onStart={fn()} />
     </MotionConfig>
   ),
 };

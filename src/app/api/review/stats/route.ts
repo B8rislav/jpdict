@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { toReviewStats, type BackendReviewStats } from '@/shared/api/mappers';
 import { backendFetch, cacheAccessToken } from '@/shared/api/serverAuth';
 
 export async function GET(req: NextRequest) {
@@ -10,7 +11,13 @@ export async function GET(req: NextRequest) {
   const call = await backendFetch(req, `/api/review/stats?${query.toString()}`);
   if (call.error) return call.error;
 
-  // Stats already match the frontend shape (new/due/learned/suspended), so pass through.
-  const data = await call.upstream.json();
-  return cacheAccessToken(NextResponse.json(data, { status: call.upstream.status }), call);
+  if (!call.upstream.ok) {
+    return NextResponse.json(await call.upstream.json().catch(() => ({})), {
+      status: call.upstream.status,
+    });
+  }
+
+  // The flat counts already match the frontend shape; `decks` needs camelCasing.
+  const data = (await call.upstream.json()) as BackendReviewStats;
+  return cacheAccessToken(NextResponse.json(toReviewStats(data)), call);
 }

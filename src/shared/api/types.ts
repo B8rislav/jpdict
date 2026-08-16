@@ -2,6 +2,9 @@ export type MasteryStatus = 'new' | 'learning' | 'known';
 
 export type Language = 'jp' | 'cn';
 
+/** Which deck a saved card belongs to. Mirrors the backend's `card_type`. */
+export type CardType = 'word' | 'kanji';
+
 export type Word = {
   id?: string;
   kanji_full?: string;
@@ -42,7 +45,26 @@ export type SentenceToken = {
   gloss?: string;
 };
 
-export type SavedWord = Word & { savedAt: string; status: MasteryStatus; suspended: boolean };
+export type SavedWord = Word & {
+  savedAt: string;
+  status: MasteryStatus;
+  suspended: boolean;
+  cardType: CardType;
+  /** Kanji cards only — the «7 черт» pill. */
+  strokeCount?: number;
+};
+
+/** One page of a filtered dictionary listing. `total` counts all matches, not this page. */
+export type VocabularyPage = { items: SavedWord[]; total: number };
+
+/** One deck's counts, as the dictionary's deck cards render them. */
+export type DeckSummary = {
+  cardType: CardType;
+  total: number;
+  due: number;
+  newToday: number;
+  doneToday: number;
+};
 
 export type DictEntry = {
   id: string;

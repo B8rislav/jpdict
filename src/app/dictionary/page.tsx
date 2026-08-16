@@ -1,57 +1,40 @@
 'use client';
 
-import { Label, Text } from '@gravity-ui/uikit';
-import Link from 'next/link';
-import { useEffect } from 'react';
+import { SectionHeading } from 'designoslav';
 import { useUnit } from 'effector-react';
+import { Suspense } from 'react';
 
-import { $savedWords, DictionaryPanel, loadDictionaryFx } from '@/features/Dictionary';
-import { $stats, fetchStatsFx } from '@/features/Review';
 import { AuthGate } from '@/features/Auth/AuthGate';
-import { $isAuthenticated } from '@/stores/auth';
+import { $deckSummaries, DictionaryPanel } from '@/features/Dictionary';
 
 import { useT } from '@/shared/i18n';
 import styles from './page.module.css';
-import { useProfile } from '@/shared/profile/context';
 
 export default function DictionaryPage() {
   const t = useT();
-  const savedWords = useUnit($savedWords);
-  const isAuthenticated = useUnit($isAuthenticated);
-  const { uiLocale, selectedLanguage } = useProfile();
-  const stats = useUnit($stats);
+  const decks = useUnit($deckSummaries);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadDictionaryFx();
-      fetchStatsFx();
-    }
-  }, [isAuthenticated, selectedLanguage]);
-
-  const wordCountLabel = t('dict_count', new Intl.PluralRules(uiLocale).select(savedWords.length));
-  const due = stats?.due ?? 0;
+  const total = decks.reduce((sum, deck) => sum + deck.total, 0);
+  const today = decks.reduce((sum, deck) => sum + deck.due + deck.newToday, 0);
 
   return (
-    <div className={styles.page}>
+    <main className={styles.page}>
       <div className={styles.header}>
-        <Link href="/" className={styles.back}>
-          {t('ui', 'settings_back')}
-        </Link>
-        <Text variant="display-1">{t('ui', 'dict_title')}</Text>
-        {due > 0 && (
-          <Link href="/study" style={{ textDecoration: 'none' }}>
-            <Label theme="info" size="m">
-              {t('review', 'count_due')}: {due}
-            </Label>
-          </Link>
-        )}
+        <SectionHeading as="h1">
+          <span className={styles.native}>{t('ui', 'dict_title_native')}</span>{' '}
+          {t('ui', 'dict_title')}
+        </SectionHeading>
+        <span className={styles.counts}>
+          {total} {t('ui', 'dict_cards_total')} · {t('ui', 'dict_today_total')} {today}
+        </span>
       </div>
+
       <AuthGate title={t('ui', 'dict_personal')}>
-        <Text className={styles.count} variant="body-2">
-          {savedWords.length} {wordCountLabel}
-        </Text>
-        <DictionaryPanel />
+        {/* useSearchParams needs a Suspense boundary to keep the route prerenderable. */}
+        <Suspense fallback={null}>
+          <DictionaryPanel />
+        </Suspense>
       </AuthGate>
-    </div>
+    </main>
   );
 }

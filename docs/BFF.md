@@ -18,6 +18,7 @@ NEXT_PUBLIC_BACKEND_URL  →  FASTAPI_URL  →  http://localhost:8000
 | GET | `/api/parse-sentence` | No | `BACKEND_URL/api/parse-sentence` | No |
 | POST | `/api/ai-overview` | No | **OpenRouter** (`openrouter.ai/api/v1/chat/completions`) | **Yes (SSE)** |
 | GET | `/api/dictionary` | Yes (cookie JWT) | `BACKEND_URL/api/vocabulary` | No |
+| GET | `/api/dictionary/saved` | Yes | `BACKEND_URL/api/vocabulary/saved` | No |
 | POST | `/api/dictionary` | Yes | `BACKEND_URL/api/vocabulary` | No |
 | DELETE | `/api/dictionary/[id]` | Yes | `BACKEND_URL/api/vocabulary/{id}` | No |
 | PATCH | `/api/dictionary/[id]` | Yes | `BACKEND_URL/api/vocabulary/{id}` | No |

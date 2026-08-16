@@ -1,10 +1,15 @@
 export { DictionaryPanel } from './DictionaryPanel';
-export { DictionaryWordCard } from './DictionaryWordCard';
 export {
-  $savedWords,
+  $deckSummaries,
+  $sessionSaved,
+  $items,
+  $total,
   addWordFx,
-  loadDictionaryFx,
+  fetchDeckSummariesFx,
+  fetchSavedFx,
+  loadPageFx,
   removeWordFx,
   updateStatusFx,
   toggleSuspendFx,
 } from './model';
+export { useSavedExpressions } from './model/useSavedExpressions';

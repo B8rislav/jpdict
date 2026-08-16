@@ -1,124 +1,87 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
-import { useState } from 'react';
 import { fn } from 'storybook/test';
+
 import { type MasteryStatus, type SavedWord } from '@/shared/api/types';
-import { useDictionaryFilters } from '../model/useDictionaryFilters';
 import { DictionaryPanelView } from './DictionaryPanelView';
 
-const word = (overrides: Partial<SavedWord>): SavedWord => ({
-  id: crypto.randomUUID(),
-  kanji_full: '勉強',
-  hiragana_full: 'べんきょう',
-  def_en: ['study'],
-  markers: ['JLPT N4'],
+const word = (
+  kanji: string,
+  reading: string,
+  ru: string,
+  en: string,
+  level: string,
+  status: MasteryStatus,
+): SavedWord => ({
+  id: `${kanji}-${status}`,
+  cardType: 'word',
+  kanji_full: kanji,
+  hiragana_full: reading,
+  def_ru: [ru],
+  def_en: [en],
+  markers: [level],
   savedAt: '2026-06-01T00:00:00Z',
-  status: 'new',
+  status,
   suspended: false,
-  ...overrides,
 });
 
-const jpWords: SavedWord[] = [
-  word({ kanji_full: '勉強', hiragana_full: 'べんきょう', markers: ['JLPT N4'], status: 'new' }),
-  word({ kanji_full: 'water', hiragana_full: 'みず', markers: ['JLPT N5'], status: 'learning' }),
-  word({ kanji_full: '経済', hiragana_full: 'けいざい', markers: ['JLPT N2'], status: 'known' }),
-  word({
-    kanji_full: '難しい',
-    hiragana_full: 'むずかしい',
-    markers: ['JLPT N4'],
-    suspended: true,
-  }),
+const words: SavedWord[] = [
+  word('食べる', 'たべる', 'есть', 'to eat', 'JLPT N5', 'new'),
+  word('図書館', 'としょかん', 'библиотека', 'library', 'JLPT N4', 'learning'),
+  word('経済', 'けいざい', 'экономика', 'economy', 'JLPT N3', 'known'),
+  word('難しい', 'むずかしい', 'трудный', 'difficult', 'JLPT N4', 'new'),
+  word('約束', 'やくそく', 'обещание', 'promise', 'JLPT N3', 'learning'),
 ];
 
-const cnWords: SavedWord[] = [
-  word({ kanji_full: '学习', hiragana_full: 'xuéxí', markers: ['HSK 1'], status: 'learning' }),
-  word({ kanji_full: '经济', hiragana_full: 'jīngjì', markers: ['HSK 4'], status: 'known' }),
+const kanji: SavedWord[] = [
+  { ...word('私', 'シ', 'я, частный, личный', 'private', 'JLPT N5', 'known'), cardType: 'kanji', strokeCount: 7 },
+  { ...word('毎', 'マイ', 'каждый, всякий', 'every', 'JLPT N5', 'learning'), cardType: 'kanji', strokeCount: 6 },
+  { ...word('語', 'ゴ', 'язык; слово', 'language', 'JLPT N5', 'new'), cardType: 'kanji', strokeCount: 14 },
 ];
 
 const meta: Meta<typeof DictionaryPanelView> = {
   title: 'features/DictionaryPanelView',
   component: DictionaryPanelView,
-  decorators: [
-    (Story) => (
-      <div style={{ width: 720, margin: 25 }}>
-        <Story />
-      </div>
-    ),
-  ],
   args: {
-    words: jpWords,
-    totalCount: jpWords.length,
-    levelFilter: null,
-    statusFilter: null,
-    hasJlpt: true,
-    hasHsk: false,
-    onToggleLevel: fn(),
-    onToggleStatus: fn(),
+    deck: 'word',
+    items: words,
+    total: words.length,
+    loading: false,
+    emptyCollection: false,
+    canSpeak: true,
+    onSpeak: fn(),
     onDelete: fn(),
     onAdvanceStatus: fn(),
-    onToggleSuspend: fn(),
+    onEndReached: fn(),
   },
 };
 
 export default meta;
 type Story = StoryObj<typeof DictionaryPanelView>;
 
-export const JlptCollection: Story = {};
+/** The word deck: gloss shows both languages, status pill advances on click. */
+export const WordDeck: Story = {};
 
-export const HskCollection: Story = {
-  args: { words: cnWords, totalCount: cnWords.length, hasJlpt: false, hasHsk: true },
+/** The kanji deck renders a tile grid instead of rows. */
+export const KanjiDeck: Story = {
+  args: { deck: 'kanji', items: kanji, total: kanji.length },
 };
 
-/** Both level scales offered when the collection spans languages. */
-export const MixedCollection: Story = {
-  args: {
-    words: [...jpWords, ...cnWords],
-    totalCount: jpWords.length + cnWords.length,
-    hasJlpt: true,
-    hasHsk: true,
-  },
+/** No voice for the study language — ▶ is disabled rather than silently doing nothing. */
+export const WithoutSpeech: Story = {
+  args: { canSpeak: false },
 };
 
-export const FilterActive: Story = {
-  args: {
-    words: jpWords.filter((entry) => entry.markers?.includes('JLPT N4')),
-    totalCount: jpWords.length,
-    levelFilter: 'N4',
-  },
-};
-
-/** Nothing saved at all — distinct copy from "nothing matches". */
+/** Nothing saved yet — distinct from filters matching nothing. */
 export const EmptyCollection: Story = {
-  args: { words: [], totalCount: 0, hasJlpt: false, hasHsk: false },
+  args: { items: [], total: 0, emptyCollection: true },
 };
 
-/** Words exist but the active filter excludes all of them. */
+/** Filters exclude everything; the copy tells the user it's the filters, not the collection. */
 export const NoFilterMatches: Story = {
-  args: { words: [], totalCount: jpWords.length, statusFilter: 'known', levelFilter: 'N1' },
+  args: { items: [], total: 0, emptyCollection: false },
 };
 
-/** Interactive: exercises the real filter hook the container uses. */
-const Filterable = () => {
-  const [words] = useState(() => [...jpWords, ...cnWords]);
-  const { filtered, levelFilter, statusFilter, toggleLevel, toggleStatus, hasJlpt, hasHsk } =
-    useDictionaryFilters(words);
-
-  return (
-    <DictionaryPanelView
-      words={filtered}
-      totalCount={words.length}
-      levelFilter={levelFilter}
-      statusFilter={statusFilter}
-      hasJlpt={hasJlpt}
-      hasHsk={hasHsk}
-      onToggleLevel={toggleLevel}
-      onToggleStatus={(status: MasteryStatus) => toggleStatus(status)}
-      onDelete={fn()}
-      onAdvanceStatus={fn()}
-      onToggleSuspend={fn()}
-    />
-  );
-};
-
-export const Interactive: Story = {
-  render: () => <Filterable />,
+/** Another page is in flight, shown as a trailing row inside the list. */
+export const LoadingMore: Story = {
+  args: { loading: true, total: 40 },
 };

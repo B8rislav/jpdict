@@ -1,19 +1,26 @@
 .page {
-  padding: 40px 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 40px 24px;
 }
 
 .header {
   display: flex;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 32px;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.back {
-  text-decoration: none;
-  color: var(--g-color-text-secondary);
+/* The Japanese title sits inside the heading, in the display face. */
+.native {
+  font-family: var(--do-font-serif);
 }
 
-.count {
-  color: var(--g-color-text-secondary);
+.counts {
+  color: var(--do-color-text-subtle);
+  font-size: var(--do-font-size-sm);
 }

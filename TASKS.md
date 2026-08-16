@@ -332,3 +332,153 @@ the frontend's camelCase shape. The BFF does the translation.
   backend once it's running; optional Designoslav `SearchOptionList` `footer` prop so the
   keyboard caption sits inside the card; per-row history delete needs a `SearchOption`
   affordance (dropped for now — `removeHistoryFx` retained in the model).
+
+---
+
+## 📚 DICT — Dictionary page redesign (decks, filters, virtualized lists)
+
+> **Goal:** rebuild `/dictionary` to the approved mock — a `辞書 Словарь` heading with a
+> totals line, two **deck cards** (Кандзи 漢字 / Слова 単語) showing today's workload and
+> progress, a filter bar (search + level + status + «Показано: N»), and the open deck's
+> collection below: virtualized rows for words, a virtualized grid of tiles for kanji.
+> Backend counterpart: `backend` Phase 20.
+>
+> **Key architecture fact (don't fight it):** `designoslav` is installed **from GitHub**,
+> not from the local checkout at `~/Documents/designoslav`. DICT.0–DICT.3 must all land
+> and be pushed (DICT.4) before DICT.5+ can compile.
+>
+> **Decisions baked in** (from the design review — don't relitigate without saying so):
+> - **▶ is browser TTS** — `window.speechSynthesis` with a `ja-JP`/`zh-CN` voice. No
+>   backend, no audio files. The button must degrade honestly when no voice exists (it
+>   commonly doesn't on Linux), not fail silently.
+> - **Decks are `card_type` on the backend**, not a client-side heuristic. The kanji deck
+>   is real saved data, added from two places: the `action` slot designoslav's `KanjiCard`
+>   already exposes, and the constituent-kanji rows in `WordInspector`.
+> - **The open deck lives in the URL** (`/dictionary?deck=kanji`), so it survives reload
+>   and is linkable. Filters, search and paging join it there.
+> - **Search, filters and paging are server-side.** `useDictionaryFilters`
+>   (`src/features/Dictionary/model/useDictionaryFilters.ts`) stops being a client filter
+>   and becomes query-param state — filtering one page client-side would make
+>   «Показано: N» lie.
+> - **`$savedWords` is retired.** It cannot be both the page's paged list and the global
+>   saved-set. The "saved ✓" checks in `WordCard`/`WordInspector` move to a batched
+>   backend call (`GET /api/vocabulary/saved`).
+> - **Virtualization lives in designoslav**, via the already-installed but so-far-unused
+>   `react-window@2.2.7` (`List` + `Grid`). Note this makes react-window the lib's **first
+>   runtime dependency** — it has had react peer-only until now.
+> - **Row actions are ▶ and ✕ only**, per the mock. The status pill keeps today's
+>   click-to-advance behaviour (Новое → Учу → Знаю), so nothing is lost; **suspend leaves
+>   this page** — `toggleSuspendFx` and its routes stay for `/study`, so no dead code.
+> - **`SectionHeading`, `SearchField`, `ToggleGroup`, `Button`, `DashboardCard` are reused
+>   as-is.** «Все N5 N4 N3 N2 N1» is exactly `ToggleGroup`'s required-single-select model
+>   with an `all` option — no new filter component, and no nullable-value variant needed.
+
+### DICT.0 — Designoslav: `Badge` primitive
+
+- [x] `Badge` — the one primitive behind the JLPT tag, the status pill, «ОТКРЫТА» and the
+  «7 черт» stroke pill. Variants keyed to the palette (`neutral` / `learning` / `known` /
+  `accent`), sizes `s`/`m`, optional `as="button"` for the click-to-advance status pill.
+  Export from `src/index.ts` + story.
+
+**Done when:** `Badge` covers all four mock usages with no per-call-site CSS, and the
+app's `MarkerList` (`src/shared/ui/MarkerList/MarkerList.tsx`) can drop Gravity's `Label`
+for it — one more step off Gravity.
+
+### DICT.1 — Designoslav: `DeckCard`
+
+- [x] `DeckCard` on top of `DashboardCard`: glyph badge (漢/語), title + native subtitle,
+  deck size caption, an `open` state (celadon border + «ОТКРЫТА» `Badge`), a
+  «НА СЕГОДНЯ n» / «x из n сделано» row, a progress bar, a legend of dotted counts
+  (Повторить · n / Новых · n), and a **footer action slot**.
+- [x] Nested-interactive trap: the card is selectable *and* contains a CTA. The card body
+  gets the click affordance and the CTA is a **sibling**, not a descendant — never a
+  `<button>` inside a `<button>`/`<a>`.
+
+**Done when:** both mock states render from props alone (open + partial progress, closed +
+zero progress), story covers both, and the component holds no state.
+
+### DICT.2 — Designoslav: `VocabRow` + virtualized `VocabList`
+
+- [x] `VocabRow` — status-coloured left accent, headword + reading, gloss line, a `badges`
+  slot and an `actions` slot. Presentational; it does not know what ▶ or ✕ do.
+- [x] `VocabList` — `react-window` `List` over `VocabRow`. Owns its scroll container,
+  takes `onEndReached` for infinite loading, and renders a footer slot for the loading row.
+
+**Done when:** 1000 fixture rows scroll without jank in Storybook, and `VocabRow` renders
+standalone (unvirtualized) so stories and tests don't need a sized parent.
+
+### DICT.3 — Designoslav: `CardTile` + virtualized `CardGrid`
+
+- [x] `CardTile` — the compact kanji tile: status dot, large glyph, meaning, reading, and
+  a footer of `Badge`s (JLPT · strokes · status). Distinct from the existing `KanjiCard`,
+  which is the full detail card and stays untouched.
+- [x] `CardGrid` — `react-window` `Grid` with a responsive column count.
+
+**Done when:** the grid reflows from 5 columns to 1 without a horizontal scrollbar and
+tiles keep a stable aspect at every width.
+
+### DICT.4 — Publish the lib
+
+- [x] `npm run verify` in designoslav, commit, push, then `npm update designoslav` here.
+  Nothing in DICT.5+ compiles until this lands.
+
+### DICT.5 — jpdict: types + API layer
+
+- [x] `CardType`, `DeckSummary`, `VocabularyPage`, and `SavedWord` gaining `cardType` /
+  `strokeCount` in `src/shared/api/types.ts`.
+- [x] `src/shared/api/mappers/vocabulary.ts`: map the new columns, and **send both glosses**
+  in `toVocabularyPayload` (`meaning` + `meaning_ru`) — line 32 currently discards one.
+- [x] BFF: `src/app/api/dictionary/route.ts` forwards the new query params and the
+  envelope; new `src/app/api/dictionary/saved/route.ts`; `src/app/api/review/stats/route.ts`
+  passes the deck summary through.
+
+### DICT.6 — jpdict: model
+
+- [x] Deck / filters / search / paging as URL state (`?deck=&level=&status=&q=`), debounced
+  into a paged Effector store; `useDictionaryFilters` rewritten as the query-param reader.
+- [x] `loadDictionaryFx` becomes page-aware (append, not replace); `$deckSummaries` +
+  `fetchDeckSummariesFx`.
+
+### DICT.7 — jpdict: page assembly
+
+- [x] `src/app/dictionary/page.tsx` → heading + totals, `DeckCard` pair, filter bar,
+  and the deck's collection. Watch `max-lines: 100` on the page and the container; new
+  container files need adding to `STATEFUL_FILES` in `eslint.config.mjs`.
+- [x] Retire `DictionaryWordCard` and `DictionaryPanelView`'s filter markup in favour of
+  the lib components; drop the Gravity `Text`/`Label` imports from this route.
+
+### DICT.8 — jpdict: pronunciation
+
+- [x] `useSpeech` hook in `src/shared/` (not a feature — `/study` will want it too):
+  picks a voice for the study language, exposes `speak(text)` and a `supported` flag.
+  The ▶ button renders disabled with a title when `supported` is false.
+
+### DICT.9 — jpdict: adding kanji
+
+- [x] Fill designoslav `KanjiCard`'s `action` slot in `src/features/KanjiCard/` with a
+  save/saved button wired to a new `addKanjiFx` (`card_type: 'kanji'`, carrying
+  `stroke_count` and both glosses from the lookup already on screen).
+- [x] Same affordance on the constituent-kanji rows in `WordInspector`
+  (`src/features/WordInspector/WordInspector.tsx:76` is the existing word-save precedent);
+  needs a save slot threaded through designoslav's `WordCard` `KanjiInWord` type.
+
+### DICT.10 — jpdict: retire `$savedWords`
+
+- [x] Replace the store with a batched `fetchSavedFx` per rendered view; update
+  `WordCard.tsx:6` and `WordInspector.tsx:37` (which today compares
+  `saved.kanji_full ?? saved.hiragana_full` against the expression).
+- [x] Remove the now-dead full-list load from `src/app/page.tsx:17`.
+
+### DICT.11 — i18n, stories, docs, verify
+
+- [x] `ru.json` / `en.json`: `deck_*`, `dict_*`, `tts_*`, «Показано», «Показать ещё»,
+  deck titles and native subtitles. No Cyrillic literals in `.tsx` (ESLint enforces it).
+- [x] Stories for every new `ui/` component (`npm run check:stories`).
+- [x] Docs: `docs/COMPONENTS.md` rows for the new lib components, `docs/STATE.md` for the
+  store split, `docs/BFF.md` for the new routes — and **amend the "window is the only
+  scroll surface" rule** in `CLAUDE.md` + `docs/UX.md`, which DICT.2/DICT.3 deliberately
+  break. Leaving it unamended makes the doc lie.
+- [x] `npm run verify` green in both repos.
+
+**Done when:** both decks render from real backend data, the filter bar drives server-side
+queries, the URL fully describes the view, and no page fetches the whole vocabulary.

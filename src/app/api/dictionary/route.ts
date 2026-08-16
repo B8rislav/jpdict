@@ -1,9 +1,34 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { toSavedWord, toVocabularyPayload, type BackendWord } from '@/shared/api/mappers';
+import {
+  toSavedWord,
+  toVocabularyPage,
+  toVocabularyPayload,
+  type BackendVocabularyPage,
+  type BackendWord,
+} from '@/shared/api/mappers';
 import { backendFetch, cacheAccessToken } from '@/shared/api/serverAuth';
 
+/** Filters forwarded verbatim to FastAPI; anything else the client sends is dropped. */
+const FORWARDED_PARAMS = [
+  'language',
+  'card_type',
+  'q',
+  'jlpt_level',
+  'hsk_level',
+  'status',
+  'limit',
+  'offset',
+] as const;
+
 export async function GET(req: NextRequest) {
-  const call = await backendFetch(req, '/api/vocabulary');
+  const { searchParams } = new URL(req.url);
+  const query = new URLSearchParams();
+  for (const key of FORWARDED_PARAMS) {
+    const value = searchParams.get(key);
+    if (value) query.set(key, value);
+  }
+
+  const call = await backendFetch(req, `/api/vocabulary?${query.toString()}`);
   if (call.error) return call.error;
 
   if (!call.upstream.ok) {
@@ -12,8 +37,8 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  const words = (await call.upstream.json()) as BackendWord[];
-  return cacheAccessToken(NextResponse.json(words.map(toSavedWord)), call);
+  const page = (await call.upstream.json()) as BackendVocabularyPage;
+  return cacheAccessToken(NextResponse.json(toVocabularyPage(page)), call);
 }
 
 export async function POST(req: NextRequest) {

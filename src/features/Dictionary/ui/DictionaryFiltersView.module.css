@@ -1,0 +1,18 @@
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.search {
+  flex: 0 1 240px;
+}
+
+/* Pushed to the trailing edge; it reports on the list rather than filtering it. */
+.shown {
+  margin-inline-start: auto;
+  color: var(--do-color-text-subtle);
+  font-size: var(--do-font-size-sm);
+  white-space: nowrap;
+}

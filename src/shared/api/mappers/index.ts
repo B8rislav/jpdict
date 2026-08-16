@@ -1,3 +1,16 @@
 export { levelMarkers, parseLevelMarkers } from './levels';
-export { toReviewCard, toReviewResult } from './review';
-export { toSavedWord, toVocabularyPayload, type BackendWord } from './vocabulary';
+export {
+  toDeckSummary,
+  toReviewCard,
+  toReviewResult,
+  toReviewStats,
+  type BackendDeckSummary,
+  type BackendReviewStats,
+} from './review';
+export {
+  toSavedWord,
+  toVocabularyPage,
+  toVocabularyPayload,
+  type BackendVocabularyPage,
+  type BackendWord,
+} from './vocabulary';

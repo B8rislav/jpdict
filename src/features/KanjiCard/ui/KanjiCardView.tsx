@@ -2,6 +2,7 @@
 
 import { type FC } from 'react';
 import { Text } from '@gravity-ui/uikit';
+import { Button } from 'designoslav';
 import { MarkerList } from '@/shared/ui/MarkerList/MarkerList';
 import { type Kanji } from '@/shared/api/types';
 import { Card } from '@/shared/ui/Card';
@@ -9,7 +10,13 @@ import { StrokeOrder } from './StrokeOrder';
 import { useT } from '@/shared/i18n';
 import styles from './KanjiCardView.module.css';
 
-type KanjiCardViewProps = Kanji & { selectedLanguage: 'jp' | 'cn' | null };
+type KanjiCardViewProps = Kanji & {
+  selectedLanguage: 'jp' | 'cn' | null;
+  /** Whether this character is already in the kanji deck. */
+  isSaved?: boolean;
+  /** Adds it to the kanji deck. Omit to hide the affordance entirely. */
+  onSave?: () => void;
+};
 
 export const KanjiCardView: FC<KanjiCardViewProps> = ({
   kanji,
@@ -22,6 +29,8 @@ export const KanjiCardView: FC<KanjiCardViewProps> = ({
   pinyin,
   parts,
   selectedLanguage,
+  isSaved = false,
+  onSave,
 }) => {
   const t = useT();
 
@@ -77,6 +86,17 @@ export const KanjiCardView: FC<KanjiCardViewProps> = ({
         </div>
       )}
       {kanji && <StrokeOrder kanji={kanji} />}
+      {onSave && (
+        <Button
+          className={styles.save}
+          variant={isSaved ? 'secondary' : 'primary'}
+          disabled={isSaved}
+          onClick={onSave}
+          fullWidth
+        >
+          {t('ui', isSaved ? 'dict_added_kanji' : 'dict_add_kanji')}
+        </Button>
+      )}
     </Card>
   );
 };

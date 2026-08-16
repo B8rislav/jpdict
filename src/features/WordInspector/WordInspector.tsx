@@ -3,7 +3,10 @@
 import { useUnit } from 'effector-react';
 import { type FC, useEffect, useMemo, useState } from 'react';
 
-import { addWordFx, $savedWords } from '@/features/Dictionary';
+import { Button } from 'designoslav';
+
+import { addWordFx, useSavedExpressions } from '@/features/Dictionary';
+import { kanjiToPayload } from '@/features/Dictionary/lib/kanjiToPayload';
 import { type Word } from '@/shared/api/types';
 import { useT } from '@/shared/i18n';
 import { useProfile } from '@/shared/profile/context';
@@ -22,7 +25,6 @@ export const WordInspector: FC<{ word: Word }> = ({ word }) => {
   const { selectedLanguage } = useProfile();
   const exampleSentences = useUnit($exampleSentences);
   const examplesPending = useUnit(fetchExampleSentencesFx.pending);
-  const savedWords = useUnit($savedWords);
   const inspectorKanji = useUnit($inspectorKanji);
 
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -32,10 +34,16 @@ export const WordInspector: FC<{ word: Word }> = ({ word }) => {
   const [examplesRequested, setExamplesRequested] = useState(false);
 
   const expression = word.kanji_full ?? word.hiragana_full;
-  const isSaved = Boolean(
-    expression &&
-    savedWords.some((saved) => (saved.kanji_full ?? saved.hiragana_full) === expression),
+  const saved = useSavedExpressions(expression ? [expression] : []);
+  const isSaved = Boolean(expression && saved.has(expression));
+
+  // The word's constituent characters, checked against the kanji deck in one request
+  // rather than one per character.
+  const kanjiChars = useMemo(
+    () => inspectorKanji.map((entry) => entry.kanji ?? '').filter(Boolean),
+    [inspectorKanji],
   );
+  const savedKanji = useSavedExpressions(kanjiChars, 'kanji');
 
   // Load the characters making up the word.
   useEffect(() => {
@@ -45,9 +53,28 @@ export const WordInspector: FC<{ word: Word }> = ({ word }) => {
     }
   }, [word.kanji_full, selectedLanguage]);
 
+  // Each character carries its own add-to-deck button in KanjiCard's footer slot.
+  // The mapper stays pure; only the container knows what saving means.
   const kanji = useMemo(
-    () => inspectorKanji.map((entry) => kanjiToInWord(entry, t)),
-    [inspectorKanji, t],
+    () =>
+      inspectorKanji.map((entry) => {
+        const character = entry.kanji ?? '';
+        const alreadySaved = savedKanji.has(character);
+        return {
+          ...kanjiToInWord(entry, t),
+          action: (
+            <Button
+              variant={alreadySaved ? 'secondary' : 'primary'}
+              disabled={alreadySaved}
+              onClick={() => addWordFx(kanjiToPayload(entry))}
+              fullWidth
+            >
+              {t('ui', alreadySaved ? 'dict_added_kanji' : 'dict_add_kanji')}
+            </Button>
+          ),
+        };
+      }),
+    [inspectorKanji, savedKanji, t],
   );
 
   // Examples are fetched lazily, the first time their section is opened.

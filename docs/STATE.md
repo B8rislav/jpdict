@@ -200,17 +200,41 @@ Array of `{ id, query }` objects, capped at 20, filtered by active language.
 
 ---
 
-### `$savedWords`
+### `$items` / `$total` / `$deckSummaries`
 
 File: `src/features/Dictionary/model/index.ts`
 
-Array of `SavedWord` objects from the user's vocabulary list.
+The dictionary page's current **page** of `SavedWord` rows, the count of everything
+matching the filters, and the per-deck counts behind the two deck cards.
 
-**Writers:** `loadDictionaryFx.doneData`, `addWordFx.doneData`, `removeWordFx`, `updateStatusFx`, `toggleSuspendFx.doneData` (flips `suspended` via the `/api/review/{id}/(un)suspend` BFF)
+`$savedWords` — a single store holding the user's *entire* collection — was retired here.
+It could not be both the page's list and the global "is this saved?" set once filtering
+and paging moved to the backend: filtering one page client-side would have made
+«Показано: N» disagree with the list. See `model/query.ts` for the URL-backed query that
+drives it.
 
-**Readers:** `WordCard` container (isSaved check), `DictionaryPanel`, `src/app/dictionary/page.tsx`
+**Writers:** `loadPageFx.doneData` (replaces at `offset === 0`, appends otherwise),
+`removeWordFx`, `updateStatusFx`, `toggleSuspendFx.doneData`, `fetchDeckSummariesFx.doneData`
 
-**Persistence:** BFF (`/api/dictionary`) when authenticated
+**Readers:** `DictionaryPanel`, `src/app/dictionary/page.tsx` (header totals)
+
+**Persistence:** BFF (`/api/dictionary`, `/api/review/stats`) when authenticated
+
+---
+
+### `$sessionSaved`
+
+File: `src/features/Dictionary/model/index.ts`
+
+Expressions saved during this session. With no store holding the whole collection,
+"is this saved?" is answered by a **batched** backend call — `useSavedExpressions`
+(`model/useSavedExpressions.ts`) asks `/api/dictionary/saved` once per rendered view
+rather than once per word. This store unions in anything just saved, so a card flips
+to "saved" without a refetch.
+
+**Writers:** `addWordFx.doneData`
+
+**Readers:** `useSavedExpressions`, consumed by `WordCard`, `WordInspector`, `KanjiCard`
 
 ---
 

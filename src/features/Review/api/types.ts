@@ -1,4 +1,9 @@
-import { type Language, type MasteryStatus, type Word } from '@/shared/api/types';
+import {
+  type DeckSummary,
+  type Language,
+  type MasteryStatus,
+  type Word,
+} from '@/shared/api/types';
 import { type Grade } from '../constants';
 
 /** Seconds-until-due the card would get for each grade — computed by the backend scheduler. */
@@ -19,12 +24,16 @@ export type ReviewCard = Word & {
   projectedIntervals: ProjectedIntervals;
 };
 
-/** Dashboard counts for one study language. Mirrors the backend's non-overlapping partition. */
+/**
+ * Dashboard counts for one study language. Mirrors the backend's non-overlapping
+ * partition; `decks` breaks the same numbers down per card type for /dictionary.
+ */
 export type ReviewStats = {
   new: number;
   due: number;
   learned: number;
   suspended: number;
+  decks: DeckSummary[];
 };
 
 /** The next scheduling returned after grading a card. */
