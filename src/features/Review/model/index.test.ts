@@ -82,7 +82,7 @@ describe('review store', () => {
         [$stats, { new: 2, due: 3, learned: 5, suspended: 0, decks: [], doneToday: 4, dailyGoal: 10 }],
       ],
     });
-    await allSettled(gradeCurrent, { scope, params: { grade: 'again' } });
+    await allSettled(gradeCurrent, { scope, params: { grade: 'good' } });
     expect(scope.getState($stats)).toEqual({
       new: 1,
       due: 3,
@@ -92,6 +92,24 @@ describe('review store', () => {
       doneToday: 5,
       dailyGoal: 10,
     });
+  });
+
+  it("«again» requeues the card to the back of today's stack", async () => {
+    const scope = fork({ values: [[$queue, [card('a'), card('b'), card('c')]]] });
+    await allSettled(gradeCurrent, { scope, params: { grade: 'again' } });
+    // Not dropped and not left in front — it comes round again this session.
+    expect(scope.getState($queue).map((c) => c.id)).toEqual(['b', 'c', 'a']);
+  });
+
+  it('«again» leaves the counts alone — the card is not finished', async () => {
+    const stats = { new: 2, due: 3, learned: 5, suspended: 0, decks: [], doneToday: 4, dailyGoal: 10 };
+    const scope = fork({
+      values: [[$queue, [card('a', { lastReviewedAt: null })]], [$stats, stats]],
+    });
+    await allSettled(gradeCurrent, { scope, params: { grade: 'again' } });
+    // Counting it would let «сделано» outrun the day's workload, which is the bug
+    // that made the deck card read «12 из 6».
+    expect(scope.getState($stats)).toEqual(stats);
   });
 
   it('suspending drops the card from the queue', async () => {

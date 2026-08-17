@@ -58,6 +58,21 @@ export const gradeFx = createEffect(
     gradeCard(id, grade, elapsedMs),
 );
 
+/**
+ * Whether the running session's queue has come back yet.
+ *
+ * Deliberately *not* `fetchQueueFx.pending`: that is still false on the first paint,
+ * before the container's effect has fired, so an empty queue would render as "deck
+ * finished" for a frame — which is what made entering a session flash «всё пройдено»
+ * every time. This starts false and only becomes true once a fetch settles, so the
+ * unasked state and the empty state are distinguishable.
+ */
+export const $queueLoaded = createStore(false)
+  .on(fetchQueueFx, () => false)
+  // `finally`, not `doneData`: a failed fetch must not leave the session stuck
+  // behind a skeleton forever.
+  .on(fetchQueueFx.finally, () => true);
+
 export const suspendFx = createEffect((id: string) => suspendCard(id));
 export const unsuspendFx = createEffect((id: string) => unsuspendCard(id));
 
@@ -83,8 +98,15 @@ $sessionDeck.on(fetchQueueFx, (_, deck) => deck);
 
 $queue
   .on(fetchQueueFx.doneData, (_, cards) => cards)
-  // Optimistically advance: drop the graded/skipped card without awaiting the network.
-  .on(gradeRequested, (q) => q.slice(1))
+  // A new session starts empty rather than showing the previous one's leftovers
+  // for a frame while the fetch is in flight.
+  .on(fetchQueueFx, () => [])
+  // Optimistically advance without awaiting the network. `again` doesn't drop the
+  // card — it moves it to the back of today's stack, so it comes round again this
+  // session instead of being scheduled a minute out.
+  .on(gradeRequested, (q, { grade }) =>
+    grade === 'again' ? [...q.slice(1), ...q.slice(0, 1)] : q.slice(1),
+  )
   .on(nextCard, (q) => q.slice(1))
   // A suspended card is no longer studyable — pull it from the queue.
   .on(suspendFx.done, (q, { params: id }) => q.filter((c) => c.id !== id));
@@ -93,8 +115,12 @@ $stats
   .on(fetchStatsFx.doneData, (_, stats) => stats)
   // Optimistic reconcile: the graded card leaves new/due and is now scheduled ("learned"),
   // and the goal ring ticks up — grading is a review whether or not the card was new.
-  .on(gradeRequested, (stats, { card }) => {
+  .on(gradeRequested, (stats, { card, grade }) => {
     if (!stats) return stats;
+    // `again` leaves the card due today, so nothing moves: it is not finished, it
+    // hasn't been learned, and it must not tick the goal ring. Counting it here is
+    // what would let «сделано» outrun the day's workload again.
+    if (grade === 'again') return stats;
     const wasNew = card.lastReviewedAt === null;
     return {
       ...stats,

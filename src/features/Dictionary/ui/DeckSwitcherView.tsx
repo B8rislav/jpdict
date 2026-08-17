@@ -32,8 +32,11 @@ export const DeckSwitcherView: FC<DeckSwitcherViewProps> = ({
     <div className={styles.decks}>
       {DECKS.map(({ cardType, glyph, tone }) => {
         const summary = decks.find((deck) => deck.cardType === cardType);
-        const today = (summary?.due ?? 0) + (summary?.newToday ?? 0);
         const done = summary?.doneToday ?? 0;
+        // The day's whole workload: what's finished plus what's left. Using only
+        // what's left made the denominator shrink as the numerator grew, which is
+        // how this card came to read «12 из 6».
+        const today = done + (summary?.due ?? 0) + (summary?.newToday ?? 0);
         const name = t('ui', cardType === 'kanji' ? 'deck_kanji' : 'deck_words');
 
         return (

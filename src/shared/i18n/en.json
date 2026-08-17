@@ -447,6 +447,7 @@
     "weekday_full_6": "Sunday",
     "days_one": "day",
     "days_few": "days",
-    "days_many": "days"
+    "days_many": "days",
+    "grade_requeued": "later"
   }
 }

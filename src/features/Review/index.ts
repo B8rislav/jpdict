@@ -11,6 +11,7 @@ export {
   $activity,
   $current,
   $queue,
+  $queueLoaded,
   $sessionTotal,
   $stats,
   fetchActivityFx,

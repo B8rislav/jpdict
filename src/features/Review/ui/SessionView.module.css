@@ -36,3 +36,8 @@
     flex-basis: 100%;
   }
 }
+
+/* Holds the card's height so entering a session doesn't jump the layout. */
+.cardSkeleton {
+  height: 420px;
+}

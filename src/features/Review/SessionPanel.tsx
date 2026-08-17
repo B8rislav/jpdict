@@ -6,7 +6,7 @@ import { useEffect, type FC } from 'react';
 import { type CardType } from '@/shared/api/types';
 import { useT } from '@/shared/i18n';
 import { useProfile } from '@/shared/profile/context';
-import { $current, $queue, $sessionTotal, fetchQueueFx, gradeCurrent } from './model';
+import { $current, $queue, $queueLoaded, $sessionTotal, fetchQueueFx, gradeCurrent } from './model';
 import { SessionView } from './ui/SessionView';
 
 type Props = {
@@ -20,7 +20,7 @@ type Props = {
 export const SessionPanel: FC<Props> = ({ deck, onExit, onFinish }) => {
   const t = useT();
   const { selectedLanguage } = useProfile();
-  const [card, queue, total] = useUnit([$current, $queue, $sessionTotal]);
+  const [card, queue, total, loaded] = useUnit([$current, $queue, $sessionTotal, $queueLoaded]);
 
   useEffect(() => {
     fetchQueueFx(deck);
@@ -34,6 +34,7 @@ export const SessionPanel: FC<Props> = ({ deck, onExit, onFinish }) => {
       total={total}
       remaining={queue.length}
       deck={deck}
+      loading={!loaded}
       readingLabel={readingLabel}
       onGrade={(grade, elapsedMs) => gradeCurrent({ grade, elapsedMs })}
       onExit={onExit}

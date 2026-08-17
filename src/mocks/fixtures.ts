@@ -187,7 +187,9 @@ export const seedHistory: BackendHistoryItem[] = [
   },
 ];
 
-const intervals = { again: 60, hard: 600, good: 86_400, easy: 345_600 } as const;
+// `again` projects 0: the card stays due today and is requeued to the back of the
+// session's stack, so the button labels a requeue rather than a duration.
+const intervals = { again: 0, hard: 600, good: 86_400, easy: 345_600 } as const;
 
 export const seedReviewCards: BackendReviewCard[] = [
   // New (never reviewed): repetitions 0, no due date.

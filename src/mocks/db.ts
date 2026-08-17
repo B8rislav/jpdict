@@ -2,7 +2,8 @@ import {
   type BackendReviewActivity,
   type BackendReviewCard,
 } from '@/features/Review/api/types';
-import { type BackendReviewStats } from '@/shared/api/mappers';
+import { type BackendDeckSummary, type BackendReviewStats } from '@/shared/api/mappers';
+import { type CardType } from '@/shared/api/types';
 import { type Grade } from '@/features/Review/constants';
 import {
   type BackendHistoryItem,
@@ -25,9 +26,11 @@ const DAY_MS = 86_400_000;
 /** Mirrors the backend's `users.daily_goal` server default. */
 const DAILY_GOAL = 10;
 /**
- * Reviews graded in this session. The real backend counts rows in `review_logs`;
- * this stands in for that so the goal ring and today's heatmap cell actually move
- * as you study under `npm run dev:mock`, instead of sitting frozen.
+ * Reviews graded in this session — every grade, `again` included, since the heatmap
+ * counts reviews rather than finished cards. Stands in for the backend's
+ * `review_logs` rows so today's cell moves as you study under `npm run dev:mock`
+ * instead of sitting frozen. `done_today` is *not* read from here: that counts cards
+ * finished for today and is derived from card state, exactly as the backend does it.
  */
 let gradedToday = 4;
 
@@ -143,15 +146,44 @@ export const db = {
       learned: 0,
       suspended: 0,
       decks: [],
-      done_today: gradedToday,
+      done_today: 0,
       daily_goal: DAILY_GOAL,
     };
+    // Per-deck rows, mirroring the backend's GROUP BY card_type. Without these the
+    // dictionary's deck cards render all-zero under `dev:mock`, which reads as a bug
+    // in the page rather than as missing fixture data.
+    const decks = new Map<string, BackendDeckSummary>();
+    const deckFor = (cardType: string): BackendDeckSummary => {
+      let deck = decks.get(cardType);
+      if (!deck) {
+        deck = { card_type: cardType as CardType, total: 0, due: 0, new_today: 0, done_today: 0 };
+        decks.set(cardType, deck);
+      }
+      return deck;
+    };
+    for (const cardType of ['word', 'kanji']) deckFor(cardType);
+
     for (const c of cards) {
+      const deck = deckFor(c.card_type);
+      deck.total += 1;
       if (c.suspended) stats.suspended += 1;
-      else if (c.repetitions === 0) stats.new += 1;
-      else if (c.due_at !== null && new Date(c.due_at).getTime() <= now) stats.due += 1;
-      else stats.learned += 1;
+      else if (c.repetitions === 0) {
+        stats.new += 1;
+        deck.new_today += 1;
+      } else if (c.due_at !== null && new Date(c.due_at).getTime() <= now) {
+        stats.due += 1;
+        deck.due += 1;
+      } else {
+        stats.learned += 1;
+        // "Finished for today" is exactly the card that's been reviewed and is now
+        // scheduled beyond today — the same rule the backend applies.
+        if (c.last_reviewed_at !== null) {
+          deck.done_today += 1;
+          stats.done_today = (stats.done_today ?? 0) + 1;
+        }
+      }
     }
+    stats.decks = [...decks.values()];
     return stats;
   },
 

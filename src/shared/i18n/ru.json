@@ -447,6 +447,7 @@
     "weekday_full_6": "воскресенье",
     "days_one": "день",
     "days_few": "дня",
-    "days_many": "дней"
+    "days_many": "дней",
+    "grade_requeued": "в конец"
   }
 }

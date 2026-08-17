@@ -637,3 +637,33 @@ queries, the URL fully describes the view, and no page fetches the whole vocabul
 
 **Done when:** `/study` matches all four mocks on real data, «Учить →» from a deck card opens a
 deck-scoped session, and no widget on the page renders a number the backend didn't produce.
+
+### REVIEW.13 — Follow-up: counting, «Снова», and the session's loading state
+
+Three defects found by using the finished page, fixed together because they share a
+cause: a card graded «Снова» was both rescheduled a minute out *and* counted as done.
+
+- [x] **Progress counted incoherently.** The deck card read «12 из 6» — its numerator was
+  reviews already done while its denominator was work *remaining*, so `due` shrank as
+  `done_today` grew. `done_today` now means **cards finished for today** (reviewed *and*
+  scheduled past today), and the target is `done + due + new_today` — the day's whole
+  workload. Both numbers now move monotonically and the bar cannot overfill.
+  A card graded «Снова» is deliberately in neither count: it isn't finished.
+- [x] **«Снова» no longer schedules a 1-minute interval.** `srs.schedule` leaves the card
+  due *now* (learning step and lapse path both), so it stays in today's stack; the session
+  moves it to the tail of the queue. Its `projected_intervals` entry is `0`, which the
+  client renders as «в конец» rather than as a duration — keyed off the value, not the
+  grade, so it stays honest if scheduling changes again.
+- [x] **Entering a session flashed «Колода пройдена».** An empty queue mid-flight is not a
+  finished deck. Added `$queueLoaded`, deliberately *not* `fetchQueueFx.pending` — pending
+  is still false on the first paint, before the container's effect fires, which is exactly
+  the frame that flashed.
+- [x] Mock fixtures updated (`again: 0`) and `db.reviewStats` now emits per-deck rows, so
+  `/dictionary`'s deck cards stop rendering all-zero under `npm run dev:mock` — that read
+  as a bug in the page rather than as missing fixture data.
+- [x] `make check` green in `backend` (281 tests), `npm run verify` green here (108), and
+  all four behaviours confirmed in a headless browser against the mock backend.
+
+**Done when:** progress never exceeds its target, «Снова» returns a card to the end of
+today's stack instead of scheduling it, and no session shows a completion screen it hasn't
+earned.

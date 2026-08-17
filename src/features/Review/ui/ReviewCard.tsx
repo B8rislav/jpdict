@@ -146,7 +146,15 @@ export const ReviewCard: FC<Props> = ({
             key={g}
             grade={g}
             label={t('review', g)}
-            interval={formatInterval(card.projectedIntervals[g], t)}
+            // A zero projection means the card stays due today — it goes to the back
+            // of the stack rather than being scheduled, so a duration would be a lie.
+            // Keyed off the value, not the grade, so it stays right if the backend's
+            // scheduling changes again.
+            interval={
+              card.projectedIntervals[g] === 0
+                ? t('review', 'grade_requeued')
+                : formatInterval(card.projectedIntervals[g], t)
+            }
             onClick={() => grade(g)}
           />
         ))}

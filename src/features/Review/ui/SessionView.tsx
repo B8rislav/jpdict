@@ -1,6 +1,6 @@
 'use client';
 
-import { Badge, Button, ProgressBar, SessionComplete } from 'designoslav';
+import { Badge, Button, ProgressBar, SessionComplete, Skeleton } from 'designoslav';
 import { AnimatePresence } from 'motion/react';
 import { type FC } from 'react';
 
@@ -20,6 +20,8 @@ type Props = {
   remaining: number;
   /** The deck the session was scoped to, if any — shapes the completion copy. */
   deck?: CardType;
+  /** True while the queue is in flight. Distinguishes "not loaded" from "nothing left". */
+  loading?: boolean;
   readingLabel: string;
   onGrade: (grade: Grade, elapsedMs: number) => void;
   onExit: () => void;
@@ -40,6 +42,7 @@ export const SessionView: FC<Props> = ({
   total,
   remaining,
   deck,
+  loading = false,
   readingLabel,
   onGrade,
   onExit,
@@ -55,7 +58,7 @@ export const SessionView: FC<Props> = ({
           {t('review', 'session_back')}
         </Button>
 
-        {card && (
+        {card && !loading && (
           // TODO(lib): the mock's deck badge is plum. `--do-color-info` exists as a
           // token but `Badge` has no `info` tone yet, so this is celadon until the
           // next designoslav publish adds one.
@@ -77,7 +80,12 @@ export const SessionView: FC<Props> = ({
         </span>
       </div>
 
-      {card ? (
+      {loading ? (
+        // An empty queue mid-flight is not a finished deck. Without this the
+        // completion screen flashes on every entry into a session, telling the user
+        // they're done before the first card has even been asked for.
+        <Skeleton shape="block" className={styles.cardSkeleton} />
+      ) : card ? (
         <AnimatePresence mode="wait">
           <ReviewCard
             key={card.id}
